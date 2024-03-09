@@ -1,9 +1,8 @@
-// Import the functions you need from the SDKs you need
+// Importe as funções necessárias do SDK do Firebase
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
-// Your web app's Firebase configuration
+// Sua configuração do Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDZDt-6OXvlchj6iZMVTus3FjxOiSOpKqs",
   authDomain: "lavajaapp-41d64.firebaseapp.com",
@@ -14,6 +13,11 @@ const firebaseConfig = {
   appId: "1:758673059930:web:0910c461492f48845b2863",
 };
 
-// Initialize Firebase
+// Inicialize o Firebase
 const app = initializeApp(firebaseConfig);
-export { app };
+const auth = getAuth(app);
+
+// Configuração da persistência local
+setPersistence(auth, browserLocalPersistence);
+
+export { app, auth };

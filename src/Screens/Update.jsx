@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { buscarCep, obterCoordenadas } from "../Api/index";
 import InputMask from "react-input-mask";
 import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
+import { Typography } from "@mui/material";
 const Update = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -101,7 +102,9 @@ const Update = () => {
       );
     }
   };
-
+  const handleBack = () => {
+    navigate(-1); // Isso irá para a página anterior no histórico
+  };
   return (
     <Box
       sx={{
@@ -117,6 +120,9 @@ const Update = () => {
       <AccountCircleSharpIcon
         sx={{ width: "8rem", height: "8rem", color: "#FFFFFF" }}
       />
+      <Typography variant="h5" color={"#FFFFFF"}>
+        Cadastro
+      </Typography>
       <Box
         component="form"
         onSubmit={handleUpdate}
@@ -292,13 +298,45 @@ const Update = () => {
           required
           disabled={!!cep}
         />
-
         <Button
           type="submit"
-          variant="contained"
-          sx={{ borderRadius: 3, background: " #9A6CDB" }}
+          variant="outline"
+          sx={{
+            width: "13rem",
+            borderRadius: 3,
+            background: "#9A6CDB",
+            color: "#FFFFFF",
+            ":active": {
+              background: "#FFFFFF",
+              color: "#9A6CDB",
+            },
+            ":hover": {
+              background: "#FFFFFF",
+              color: "#9A6CDB",
+            },
+          }}
         >
           Finalizar Cadastro
+        </Button>
+        <Button
+          variant="outline"
+          sx={{
+            width: "13rem",
+            borderRadius: 3,
+            background: "#9A6CDB",
+            color: "#FFFFFF",
+            ":active": {
+              background: "#FFFFFF",
+              color: "#9A6CDB",
+            },
+            ":hover": {
+              background: "#FFFFFF",
+              color: "#9A6CDB",
+            },
+          }}
+          onClick={handleBack}
+        >
+          Voltar
         </Button>
       </Box>
     </Box>
