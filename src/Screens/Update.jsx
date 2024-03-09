@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { useAuth } from "../Context/AuthContext";
@@ -8,6 +7,7 @@ import { useFirestore } from "../Context/FirestoreContext";
 import { useNavigate } from "react-router-dom";
 import { buscarCep, obterCoordenadas } from "../Api/index";
 import InputMask from "react-input-mask";
+import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
 const Update = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -105,7 +105,8 @@ const Update = () => {
   return (
     <Box
       sx={{
-        background: "#5a1299",
+        background:
+          "linear-gradient(to right top, #5a1299, #5d16a3, #6119ae, #631db9, #6621c4, #6d2cca, #7336d0, #7a3fd6, #8650d8, #915fd9, #9c6fdb, #a67edc)",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -113,46 +114,59 @@ const Update = () => {
         justifyContent: "center",
       }}
     >
+      <AccountCircleSharpIcon
+        sx={{ width: "8rem", height: "8rem", color: "#FFFFFF" }}
+      />
       <Box
         component="form"
         onSubmit={handleUpdate}
         sx={{
           height: "40rem",
-          width: "20rem",
+          width: "80%",
+          maxWidth: "40rem",
           padding: "20px",
           borderRadius: "8px",
-          background: "white",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 2,
           overflow: "auto",
-          boxShadow: 3,
         }}
       >
-        <Typography variant="h6" fontSize={20} mb={2}>
-          Cadastro
-        </Typography>
         <TextField
           type="email"
           value={email}
           label="Email"
-          variant="outlined"
           onChange={(e) => setEmail(e.target.value)}
-          required
           fullWidth
-          mb={2}
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          required
         />
+
         <TextField
           type="password"
           value={senha}
           label="Senha"
           variant="outlined"
           onChange={(e) => setSenha(e.target.value)}
-          required
           fullWidth
-          mb={2}
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          required
         />
         <TextField
           type="text"
@@ -160,65 +174,30 @@ const Update = () => {
           label="Nome da Empresa"
           variant="outlined"
           onChange={(e) => setNomeEmpresa(e.target.value)}
-          required
           fullWidth
-          mb={2}
-        />
-        <TextField
-          type="text"
-          label="CEP"
-          variant="outlined"
-          InputProps={{
-            inputComponent: InputMask,
-            inputProps: {
-              mask: "99999-999",
-              maskChar: null,
-              value: cep,
-              onChange: (e) => setCep(e.target.value),
-              onBlur: handleCepBlur,
-              required: true,
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
             },
           }}
-          fullWidth
-          mb={2}
-        />
-
-        <TextField
-          type="text"
-          value={endereco}
-          label="Rua / Av"
-          variant="outlined"
-          onChange={(e) => setEndereco(e.target.value)}
           required
-          fullWidth
-          mb={2}
-          disabled={!!cep}
-        />
-        <TextField
-          type="number"
-          value={numeroLocal}
-          label="Nº"
-          variant="outlined"
-          onChange={(e) => setNumeroLocal(e.target.value)}
-          required
-          fullWidth
-          mb={2}
-        />
-        <TextField
-          type="text"
-          value={bairro}
-          label="Bairro"
-          variant="outlined"
-          onChange={(e) => setBairro(e.target.value)}
-          required
-          fullWidth
-          mb={2}
-          disabled={!!cep}
         />
         <TextField
           type="text"
           label="Telefone"
           variant="outlined"
+          required
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
           InputProps={{
             inputComponent: InputMask,
             inputProps: {
@@ -232,8 +211,94 @@ const Update = () => {
           fullWidth
           mb={2}
         />
-        <Button type="submit" variant="contained" color="primary">
-          Cadastrar
+        <TextField
+          type="text"
+          label="CEP"
+          variant="outlined"
+          required
+          fullWidth
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          InputProps={{
+            inputComponent: InputMask,
+            inputProps: {
+              mask: "99999-999",
+              maskChar: null,
+              value: cep,
+              onChange: (e) => setCep(e.target.value),
+              onBlur: handleCepBlur,
+              required: true,
+            },
+          }}
+          mb={2}
+        />
+
+        <TextField
+          type="text"
+          value={endereco}
+          label="Rua / Av"
+          variant="outlined"
+          onChange={(e) => setEndereco(e.target.value)}
+          fullWidth
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          required
+          disabled={!!cep}
+        />
+        <TextField
+          type="number"
+          value={numeroLocal}
+          label="Nº"
+          variant="outlined"
+          onChange={(e) => setNumeroLocal(e.target.value)}
+          fullWidth
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          required
+        />
+        <TextField
+          type="text"
+          value={bairro}
+          label="Bairro"
+          variant="outlined"
+          onChange={(e) => setBairro(e.target.value)}
+          fullWidth
+          sx={{
+            borderRadius: "18px",
+            background: "#FFFFFF",
+            boxShadow: 5,
+            "& fieldset": {
+              border: "none",
+            },
+          }}
+          required
+          disabled={!!cep}
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ borderRadius: 3, background: " #9A6CDB" }}
+        >
+          Finalizar Cadastro
         </Button>
       </Box>
     </Box>
