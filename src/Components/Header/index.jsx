@@ -95,7 +95,7 @@ const Navbar = () => {
                 display:"flex",
               alignItems: "center",
               background:
-                " linear-gradient(to top, #5a1299, #6220a5, #6b2cb0, #7337bc, #7b42c8, #824bce, #8853d3, #8f5cd9, #9565da, #9b6ddb, #a076db, #a67edc);",
+                "#5F29B8",
             },
           }}
         >
