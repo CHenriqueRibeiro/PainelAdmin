@@ -2,7 +2,7 @@ import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import Navbar from "../Components/Header";
 import DashboardSidebar from "../Components/DashboardSidebar";
 
-export default function Home() {
+export default function Reports() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   return (
@@ -16,7 +16,7 @@ export default function Home() {
         }}
       >
         <Navbar />
-        <Typography>Home</Typography>
+        <Typography>Relatorios</Typography>
         {!isMobile && <DashboardSidebar />}
       </Box>
     </>

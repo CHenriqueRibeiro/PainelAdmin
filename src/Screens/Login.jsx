@@ -26,7 +26,7 @@ const Login = () => {
     <Box
       sx={{
         background:
-          "linear-gradient(to right top, #5a1299, #5d16a3, #6119ae, #631db9, #6621c4, #6d2cca, #7336d0, #7a3fd6, #8650d8, #915fd9, #9c6fdb, #a67edc)",
+          " linear-gradient(to top, #5a1299, #6220a5, #6b2cb0, #7337bc, #7b42c8, #824bce, #8853d3, #8f5cd9, #9565da, #9b6ddb, #a076db, #a67edc);",
         height: "100vh",
         display: "flex",
         flexDirection: "column",

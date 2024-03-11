@@ -7,9 +7,11 @@ import {
 import Update from "../Screens/Update";
 import Home from "../Screens/Home";
 import Login from "../Screens/Login";
-import Screen404 from "../Screens/Screen404";
+import Screen404 from "../Screens/Screen401";
 import { useAuth } from "../Context/AuthContext";
 import { useEffect, useState } from "react";
+import Reports from "../Screens/Reports";
+import Establishment from "../Screens/Establishment";
 
 const Rotas = () => {
   const { user } = useAuth();
@@ -37,6 +39,8 @@ const Rotas = () => {
           path="/Home"
           element={user !== null ? <Home /> : <Navigate to="/AcessoNegado" />}
         />
+        <Route path="/Relatorios" element={<Reports />} />
+        <Route path="/Estabelecimento" element={<Establishment />} />
       </Routes>
     </Router>
   );

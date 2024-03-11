@@ -1,4 +1,3 @@
-// Importe as bibliotecas necessárias
 // eslint-disable-next-line no-unused-vars
 import React, { createContext, useContext } from "react";
 import { getFirestore, collection, doc, setDoc } from "firebase/firestore";

@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
 import { app } from "../FirebaseConfig/Firebase";
 
@@ -58,9 +59,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const userLogout = async () => {
+    try {
+      const auth = getAuth(app);
+
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error.message);
+      throw error;
+    }
+  };
+
   const authContextValue = {
     cadastrarUsuario,
     userLogin,
+    userLogout, 
     user,
   };
 
