@@ -39,8 +39,18 @@ const Rotas = () => {
           path="/Home"
           element={user !== null ? <Home /> : <Navigate to="/AcessoNegado" />}
         />
-        <Route path="/Relatorios" element={<Reports />} />
-        <Route path="/Estabelecimento" element={<Establishment />} />
+        <Route
+          path="/Relatorios"
+          element={
+            user !== null ? <Reports /> : <Navigate to="/AcessoNegado" />
+          }
+        />
+        <Route
+          path="/Estabelecimento"
+          element={
+            user !== null ? <Establishment /> : <Navigate to="/AcessoNegado" />
+          }
+        />
       </Routes>
     </Router>
   );
