@@ -358,7 +358,7 @@ export default function Home() {
                           display: "flex",
                           flexDirection: "row",
                           alignItems: "center",
-                          justifyContent: "center",
+                          justifyContent: "flex-end",
                           width: "35%",
                           color: "#955eef",
                         }}
@@ -601,7 +601,7 @@ export default function Home() {
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center",
-                            justifyContent: "center",
+                            justifyContent: "flex-end",
                             width: "35%",
                             color: "#955eef",
                           }}
@@ -798,7 +798,7 @@ export default function Home() {
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center",
-                            justifyContent: "center",
+                            justifyContent: "flex-end",
                             width: "35%",
                             color: "#955eef",
                           }}
