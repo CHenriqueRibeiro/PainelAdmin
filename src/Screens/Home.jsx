@@ -450,6 +450,186 @@ export default function Home() {
                     </Box>
                   </Box>
                 </Box>
+                <Box
+                  sx={{
+                    width: "90%",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderBottom: "1px #955eef solid",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          justifyContent: "space-around",
+                          width: "65%",
+                          height: "10rem",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <PersonRoundedIcon />
+                          <Typography>Claudia</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <EventNoteRoundedIcon />
+                          <Typography>26/03/2024 - 10:30</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <DriveEtaRoundedIcon />
+                          <Typography>Gol</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <WaterDropRoundedIcon />
+                          <Typography>Lavagem Completa</Typography>
+                        </Box>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          width: "35%",
+                          color: "#955eef",
+                        }}
+                      >
+                        <Typography>R$ 45,00</Typography>
+                      </Box>
+                    </Box>
+                    <Box
+                      sx={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        margin: "1rem 0 1rem 0",
+                      }}
+                    >
+                      <Button
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-around",
+                          width: "auto",
+                          borderRadius: 3,
+                          color: "#008000",
+                          border: "1px #008000 solid",
+                          transition: "transform 0.3s",
+                          ":active": {
+                            background: "#FFFFFF",
+                            transform: "scale(0.95)",
+                          },
+                          ":hover": {
+                            background: "#008000",
+                            color: "#FFFFFF",
+                          },
+                        }}
+                      >
+                        <CheckCircleRoundedIcon />
+                        <Typography>iniciar</Typography>
+                      </Button>
+                      <Button
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-around",
+                          width: "auto",
+                          borderRadius: 3,
+                          color: " #fe0000 ",
+                          border: "1px #fe0000 solid",
+                          transition: "transform 0.3s",
+                          ":active": {
+                            background: "#FFFFFF",
+                            transform: "scale(0.95)",
+                          },
+                          ":hover": {
+                            background: "#fe0000",
+                            color: "#FFFFFF",
+                          },
+                        }}
+                      >
+                        <CancelRoundedIcon />
+                        cancelar
+                      </Button>
+                      <Button
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-around",
+                          width: "auto",
+                          borderRadius: 3,
+                          color: " #0DC143",
+                          border: "1px #0DC143 solid",
+                          transition: "transform 0.3s",
+                          ":active": {
+                            background: "#FFFFFF",
+                            transform: "scale(0.95)",
+                          },
+                          ":hover": {
+                            background: "#0DC143",
+                            color: "#FFFFFF",
+                          },
+                        }}
+                      >
+                        <WhatsAppIcon />
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
               </Box>
             </Box>
           </Box>
