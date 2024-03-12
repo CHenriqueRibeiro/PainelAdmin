@@ -13,6 +13,7 @@ import DriveEtaRoundedIcon from "@mui/icons-material/DriveEtaRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import WaterDropRoundedIcon from "@mui/icons-material/WaterDropRounded";
 export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -159,6 +160,17 @@ export default function Home() {
                         >
                           <DriveEtaRoundedIcon />
                           <Typography>Polo</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <WaterDropRoundedIcon />
+                          <Typography>Lavagem Simples</Typography>
                         </Box>
                       </Box>
                       <Box
@@ -328,6 +340,17 @@ export default function Home() {
                         >
                           <DriveEtaRoundedIcon />
                           <Typography>Gol</Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            color: "#955eef",
+                          }}
+                        >
+                          <WaterDropRoundedIcon />
+                          <Typography>Lavagem Simples</Typography>
                         </Box>
                       </Box>
                       <Box
@@ -561,6 +584,17 @@ export default function Home() {
                             <DriveEtaRoundedIcon />
                             <Typography>Twister</Typography>
                           </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              color: "#955eef",
+                            }}
+                          >
+                            <WaterDropRoundedIcon />
+                            <Typography>Lavagem Simples</Typography>
+                          </Box>
                         </Box>
                         <Box
                           sx={{
@@ -746,6 +780,17 @@ export default function Home() {
                           >
                             <DriveEtaRoundedIcon />
                             <Typography>Twister</Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              color: "#955eef",
+                            }}
+                          >
+                            <WaterDropRoundedIcon />
+                            <Typography>Lavagem Simples</Typography>
                           </Box>
                         </Box>
                         <Box
