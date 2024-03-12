@@ -81,7 +81,7 @@ const Navbar = () => {
             <AccountCircle />
           )}
           <Typography variant="h6" component="div" sx={{ ml: 2 }}>
-            Nome
+            lavacar
           </Typography>
         </Toolbar>
       </AppBar>
@@ -92,10 +92,9 @@ const Navbar = () => {
           onClose={toggleDrawer(false)}
           sx={{
             "& > :nth-child(3)": {
-                display:"flex",
+              display: "flex",
               alignItems: "center",
-              background:
-                "#5F29B8",
+              background: "#5F29B8",
             },
           }}
         >
