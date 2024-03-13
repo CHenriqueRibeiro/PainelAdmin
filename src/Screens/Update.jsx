@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import Button from "@mui/material/Button";
 import { useAuth } from "../Context/AuthContext";
 import { useFirestore } from "../Context/FirestoreContext";
@@ -140,10 +140,10 @@ const Update = () => {
           overflow: "auto",
         }}
       >
-        <TextField
+        <OutlinedInput
           type="email"
           value={email}
-          label="Email"
+          placeholder="Email*"
           onChange={(e) => setEmail(e.target.value)}
           fullWidth
           sx={{
@@ -157,10 +157,10 @@ const Update = () => {
           required
         />
 
-        <TextField
+        <OutlinedInput
           type="password"
           value={senha}
-          label="Senha"
+          placeholder="Senha*"
           variant="outlined"
           onChange={(e) => setSenha(e.target.value)}
           fullWidth
@@ -174,10 +174,10 @@ const Update = () => {
           }}
           required
         />
-        <TextField
+        <OutlinedInput
           type="text"
           value={nomeEmpresa}
-          label="Nome da Empresa"
+          placeholder="Nome da Empresa*"
           variant="outlined"
           onChange={(e) => setNomeEmpresa(e.target.value)}
           fullWidth
@@ -191,9 +191,9 @@ const Update = () => {
           }}
           required
         />
-        <TextField
+        <OutlinedInput
           type="text"
-          label="Telefone"
+          placeholder="Telefone*"
           variant="outlined"
           required
           sx={{
@@ -217,9 +217,9 @@ const Update = () => {
           fullWidth
           mb={2}
         />
-        <TextField
+        <OutlinedInput
           type="text"
-          label="CEP"
+          placeholder="CEP*"
           variant="outlined"
           required
           fullWidth
@@ -245,10 +245,10 @@ const Update = () => {
           mb={2}
         />
 
-        <TextField
+        <OutlinedInput
           type="text"
           value={endereco}
-          label="Rua / Av"
+          placeholder="Rua / Av*"
           variant="outlined"
           onChange={(e) => setEndereco(e.target.value)}
           fullWidth
@@ -263,10 +263,10 @@ const Update = () => {
           required
           disabled={!!cep}
         />
-        <TextField
+        <OutlinedInput
           type="number"
           value={numeroLocal}
-          label="Nº"
+          placeholder="Nº*"
           variant="outlined"
           onChange={(e) => setNumeroLocal(e.target.value)}
           fullWidth
@@ -280,10 +280,10 @@ const Update = () => {
           }}
           required
         />
-        <TextField
+        <OutlinedInput
           type="text"
           value={bairro}
-          label="Bairro"
+          placeholder="Bairro*"
           variant="outlined"
           onChange={(e) => setBairro(e.target.value)}
           fullWidth

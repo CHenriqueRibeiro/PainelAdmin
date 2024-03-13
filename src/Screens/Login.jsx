@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import Button from "@mui/material/Button";
 import { useAuth } from "../Context/AuthContext";
 import PersonPinRoundedIcon from "@mui/icons-material/PersonPinRounded";
@@ -56,10 +56,11 @@ const Login = () => {
           overflow: "auto",
         }}
       >
-        <TextField
+        <OutlinedInput
           type="email"
           value={email}
           label="Email"
+          placeholder="Nome*"
           onChange={(e) => setEmail(e.target.value)}
           fullWidth
           sx={{
@@ -73,10 +74,11 @@ const Login = () => {
           required
         />
 
-        <TextField
+        <OutlinedInput
           type="password"
           value={senha}
           label="Senha"
+          placeholder="Senha*"
           variant="outlined"
           onChange={(e) => setSenha(e.target.value)}
           fullWidth

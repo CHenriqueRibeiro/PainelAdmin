@@ -41,7 +41,7 @@ const DashboardSidebar = () => {
           variant="permanent"
           sx={{
             boxShadow: 4,
-            "& > :first-child": {
+            "& > :first-of-type": {
               background: "#5F29B8",
               display: "flex",
               flexDirection: "flex",
@@ -151,7 +151,7 @@ const DashboardSidebar = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "80%",
+              top: "85%",
               display: "flex",
               width: "20dvw",
               height: "5rem",

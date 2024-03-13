@@ -34,8 +34,8 @@ export default function Home() {
       >
         <Navbar />
 
-        <Box
-          sx={{
+        <PerfectScrollbar
+          style={{
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             alignItems: "center",
@@ -1050,7 +1050,7 @@ export default function Home() {
               </Box>
             </Box>
           </Box>
-        </Box>
+        </PerfectScrollbar>
         {!isMobile && <DashboardSidebar />}
       </Box>
     </>

@@ -7,12 +7,12 @@ import DriveEtaRoundedIcon from "@mui/icons-material/DriveEtaRounded";
 import WaterDropRoundedIcon from "@mui/icons-material/WaterDropRounded";
 import ArrowLeftRoundedIcon from "@mui/icons-material/ArrowLeftRounded";
 import ArrowRightRoundedIcon from "@mui/icons-material/ArrowRightRounded";
+import PerfectScrollbar from "react-perfect-scrollbar";
 import moment from "moment";
-import "moment/locale/pt-br";
+import "react-perfect-scrollbar/dist/css/styles.css";
 
 import { useState } from "react";
 export default function Reports() {
-  moment.locale("pt-br");
   const [currentWeek, setCurrentWeek] = useState(moment());
   const [currentMonth, setCurrentMonth] = useState(moment());
   const [currentYear, setCurrentYear] = useState(moment());
@@ -56,8 +56,8 @@ export default function Reports() {
         }}
       >
         <Navbar />
-        <Box
-          sx={{
+        <PerfectScrollbar
+          style={{
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             alignItems: "center",
@@ -544,7 +544,7 @@ export default function Reports() {
                           marginBottom: "1px #FFFFFF solid",
                         }}
                       >
-                        {startOfMonth.format("MMMM YYYY")}
+                        {startOfMonth.format("MMM YYYY", { locale: "pt-br" })}
                       </Typography>
                       <ArrowRightRoundedIcon
                         onClick={goToNextMonth}
@@ -671,7 +671,7 @@ export default function Reports() {
               </Box>
             </Box>
           </Box>
-        </Box>
+        </PerfectScrollbar>
         {!isMobile && <DashboardSidebar />}
       </Box>
     </>
