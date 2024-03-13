@@ -3,7 +3,7 @@
 
 Seja bem-vindo ao repositório do Painel Admin Web do LavaJá!
 
-Este projeto é uma parte essencial do ecossistema LavaJá, desenvolvido por Henrique Ribeiro. Aqui está uma visão geral do que você precisa saber:
+Este projeto é uma parte essencial do ecossistema LavaJá, desenvolvido por mim. Aqui está uma visão geral do que você precisa saber:
 
 ### Visão Geral
 
@@ -40,6 +40,6 @@ O Painel Admin do LavaJá é uma ferramenta poderosa construída com tecnologias
 
 ### Suporte
 
-Se precisar de ajuda ou tiver alguma dúvida, não hesite em entrar em contato com Henrique Ribeiro. Estou sempre disponível para ajudar!
+Se precisar de ajuda ou tiver alguma dúvida, não hesite em entrar em contato com mim. Estou sempre disponível para ajudar!
 
 Obrigado por explorar o Painel Admin do LavaJá. Espero que este projeto ajude a potencializar seu negócio e a conquistar mais clientes!
