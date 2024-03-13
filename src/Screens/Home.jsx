@@ -14,6 +14,9 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import WaterDropRoundedIcon from "@mui/icons-material/WaterDropRounded";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import "react-perfect-scrollbar/dist/css/styles.css";
+
 export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -30,6 +33,7 @@ export default function Home() {
         }}
       >
         <Navbar />
+
         <Box
           sx={{
             display: "flex",
@@ -79,15 +83,13 @@ export default function Home() {
                 <Typography variant="h6">Agendamentos</Typography>
               </Box>
 
-              <Box
-                sx={{
+              <PerfectScrollbar
+                style={{
                   display: "flex",
                   flexDirection: "column",
                   width: "100%",
                   height: "90%",
                   alignItems: "center",
-
-                  overflow: "auto",
                 }}
               >
                 <Box
@@ -630,7 +632,7 @@ export default function Home() {
                     </Box>
                   </Box>
                 </Box>
-              </Box>
+              </PerfectScrollbar>
             </Box>
           </Box>
 
@@ -683,14 +685,13 @@ export default function Home() {
                   <Typography variant="h6">Em atendimento</Typography>
                 </Box>
 
-                <Box
-                  sx={{
+                <PerfectScrollbar
+                  style={{
                     display: "flex",
                     flexDirection: "column",
                     width: "100%",
                     height: "90%",
                     alignItems: "center",
-                    overflow: "auto",
                   }}
                 >
                   <Box
@@ -850,7 +851,7 @@ export default function Home() {
                       </Box>
                     </Box>
                   </Box>
-                </Box>
+                </PerfectScrollbar>
               </Box>
               <Box
                 sx={{
@@ -879,15 +880,13 @@ export default function Home() {
                   <Typography variant="h6">Finalizados</Typography>
                 </Box>
 
-                <Box
-                  sx={{
+                <PerfectScrollbar
+                  style={{
                     display: "flex",
                     flexDirection: "column",
                     width: "100%",
                     height: "90%",
                     alignItems: "center",
-
-                    overflow: "auto",
                   }}
                 >
                   <Box
@@ -1047,7 +1046,7 @@ export default function Home() {
                       </Box>
                     </Box>
                   </Box>
-                </Box>
+                </PerfectScrollbar>
               </Box>
             </Box>
           </Box>
