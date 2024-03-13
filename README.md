@@ -40,6 +40,6 @@ O Painel Admin do LavaJá é uma ferramenta poderosa construída com tecnologias
 
 ### Suporte
 
-Se precisar de ajuda ou tiver alguma dúvida, não hesite em entrar em contato com mim. Estou sempre disponível para ajudar!
+Se precisar de ajuda ou tiver alguma dúvida, não hesite em entrar em contato comigo. Estou sempre disponível para ajudar!
 
-Obrigado por explorar o Painel Admin do LavaJá. Espero que este projeto ajude a potencializar seu negócio e a conquistar mais clientes!
+Obrigado por explorar o Painel Admin do LavaJá. 
