@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { buscarCep, obterCoordenadas } from "../Api/index";
 import InputMask from "react-input-mask";
 import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
-import { Typography } from "@mui/material";
+import { Typography, useMediaQuery, useTheme } from "@mui/material";
 const Update = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -21,7 +21,8 @@ const Update = () => {
   const { cadastrarUsuario } = useAuth();
   const { cadastrarEstabelecimento } = useFirestore();
   const navigate = useNavigate();
-
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   useEffect(() => {
     const preencherEndereco = async () => {
       try {
@@ -140,164 +141,204 @@ const Update = () => {
           overflow: "auto",
         }}
       >
-        <OutlinedInput
-          type="email"
-          value={email}
-          placeholder="Email*"
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
+        <Box
           sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            width: "100%",
+            gap: 2,
           }}
-          required
-        />
+        >
+          <OutlinedInput
+            type="email"
+            value={email}
+            placeholder="Email*"
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "70%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+          />
 
-        <OutlinedInput
-          type="password"
-          value={senha}
-          placeholder="Senha*"
-          variant="outlined"
-          onChange={(e) => setSenha(e.target.value)}
-          fullWidth
+          <OutlinedInput
+            type="password"
+            value={senha}
+            placeholder="Senha*"
+            variant="outlined"
+            onChange={(e) => setSenha(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "30%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+          />
+        </Box>
+        <Box
           sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            width: "100%",
+            gap: 2,
           }}
-          required
-        />
-        <OutlinedInput
-          type="text"
-          value={nomeEmpresa}
-          placeholder="Nome da Empresa*"
-          variant="outlined"
-          onChange={(e) => setNomeEmpresa(e.target.value)}
-          fullWidth
-          sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
-          }}
-          required
-        />
-        <OutlinedInput
-          type="text"
-          placeholder="Telefone*"
-          variant="outlined"
-          required
-          sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
-          }}
-          InputProps={{
-            inputComponent: InputMask,
-            inputProps: {
-              mask: "(99)999999999",
+        >
+          <OutlinedInput
+            type="text"
+            value={nomeEmpresa}
+            placeholder="Nome da Empresa*"
+            variant="outlined"
+            onChange={(e) => setNomeEmpresa(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "70%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+          />
+          <OutlinedInput
+            type="text"
+            placeholder="Telefone*"
+            variant="outlined"
+            required
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "30%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            inputComponent={InputMask}
+            inputProps={{
+              mask: "(99)9 99999999",
               maskChar: null,
               value: telefone,
               onChange: (e) => setTelefone(e.target.value),
               required: true,
-            },
-          }}
-          fullWidth
-          mb={2}
-        />
-        <OutlinedInput
-          type="text"
-          placeholder="CEP*"
-          variant="outlined"
-          required
-          fullWidth
+            }}
+            mb={2}
+          />
+        </Box>
+        <Box
           sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            width: "100%",
+            gap: 2,
           }}
-          InputProps={{
-            inputComponent: InputMask,
-            inputProps: {
+        >
+          <OutlinedInput
+            type="text"
+            placeholder="CEP*"
+            variant="outlined"
+            required
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "30%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            inputComponent={InputMask}
+            inputProps={{
               mask: "99999-999",
               maskChar: null,
               value: cep,
               onChange: (e) => setCep(e.target.value),
               onBlur: handleCepBlur,
               required: true,
-            },
-          }}
-          mb={2}
-        />
+            }}
+            mb={2}
+          />
 
-        <OutlinedInput
-          type="text"
-          value={endereco}
-          placeholder="Rua / Av*"
-          variant="outlined"
-          onChange={(e) => setEndereco(e.target.value)}
-          fullWidth
+          <OutlinedInput
+            type="text"
+            value={endereco}
+            placeholder="Rua / Av*"
+            variant="outlined"
+            onChange={(e) => setEndereco(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "70%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+            disabled={!!cep}
+          />
+        </Box>
+        <Box
           sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            width: "100%",
+            gap: 2,
           }}
-          required
-          disabled={!!cep}
-        />
-        <OutlinedInput
-          type="number"
-          value={numeroLocal}
-          placeholder="Nº*"
-          variant="outlined"
-          onChange={(e) => setNumeroLocal(e.target.value)}
-          fullWidth
-          sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
-          }}
-          required
-        />
-        <OutlinedInput
-          type="text"
-          value={bairro}
-          placeholder="Bairro*"
-          variant="outlined"
-          onChange={(e) => setBairro(e.target.value)}
-          fullWidth
-          sx={{
-            borderRadius: "18px",
-            background: "#FFFFFF",
-            boxShadow: 5,
-            "& fieldset": {
-              border: "none",
-            },
-          }}
-          required
-          disabled={!!cep}
-        />
+        >
+          <OutlinedInput
+            type="number"
+            value={numeroLocal}
+            placeholder="Nº*"
+            variant="outlined"
+            onChange={(e) => setNumeroLocal(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "30%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+          />
+          <OutlinedInput
+            type="text"
+            value={bairro}
+            placeholder="Bairro*"
+            variant="outlined"
+            onChange={(e) => setBairro(e.target.value)}
+            fullWidth
+            sx={{
+              width: isMobile ? "100%" : "70%",
+              borderRadius: "18px",
+              background: "#FFFFFF",
+              boxShadow: 5,
+              "& fieldset": {
+                border: "none",
+              },
+            }}
+            required
+            disabled={!!cep}
+          />
+        </Box>
         <Button
           type="submit"
           variant="outline"

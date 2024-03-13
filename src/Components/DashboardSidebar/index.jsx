@@ -1,4 +1,4 @@
-import { Box, Button, Drawer, List, Typography } from "@mui/material";
+import { Box, Button, Drawer, List } from "@mui/material";
 import EventNoteRoundedIcon from "@mui/icons-material/EventNoteRounded";
 import AssessmentRoundedIcon from "@mui/icons-material/AssessmentRounded";
 import LocalCarWashRoundedIcon from "@mui/icons-material/LocalCarWashRounded";
@@ -57,7 +57,11 @@ const DashboardSidebar = () => {
               height: "4rem",
             }}
           >
-            <Typography variant="h6"> Logo</Typography>
+            <img
+              src="../public/logoteste.png"
+              alt="Logo"
+              style={{ width: "auto", height: "100%" }}
+            />
           </Box>
           <List
             sx={{

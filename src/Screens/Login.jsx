@@ -2,13 +2,18 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import { useAuth } from "../Context/AuthContext";
 import PersonPinRoundedIcon from "@mui/icons-material/PersonPinRounded";
 import { Link, useNavigate } from "react-router-dom";
 import { Typography } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { userLogin } = useAuth();
   const navigate = useNavigate();
 
@@ -18,8 +23,16 @@ const Login = () => {
       await userLogin(email, senha);
       navigate("/Home", { replace: true });
     } catch (error) {
-      console.error("Erro ao fazer login:", error.message);
+      setError("Usuário não cadastrado ou senha incorreta.");
     }
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleInputChange = () => {
+    setError(null);
   };
 
   return (
@@ -56,12 +69,16 @@ const Login = () => {
           overflow: "auto",
         }}
       >
+        {error && <Typography sx={{ color: "#FFFFFF" }}>{error}</Typography>}
         <OutlinedInput
           type="email"
           value={email}
           label="Email"
           placeholder="Nome*"
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            handleInputChange();
+          }}
           fullWidth
           sx={{
             borderRadius: "18px",
@@ -75,12 +92,15 @@ const Login = () => {
         />
 
         <OutlinedInput
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={senha}
           label="Senha"
           placeholder="Senha*"
           variant="outlined"
-          onChange={(e) => setSenha(e.target.value)}
+          onChange={(e) => {
+            setSenha(e.target.value);
+            handleInputChange();
+          }}
           fullWidth
           sx={{
             borderRadius: "18px",
@@ -91,6 +111,15 @@ const Login = () => {
             },
           }}
           required
+          endAdornment={
+            <IconButton
+              onClick={handleTogglePasswordVisibility}
+              edge="end"
+              sx={{ color: "#000000" }}
+            >
+              {showPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          }
         />
         <Box
           sx={{

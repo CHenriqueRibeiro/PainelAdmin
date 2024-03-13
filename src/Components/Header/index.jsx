@@ -13,7 +13,6 @@ import {
   Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import EventNoteRoundedIcon from "@mui/icons-material/EventNoteRounded";
 import AssessmentRoundedIcon from "@mui/icons-material/AssessmentRounded";
 import LocalCarWashRoundedIcon from "@mui/icons-material/LocalCarWashRounded";
@@ -67,20 +66,16 @@ const Navbar = () => {
         }}
       >
         <Toolbar>
-          {isMobile ? (
-            <IconButton
-              size="large"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer(true)}
-              sx={{ display: { xs: "flex", md: "none" } }}
-            >
-              <MenuIcon />
-            </IconButton>
-          ) : (
-            <AccountCircle />
-          )}
-          <Typography variant="h6" component="div" sx={{ ml: 2 }}>
+          <IconButton
+            size="large"
+            color="inherit"
+            aria-label="open drawer"
+            onClick={toggleDrawer(true)}
+            sx={{ display: { xs: "flex", md: "none" } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ ml: 2 }}>
             lavacar
           </Typography>
         </Toolbar>
@@ -106,7 +101,11 @@ const Navbar = () => {
               height: "4rem",
             }}
           >
-            <Typography variant="h6"> Logo</Typography>
+            <img
+              src="../public/logoteste.png"
+              alt="Logo"
+              style={{ width: "auto", height: "100%" }}
+            />
           </Box>
           <List
             sx={{
