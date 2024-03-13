@@ -12,6 +12,7 @@ import { Typography, useMediaQuery, useTheme } from "@mui/material";
 const Update = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [error, setError] = useState("");
   const [nomeEmpresa, setNomeEmpresa] = useState("");
   const [cep, setCep] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -53,6 +54,7 @@ const Update = () => {
         setBairro(infoCep.bairro);
       } else {
         console.error("CEP inválido ou não encontrado");
+        setError("CEP inválido ou não encontrado");
       }
     } catch (error) {
       console.error("Erro ao buscar informações do CEP:", error.message);
@@ -105,6 +107,11 @@ const Update = () => {
   };
   const handleBack = () => {
     navigate(-1);
+  };
+  const handleCepChange = () => {
+    if (error) {
+      setError("");
+    }
   };
   return (
     <Box
@@ -266,7 +273,10 @@ const Update = () => {
               mask: "99999-999",
               maskChar: null,
               value: cep,
-              onChange: (e) => setCep(e.target.value),
+              onChange: (e) => {
+                setCep(e.target.value);
+                handleCepChange();
+              },
               onBlur: handleCepBlur,
               required: true,
             }}
@@ -290,9 +300,10 @@ const Update = () => {
               },
             }}
             required
-            disabled={!!cep}
+            disabled
           />
         </Box>
+
         <Box
           sx={{
             display: "flex",
@@ -336,12 +347,24 @@ const Update = () => {
               },
             }}
             required
-            disabled={!!cep}
+            disabled
           />
         </Box>
+        {error && <Typography color={"#FFFFFF"}>{error}</Typography>}
         <Button
           type="submit"
           variant="outline"
+          disabled={
+            error ||
+            !email ||
+            !senha ||
+            !nomeEmpresa ||
+            !telefone ||
+            !cep ||
+            !endereco ||
+            !numeroLocal ||
+            !bairro
+          }
           sx={{
             width: "13rem",
             borderRadius: 3,
@@ -359,6 +382,7 @@ const Update = () => {
         >
           Finalizar Cadastro
         </Button>
+
         <Button
           variant="outline"
           sx={{
