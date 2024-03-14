@@ -58,7 +58,7 @@ const DashboardSidebar = () => {
             }}
           >
              <img
-              src="./public/logoteste.png"
+              src="../public/logoteste.png"
               alt="Logo"
               style={{ width: "auto", height: "100%" }}
             />
