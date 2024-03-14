@@ -4,6 +4,8 @@ import AssessmentRoundedIcon from "@mui/icons-material/AssessmentRounded";
 import LocalCarWashRoundedIcon from "@mui/icons-material/LocalCarWashRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import Logo from "@mui/material/Avatar";
+import Img from "../../../public/logoteste.png";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 const DashboardSidebar = () => {
@@ -57,11 +59,8 @@ const DashboardSidebar = () => {
               height: "4rem",
             }}
           >
-             <img
-              src="../public/logoteste.png"
-              alt="Logo"
-              style={{ width: "auto", height: "100%" }}
-            />
+            <Logo id="imglogo" alt="Remy Sharp" src={Img} style={{ width: "auto", height: "100%" }}/>
+             
           </Box>
           <List
             sx={{
