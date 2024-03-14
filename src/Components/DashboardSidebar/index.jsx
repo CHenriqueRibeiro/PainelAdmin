@@ -6,7 +6,6 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import logoteste from "../../../public/logoteste.png";
 const DashboardSidebar = () => {
   const { userLogout } = useAuth();
   const navigate = useNavigate();
@@ -58,8 +57,8 @@ const DashboardSidebar = () => {
               height: "4rem",
             }}
           >
-            <img
-              src={logoteste}
+             <img
+              src="../public/logoteste.png"
               alt="Logo"
               style={{ width: "auto", height: "100%" }}
             />
