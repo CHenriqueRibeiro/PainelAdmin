@@ -159,7 +159,9 @@ const Login = () => {
             borderRadius: 3,
             background: "#9A6CDB",
             color: "#FFFFFF",
+            transition: "transform 0.3s",
             ":active": {
+              transform: "scale(0.95)",
               background: "#FFFFFF",
               color: "#9A6CDB",
             },

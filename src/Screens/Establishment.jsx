@@ -12,6 +12,7 @@ import Navbar from "../Components/Header";
 import DashboardSidebar from "../Components/DashboardSidebar";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InputMask from "react-input-mask";
 import "react-perfect-scrollbar/dist/css/styles.css";
 export default function Establishment() {
   const [servicos, setServicos] = useState([{ servico: "", valor: "" }]);
@@ -178,6 +179,12 @@ export default function Establishment() {
                         width: "50%",
                         background: "#FFFFFF",
                       }}
+                      inputComponent={InputMask}
+                      inputProps={{
+                        mask: "(99)9 99999999",
+                        maskChar: null,
+                        required: true,
+                      }}
                     />
                   </Box>
                   <Box
@@ -198,6 +205,12 @@ export default function Establishment() {
                         width: "35%",
                         background: "#FFFFFF",
                         borderColor: "#955eef",
+                      }}
+                      inputComponent={InputMask}
+                      inputProps={{
+                        mask: "99999-999",
+                        maskChar: null,
+                        required: true,
                       }}
                     />
                     <OutlinedInput
@@ -363,7 +376,7 @@ export default function Establishment() {
                         sx={{
                           borderRadius: 3,
                           height: "3rem",
-                          width: "20%",
+                          width: "25%",
                           background: "#FFFFFF",
                         }}
                       />
@@ -525,7 +538,7 @@ export default function Establishment() {
                         sx={{
                           borderRadius: 3,
                           height: "3rem",
-                          width: "5rem",
+                          width: "6rem",
                           background: "#FFFFFF",
                           borderColor: "#955eef",
                         }}

@@ -7,7 +7,7 @@ import {
 import Update from "../Screens/Update";
 import Home from "../Screens/Home";
 import Login from "../Screens/Login";
-import Screen404 from "../Screens/Screen401";
+import Screen401 from "../Screens/Screen401";
 import { useAuth } from "../Context/AuthContext";
 import { useEffect, useState } from "react";
 import Reports from "../Screens/Reports";
@@ -19,7 +19,7 @@ const Rotas = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       setAuthChecked(true);
     };
 
@@ -32,9 +32,9 @@ const Rotas = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/Home" /> : <Login />} />
+        <Route path="/" element={user ? <Navigate to="/" /> : <Login />} />
         <Route path="/Cadastro" element={<Update />} />
-        <Route path="/AcessoNegado" element={<Screen404 />} />
+        <Route path="/AcessoNegado" element={<Screen401 />} />
         <Route
           path="/Home"
           element={user !== null ? <Home /> : <Navigate to="/AcessoNegado" />}
