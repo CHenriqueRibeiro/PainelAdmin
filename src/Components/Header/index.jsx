@@ -103,7 +103,12 @@ const Navbar = () => {
               height: "4rem",
             }}
           >
-            <Logo id="imglogo" alt="Remy Sharp" src={Img} style={{ width: "auto", height: "100%" }}/>
+            <Logo
+              id="imglogo"
+              alt="Remy Sharp"
+              src={Img}
+              style={{ width: "auto", height: "100%" }}
+            />
           </Box>
           <List
             sx={{
@@ -191,7 +196,7 @@ const Navbar = () => {
               onClick={goTogoEstablishment}
             >
               <LocalCarWashRoundedIcon />
-              Estabelecimento
+              Cadastro
             </Button>
           </List>
           <Box

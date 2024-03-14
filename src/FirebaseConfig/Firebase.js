@@ -4,6 +4,7 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
+import { getStorage, ref } from "firebase/storage"; // Adicionado para usar o Firebase Storage
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZDt-6OXvlchj6iZMVTus3FjxOiSOpKqs",
@@ -17,4 +18,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
-export { app, auth };
+const storage = getStorage(app);
+export { app, auth, storage, ref };

@@ -148,7 +148,7 @@ const DashboardSidebar = () => {
               onClick={goTogoEstablishment}
             >
               <LocalCarWashRoundedIcon />
-              Estabelecimento
+              Cadastro
             </Button>
           </List>
           <Box

@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   IconButton,
+  Input,
   OutlinedInput,
   Typography,
   useMediaQuery,
@@ -14,9 +15,61 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InputMask from "react-input-mask";
 import "react-perfect-scrollbar/dist/css/styles.css";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 export default function Establishment() {
   const [servicos, setServicos] = useState([{ servico: "", valor: "" }]);
   const [horario, setHorario] = useState([{ horario: "" }]);
+  const [uploadedFileURLs, setUploadedFileURLs] = useState([]);
+
+  const handleFileInputChange = async (e) => {
+    const files = e.target.files;
+    let newFileURLs = [];
+
+    // Verificar se o número total de fotos não excede 3
+    if (uploadedFileURLs.length + files.length > 3) {
+      // Exibir mensagem de erro ou notificação informando que o limite de fotos foi excedido
+      console.log("Limite máximo de 3 fotos atingido.");
+      return;
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileURL = URL.createObjectURL(file);
+      newFileURLs.push(fileURL);
+    }
+
+    // Concatenar os novos URLs de arquivo com os existentes
+    newFileURLs = uploadedFileURLs.concat(newFileURLs);
+
+    setUploadedFileURLs(newFileURLs);
+  };
+
+  const handleSave = async () => {
+    const storage = getStorage();
+    const storageRef = ref(storage);
+
+    for (let i = 0; i < uploadedFileURLs.length; i++) {
+      const fileURL = uploadedFileURLs[i];
+      const response = await fetch(fileURL);
+      const blob = await response.blob();
+      const fileRef = ref(storageRef, `fotos/image_${Date.now()}_${i}`);
+
+      try {
+        await uploadBytes(fileRef, blob);
+        console.log("Arquivo enviado com sucesso:", fileRef.fullPath);
+      } catch (error) {
+        console.error("Erro ao enviar o arquivo:", error);
+      }
+    }
+
+    // Limpar o estado das URLs de arquivo após o envio
+  };
+
+  const handleDeleteFile = (index) => {
+    const updatedFileURLs = uploadedFileURLs.filter((url, i) => i !== index);
+    setUploadedFileURLs(updatedFileURLs);
+  };
+
   const handleAddBoxService = () => {
     setServicos([...servicos, { servico: "", valor: "" }]);
   };
@@ -51,6 +104,7 @@ export default function Establishment() {
       setHorario(newServicos);
     }
   };
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   return (
@@ -374,7 +428,7 @@ export default function Establishment() {
                           )
                         }
                         sx={{
-                          borderRadius: 3,
+                          borderRadius: "1rem",
                           height: "3rem",
                           width: "25%",
                           background: "#FFFFFF",
@@ -384,13 +438,9 @@ export default function Establishment() {
                         <IconButton
                           onClick={() => handleDeleteBoxService(index)}
                           sx={{
-                            width: "15%",
+                            width: "10%",
                             height: "3rem",
-                            background: "#ff7979",
-                            color: "#FFFFFF",
-                            ":hover": {
-                              background: "#e74c3c",
-                            },
+                            color: "#cd1c1c",
                           }}
                         >
                           <DeleteIcon />
@@ -536,7 +586,7 @@ export default function Establishment() {
                           )
                         }
                         sx={{
-                          borderRadius: 3,
+                          borderRadius: "1rem",
                           height: "3rem",
                           width: "6rem",
                           background: "#FFFFFF",
@@ -548,13 +598,9 @@ export default function Establishment() {
                         <IconButton
                           onClick={() => handleDeleteBoxHours(index)}
                           sx={{
-                            width: "15%",
+                            width: "10%",
                             height: "3rem",
-                            background: "#ff7979",
-                            color: "#FFFFFF",
-                            ":hover": {
-                              background: "#e74c3c",
-                            },
+                            color: "#cd1c1c",
                           }}
                         >
                           <DeleteIcon />
@@ -637,6 +683,126 @@ export default function Establishment() {
                       background: "#9A6CDB",
                       color: "#FFFFFF",
                       ":active": {
+                        background: "#FFFFFF",
+                        color: "#9A6CDB",
+                      },
+                      ":hover": {
+                        borderColor: "#9A6CDB",
+                        background: "#FFFFFF",
+                        color: "#9A6CDB",
+                      },
+                    }}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                  width: "90%",
+                  height: "auto",
+                  minHeight: "16rem",
+                  background: "#955eef",
+                  borderRadius: 3,
+                  boxShadow: 3,
+                  mt: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    minHeight: "5rem",
+                    width: isMobile ? "90%" : "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileInputChange}
+                    sx={{width:"95%"}}
+                  />
+                </Box>
+
+                <PerfectScrollbar
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 2,
+                      mt: 2,
+                    }}
+                  >
+                    {uploadedFileURLs.map((url, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          position: "relative",
+                          maxWidth: "150px",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        <img
+                          src={url}
+                          alt={`Imagem ${index}`}
+                          style={{ maxWidth: "100%", height: "auto" }}
+                        />
+                        <IconButton
+                          sx={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            background: "#FFFFFF",
+                            boxShadow: 2,
+                          }}
+                          onClick={() => handleDeleteFile(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                </PerfectScrollbar>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    width: "95%",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    onClick={handleSave}
+                    sx={{
+                      borderColor: "#FFFFFF",
+                      borderRadius: 3,
+                      background: "#9A6CDB",
+                      color: "#FFFFFF",
+                      ":active": {
+                        borderColor: "#9A6CDB",
                         background: "#FFFFFF",
                         color: "#9A6CDB",
                       },
