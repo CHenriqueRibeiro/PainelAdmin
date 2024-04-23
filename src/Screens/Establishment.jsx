@@ -25,9 +25,7 @@ export default function Establishment() {
     const files = e.target.files;
     let newFileURLs = [];
 
-    // Verificar se o número total de fotos não excede 3
     if (uploadedFileURLs.length + files.length > 3) {
-      // Exibir mensagem de erro ou notificação informando que o limite de fotos foi excedido
       console.log("Limite máximo de 3 fotos atingido.");
       return;
     }
@@ -37,8 +35,6 @@ export default function Establishment() {
       const fileURL = URL.createObjectURL(file);
       newFileURLs.push(fileURL);
     }
-
-    // Concatenar os novos URLs de arquivo com os existentes
     newFileURLs = uploadedFileURLs.concat(newFileURLs);
 
     setUploadedFileURLs(newFileURLs);
@@ -61,8 +57,6 @@ export default function Establishment() {
         console.error("Erro ao enviar o arquivo:", error);
       }
     }
-
-    // Limpar o estado das URLs de arquivo após o envio
   };
 
   const handleDeleteFile = (index) => {
@@ -727,7 +721,7 @@ export default function Establishment() {
                     accept="image/*"
                     multiple
                     onChange={handleFileInputChange}
-                    sx={{width:"95%"}}
+                    sx={{ width: "95%" }}
                   />
                 </Box>
 
