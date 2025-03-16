@@ -14,14 +14,14 @@ const Login = () => {
   const [senha, setSenha] = useState("");
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const { userLogin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      await userLogin(email, senha);
-      navigate("/Home", { replace: true });
+      await login(email, senha);
+      navigate("/estabelecimento", { replace: true });
     } catch (error) {
       setError("Usuário não cadastrado ou senha incorreta.");
     }
@@ -38,8 +38,7 @@ const Login = () => {
   return (
     <Box
       sx={{
-        background:
-          " linear-gradient(to top, #5a1299, #6220a5, #6b2cb0, #7337bc, #7b42c8, #824bce, #8853d3, #8f5cd9, #9565da, #9b6ddb, #a076db, #a67edc);",
+        background: "linear-gradient(0deg, #a13fad 0%, #9211bb 100%)",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -74,7 +73,7 @@ const Login = () => {
           type="email"
           value={email}
           label="Email"
-          placeholder="Nome*"
+          placeholder="Email*"
           onChange={(e) => {
             setEmail(e.target.value);
             handleInputChange();
@@ -135,14 +134,11 @@ const Login = () => {
           <Typography>Não tem conta? </Typography>
 
           <Link
-            to="/Cadastro"
+            to="/cadastro"
             color="inherit"
             style={{
               textDecoration: "none",
               color: "inherit",
-              "&:visited": {
-                color: "inherit",
-              },
             }}
           >
             <Typography sx={{ color: "#FFFFFF", textDecoration: "none" }}>
@@ -152,7 +148,7 @@ const Login = () => {
         </Box>
         <Button
           type="submit"
-          variant="outline"
+          variant="outlined"
           sx={{
             width: "15rem",
             mt: 2,

@@ -28,13 +28,13 @@ const DashboardSidebar = () => {
     window.open(whatsappLink, "_blank");
   };
   const goToSchedules = () => {
-    navigate("/Home");
+    navigate("/home");
   };
   const goToReports = () => {
-    navigate("/Relatorios");
+    navigate("/relatorios");
   };
   const goTogoEstablishment = () => {
-    navigate("/Estabelecimento");
+    navigate("/estabelecimento");
   };
   return (
     <>
@@ -44,7 +44,7 @@ const DashboardSidebar = () => {
           sx={{
             boxShadow: 4,
             "& > :first-of-type": {
-              background: "#5F29B8",
+              background: "linear-gradient(0deg, #a13fad 0%, #9211bb 100%)",
               display: "flex",
               flexDirection: "flex",
               alignItems: "center",
@@ -59,8 +59,12 @@ const DashboardSidebar = () => {
               height: "4rem",
             }}
           >
-            <Logo id="imglogo" alt="Remy Sharp" src={Img} style={{ width: "auto", height: "100%" }}/>
-             
+            <Logo
+              id="imglogo"
+              alt="Remy Sharp"
+              src={Img}
+              style={{ width: "auto", height: "100%" }}
+            />
           </Box>
           <List
             sx={{
@@ -71,6 +75,32 @@ const DashboardSidebar = () => {
               gap: 3,
             }}
           >
+            <Button
+              variant="text"
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                width: "90%",
+                borderRadius: 3,
+                fontWeight: "400",
+                color: "#FFFFFF",
+                gap: 1,
+                ":active": {
+                  background: "#FFFFFF",
+                  color: "#9A6CDB",
+                },
+                ":hover": {
+                  background: "#FFFFFF",
+                  color: "#9A6CDB",
+                },
+              }}
+              onClick={goTogoEstablishment}
+            >
+              <LocalCarWashRoundedIcon />
+              Estabelecimento
+            </Button>
             <Button
               variant="text"
               sx={{
@@ -123,32 +153,6 @@ const DashboardSidebar = () => {
             >
               <AssessmentRoundedIcon />
               Relatorios
-            </Button>
-            <Button
-              variant="text"
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                width: "90%",
-                borderRadius: 3,
-                fontWeight: "400",
-                color: "#FFFFFF",
-                gap: 1,
-                ":active": {
-                  background: "#FFFFFF",
-                  color: "#9A6CDB",
-                },
-                ":hover": {
-                  background: "#FFFFFF",
-                  color: "#9A6CDB",
-                },
-              }}
-              onClick={goTogoEstablishment}
-            >
-              <LocalCarWashRoundedIcon />
-              Cadastro
             </Button>
           </List>
           <Box

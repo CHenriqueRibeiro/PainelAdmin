@@ -8,48 +8,50 @@ import Update from "../Screens/Update";
 import Home from "../Screens/Home";
 import Login from "../Screens/Login";
 import Screen401 from "../Screens/Screen401";
-import { useAuth } from "../Context/AuthContext";
-import { useEffect, useState } from "react";
 import Reports from "../Screens/Reports";
 import Establishment from "../Screens/Establishment";
+import { useAuth } from "../Context/AuthContext";
+import { useEffect, useState } from "react";
+
+// eslint-disable-next-line react/prop-types
+const ProtectedRoute = ({ element }) => {
+  const { isTokenValid } = useAuth();
+
+  return isTokenValid() ? element : <Navigate to="/" />;
+};
 
 const Rotas = () => {
-  const { user } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+  const { isTokenValid } = useAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      setAuthChecked(true);
-    };
+    if (isTokenValid()) {
+      setUser(localStorage.getItem("user"));
+    } else {
+      setUser(null);
+    }
+    setAuthChecked(true);
+  }, [isTokenValid]);
 
-    checkAuth();
-  }, []);
+  if (!authChecked) return null;
 
-  if (!authChecked) {
-    return null;
-  }
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/" /> : <Login />} />
-        <Route path="/Cadastro" element={<Update />} />
-        <Route path="/AcessoNegado" element={<Screen401 />} />
+        <Route path="/" element={user ? <Navigate to="/home" /> : <Login />} />
+        <Route path="/cadastro" element={<Update />} />
+        <Route path="/acessoNegado" element={<Screen401 />} />
+
+        {/* Rotas protegidas */}
+        <Route path="/home" element={<ProtectedRoute element={<Home />} />} />
         <Route
-          path="/Home"
-          element={user !== null ? <Home /> : <Navigate to="/AcessoNegado" />}
+          path="/relatorios"
+          element={<ProtectedRoute element={<Reports />} />}
         />
         <Route
-          path="/Relatorios"
-          element={
-            user !== null ? <Reports /> : <Navigate to="/AcessoNegado" />
-          }
-        />
-        <Route
-          path="/Estabelecimento"
-          element={
-            user !== null ? <Establishment /> : <Navigate to="/AcessoNegado" />
-          }
+          path="/estabelecimento"
+          element={<ProtectedRoute element={<Establishment />} />}
         />
       </Routes>
     </Router>

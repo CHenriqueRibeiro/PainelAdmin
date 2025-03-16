@@ -1,101 +1,156 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  IconButton,
+  //IconButton,
   Input,
   OutlinedInput,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import Navbar from "../Components/Header";
 import DashboardSidebar from "../Components/DashboardSidebar";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import DeleteIcon from "@mui/icons-material/Delete";
-import InputMask from "react-input-mask";
+//import DeleteIcon from "@mui/icons-material/Delete";
+//import InputMask from "react-input-mask";
 import "react-perfect-scrollbar/dist/css/styles.css";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import InputMask from "react-input-mask";
 export default function Establishment() {
-  const [servicos, setServicos] = useState([{ servico: "", valor: "" }]);
-  const [horario, setHorario] = useState([{ horario: "" }]);
-  const [uploadedFileURLs, setUploadedFileURLs] = useState([]);
+  const [nameEstablishment, setNameEstablishment] = useState("");
+  const [address, setAddress] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
+  const [openHours, setOpenHours] = useState("");
+  const [outHours, setOutHours] = useState("");
+  const [dataEstablishment, setDataEstablishment] = useState([]);
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [cep, setCep] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
 
-  const handleFileInputChange = async (e) => {
-    const files = e.target.files;
-    let newFileURLs = [];
+  const { isTokenValid } = useAuth();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("authToken");
+  const OwnerUser = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    if (!isTokenValid()) {
+      navigate("/");
+    }
+  }, [isTokenValid]);
 
-    if (uploadedFileURLs.length + files.length > 3) {
-      console.log("Limite máximo de 3 fotos atingido.");
+  useEffect(() => {
+    const fetchCepApi = async () => {
+      if (cep.length === 9) {
+        try {
+          const response = await fetch(
+            `https://brasilapi.com.br/api/cep/v2/${cep}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Erro ao buscar CEP");
+          }
+
+          const data = await response.json();
+          console.log("Dados do CEP:", data);
+
+          setCity(data.city);
+          setNeighborhood(data.neighborhood);
+          setAddress(data.street);
+          setCep(data.cep);
+          setState(data.state);
+          setCep(data.cep);
+          setLatitude(data.location.coordinates.latitude);
+          setLongitude(data.location.coordinates.longitude);
+        } catch (error) {
+          console.error("Erro:", error);
+        }
+      }
+    };
+
+    fetchCepApi();
+  }, [cep]);
+
+  const fetchEstablishments = async () => {
+    const ownerId = OwnerUser.id;
+    const token = localStorage.getItem("authToken");
+
+    if (!ownerId || !token) {
+      console.warn("Dono ou token não encontrados");
       return;
     }
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileURL = URL.createObjectURL(file);
-      newFileURLs.push(fileURL);
-    }
-    newFileURLs = uploadedFileURLs.concat(newFileURLs);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    setUploadedFileURLs(newFileURLs);
-  };
-
-  const handleSave = async () => {
-    const storage = getStorage();
-    const storageRef = ref(storage);
-
-    for (let i = 0; i < uploadedFileURLs.length; i++) {
-      const fileURL = uploadedFileURLs[i];
-      const response = await fetch(fileURL);
-      const blob = await response.blob();
-      const fileRef = ref(storageRef, `fotos/image_${Date.now()}_${i}`);
-
-      try {
-        await uploadBytes(fileRef, blob);
-        console.log("Arquivo enviado com sucesso:", fileRef.fullPath);
-      } catch (error) {
-        console.error("Erro ao enviar o arquivo:", error);
+      if (!response.ok) {
+        throw new Error("Erro ao buscar estabelecimentos");
       }
+
+      const data = await response.json();
+      setDataEstablishment(data.establishments);
+      console.log("Estabelecimentos:", data.establishments);
+    } catch (error) {
+      console.error("Erro:", error);
     }
   };
+  useEffect(() => {
+    fetchEstablishments();
+  }, []);
+  console.log(dataEstablishment);
+  const createEstablishment = async () => {
+    const userData = {
+      nameEstablishment: nameEstablishment,
+      address: {
+        state: state,
+        city: city,
+        neighborhood: neighborhood,
+        street: address,
+        number: addressNumber,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        cep: Number(cep),
+      },
+      openingHours: {
+        open: openHours,
+        close: outHours,
+      },
+      owner: OwnerUser.id,
+    };
+    console.log(userData);
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/establishment/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
-  const handleDeleteFile = (index) => {
-    const updatedFileURLs = uploadedFileURLs.filter((url, i) => i !== index);
-    setUploadedFileURLs(updatedFileURLs);
-  };
+      if (!response.ok) {
+        throw new Error("Erro ao criar estabelecimento");
+      }
 
-  const handleAddBoxService = () => {
-    setServicos([...servicos, { servico: "", valor: "" }]);
-  };
-
-  const handleInputChangeService = (index, field, value) => {
-    const newServicos = [...servicos];
-    newServicos[index][field] = value;
-    setServicos(newServicos);
-  };
-
-  const handleDeleteBoxService = (index) => {
-    if (servicos.length > 1) {
-      const newServicos = [...servicos];
-      newServicos.splice(index, 1);
-      setServicos(newServicos);
-    }
-  };
-  const handleAddBoxHours = () => {
-    setHorario([...horario, { servico: "" }]);
-  };
-
-  const handleInputChangeHours = (index, field, value) => {
-    const newServicos = [...horario];
-    newServicos[index][field] = value;
-    setHorario(newServicos);
-  };
-
-  const handleDeleteBoxHours = (index) => {
-    if (horario.length > 1) {
-      const newServicos = [...horario];
-      newServicos.splice(index, 1);
-      setHorario(newServicos);
+      const result = await response.json();
+      console.log("Estabelecimento criado:", result);
+      await fetchEstablishments();
+    } catch (error) {
+      console.error("Erro:", error);
     }
   };
 
@@ -113,41 +168,27 @@ export default function Establishment() {
           flexDirection: "column",
         }}
       >
-        <Navbar />
-        <PerfectScrollbar
-          style={{
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "auto",
-            height: "100%",
-            width: "100%",
-          }}
-        >
-          <Box
-            id="teste2"
-            sx={{
-              mt: isMobile ? 4 : 0,
-              height: isMobile ? "100%" : "95%",
-              width: "95%",
+        {dataEstablishment.length > 0 ? (
+          <PerfectScrollbar
+            style={{
               display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              alignItems: "center",
               justifyContent: "center",
-              alignItems: "flex-start",
+              overflow: "auto",
+              height: "100%",
+              width: "100%",
             }}
           >
             <Box
+              id="teste2"
               sx={{
+                mt: isMobile ? 4 : 0,
+                height: isMobile ? "100%" : "95%",
+                width: "95%",
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: isMobile ? "100%" : "95%",
-                height: "auto",
-                minHeight: "25rem",
-                background: "#FFFFFF",
-                borderRadius: 6,
-                boxShadow: 5,
-                pb: 4,
+                justifyContent: "center",
+                alignItems: "flex-start",
               }}
             >
               <Box
@@ -155,28 +196,13 @@ export default function Establishment() {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center",
-                  width: "90%",
-                  height: isMobile ? "10%" : "5%",
-                  minHeight: "3rem",
-                  borderBottom: "1px #955eef solid",
-                }}
-              >
-                <Typography variant="h6">Dados do estabelecimento</Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  width: "90%",
-                  height: isMobile ? "25%" : "25%",
-                  minHeight: "16rem",
-                  background: "#955eef",
-                  borderRadius: 3,
-                  boxShadow: 3,
-                  mt: 2,
+                  width: isMobile ? "100%" : "95%",
+                  height: "auto",
+                  minHeight: "25rem",
+                  background: "#FFFFFF",
+                  borderRadius: 6,
+                  boxShadow: 5,
+                  pb: 4,
                 }}
               >
                 <Box
@@ -184,178 +210,352 @@ export default function Establishment() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    justifyContent: "center",
                     width: "95%",
-                    height: isMobile ? "85%" : "90%",
-                    minHeight: "14rem",
+                    height: isMobile ? "10%" : "5%",
+                    minHeight: "3rem",
+                    borderBottom: "1px #9E36AF solid",
+                  }}
+                >
+                  <Typography variant="h6">Dados do estabelecimento</Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex_start",
+                    justifyContent: "space-around",
+                    width: "95%",
+                    height: isMobile ? "25%" : "25%",
+                    minHeight: "16rem",
+                    background: "#9E36AF",
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    mt: 2,
+                    pl: 3,
+                  }}
+                >
+                  <Typography variant="h6" component="h2" color="#FFFFFF">
+                    Nome:{dataEstablishment[0].nameEstablishment}
+                  </Typography>
+                  <Typography variant="h6" component="h2" color="#FFFFFF">
+                    Endereço:{dataEstablishment[0].address.street}
+                  </Typography>
+                  <Typography variant="h6" component="h2" color="#FFFFFF">
+                    Horário de abertura:{" "}
+                    {dataEstablishment[0].openingHours.open} hr
+                  </Typography>
+                  <Typography variant="h6" component="h2" color="#FFFFFF">
+                    Horário de fechamento:{" "}
+                    {dataEstablishment[0].openingHours.close} hr
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </PerfectScrollbar>
+        ) : (
+          <>
+            <PerfectScrollbar
+              style={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "auto",
+                height: "100%",
+                width: "100%",
+              }}
+            >
+              <Box
+                id="teste2"
+                sx={{
+                  mt: isMobile ? 4 : 0,
+                  height: isMobile ? "100%" : "95%",
+                  width: "95%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    width: isMobile ? "100%" : "95%",
+                    height: "auto",
+                    minHeight: "25rem",
+                    background: "#FFFFFF",
+                    borderRadius: 6,
+                    boxShadow: 5,
+                    pb: 4,
                   }}
                 >
                   <Box
                     sx={{
                       display: "flex",
-                      flexDirection: "row",
+                      flexDirection: "column",
                       alignItems: "center",
-                      justifyContent: "flex-start",
-                      width: "95%",
-                    }}
-                  ></Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "95%",
-                      height: isMobile ? "25%" : "25%",
+                      justifyContent: "center",
+                      width: "90%",
+                      height: isMobile ? "10%" : "5%",
+                      minHeight: "3rem",
+                      borderBottom: "1px #955eef solid",
                     }}
                   >
-                    <OutlinedInput
-                      placeholder="Nome"
-                      sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "45%",
-                        background: "#FFFFFF",
-                        borderColor: "#955eef",
-                      }}
-                    />
-                    <OutlinedInput
-                      placeholder="Telefone"
-                      sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "50%",
-                        background: "#FFFFFF",
-                      }}
-                      inputComponent={InputMask}
-                      inputProps={{
-                        mask: "(99)9 99999999",
-                        maskChar: null,
-                        required: true,
-                      }}
-                    />
+                    <Typography variant="h6">
+                      Dados do estabelecimento
+                    </Typography>
                   </Box>
                   <Box
                     sx={{
                       display: "flex",
-                      flexDirection: "row",
+                      flexDirection: "column",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "95%",
+                      justifyContent: "space-around",
+                      width: "90%",
                       height: isMobile ? "25%" : "25%",
+                      minHeight: "16rem",
+                      background: "#955eef",
+                      borderRadius: 3,
+                      boxShadow: 3,
+                      mt: 2,
                     }}
                   >
-                    <OutlinedInput
-                      placeholder="Cep"
+                    <Box
                       sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "35%",
-                        background: "#FFFFFF",
-                        borderColor: "#955eef",
-                      }}
-                      inputComponent={InputMask}
-                      inputProps={{
-                        mask: "99999-999",
-                        maskChar: null,
-                        required: true,
-                      }}
-                    />
-                    <OutlinedInput
-                      placeholder="Bairro"
-                      sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "55%",
-                        background: "#FFFFFF",
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "95%",
-                      height: isMobile ? "25%" : "25%",
-                    }}
-                  >
-                    <OutlinedInput
-                      placeholder="Endereço"
-                      sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "70%",
-                        background: "#FFFFFF",
-                        borderColor: "#955eef",
-                      }}
-                    />
-                    <OutlinedInput
-                      placeholder="N°"
-                      sx={{
-                        borderRadius: 3,
-                        height: "3rem",
-                        width: "25%",
-                        background: "#FFFFFF",
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "flex-end",
-                      width: "95%",
-                      gap: 2,
-                    }}
-                  >
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        borderColor: "#FFFFFF",
-                        borderRadius: 3,
-                        background: "#9A6CDB",
-                        color: "#FFFFFF",
-                        ":active": {
-                          borderColor: "#9A6CDB",
-                          background: "#FFFFFF",
-                          color: "#9A6CDB",
-                        },
-                        ":hover": {
-                          borderColor: "#9A6CDB",
-                          background: "#FFFFFF",
-                          color: "#9A6CDB",
-                        },
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "95%",
+                        height: isMobile ? "85%" : "90%",
+                        minHeight: "14rem",
                       }}
                     >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        borderColor: "#FFFFFF",
-                        borderRadius: 3,
-                        background: "#9A6CDB",
-                        color: "#FFFFFF",
-                        ":active": {
-                          background: "#FFFFFF",
-                          color: "#9A6CDB",
-                        },
-                        ":hover": {
-                          borderColor: "#9A6CDB",
-                          background: "#FFFFFF",
-                          color: "#9A6CDB",
-                        },
-                      }}
-                    >
-                      Salvar
-                    </Button>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-start",
+                          width: "95%",
+                        }}
+                      ></Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "95%",
+                          height: isMobile ? "25%" : "25%",
+                        }}
+                      >
+                        <OutlinedInput
+                          placeholder="Nome"
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "45%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                          onChange={(e) => setNameEstablishment(e.target.value)}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "95%",
+                          height: isMobile ? "25%" : "25%",
+                        }}
+                      >
+                        <OutlinedInput
+                          placeholder="Horario de abertura"
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "35%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                          onChange={(e) => setOpenHours(e.target.value)}
+                        />
+                        <OutlinedInput
+                          placeholder="Horario de fechamento"
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "55%",
+                            background: "#FFFFFF",
+                          }}
+                          onChange={(e) => setOutHours(e.target.value)}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "95%",
+                          height: isMobile ? "25%" : "25%",
+                        }}
+                      >
+                        <OutlinedInput
+                          placeholder="Cep"
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "35%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                          inputComponent={InputMask}
+                          inputProps={{
+                            mask: "99999-999",
+                            maskChar: null,
+                            required: true,
+                          }}
+                          onChange={(e) => setCep(e.target.value)}
+                        />
+                        <OutlinedInput
+                          placeholder="Endereço"
+                          value={address}
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "60%",
+                            background: "#FFFFFF",
+                          }}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "95%",
+                          height: isMobile ? "25%" : "25%",
+                        }}
+                      >
+                        <OutlinedInput
+                          placeholder="Cidade"
+                          value={city}
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "70%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                        />
+                        <OutlinedInput
+                          placeholder="Bairro"
+                          value={neighborhood}
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "25%",
+                            background: "#FFFFFF",
+                          }}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "95%",
+                          height: isMobile ? "25%" : "25%",
+                        }}
+                      >
+                        <OutlinedInput
+                          placeholder="Estado"
+                          value={state}
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "70%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                        />
+                        <OutlinedInput
+                          placeholder="N°"
+                          value={addressNumber}
+                          sx={{
+                            borderRadius: 3,
+                            height: "3rem",
+                            width: "70%",
+                            background: "#FFFFFF",
+                            borderColor: "#955eef",
+                          }}
+                          onChange={(e) => setAddressNumber(e.target.value)}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          width: "95%",
+                          gap: 2,
+                        }}
+                      >
+                        <Button
+                          variant="outlined"
+                          sx={{
+                            borderColor: "#FFFFFF",
+                            borderRadius: 3,
+                            background: "#9A6CDB",
+                            color: "#FFFFFF",
+                            ":active": {
+                              borderColor: "#9A6CDB",
+                              background: "#FFFFFF",
+                              color: "#9A6CDB",
+                            },
+                            ":hover": {
+                              borderColor: "#9A6CDB",
+                              background: "#FFFFFF",
+                              color: "#9A6CDB",
+                            },
+                          }}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          sx={{
+                            borderColor: "#FFFFFF",
+                            borderRadius: 3,
+                            background: "#9A6CDB",
+                            color: "#FFFFFF",
+                            ":active": {
+                              background: "#FFFFFF",
+                              color: "#9A6CDB",
+                            },
+                            ":hover": {
+                              borderColor: "#9A6CDB",
+                              background: "#FFFFFF",
+                              color: "#9A6CDB",
+                            },
+                          }}
+                          onClick={createEstablishment}
+                        >
+                          Salvar
+                        </Button>
+                      </Box>
+                    </Box>
                   </Box>
-                </Box>
-              </Box>
-              <Box
+                  {/*<Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
@@ -530,8 +730,8 @@ export default function Establishment() {
                     Salvar
                   </Button>
                 </Box>
-              </Box>
-              <Box
+              </Box>*/}
+                  {/*<Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
@@ -690,130 +890,82 @@ export default function Establishment() {
                     Salvar
                   </Button>
                 </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  width: "90%",
-                  height: "auto",
-                  minHeight: "16rem",
-                  background: "#955eef",
-                  borderRadius: 3,
-                  boxShadow: 3,
-                  mt: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    minHeight: "5rem",
-                    width: isMobile ? "90%" : "100%",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileInputChange}
-                    sx={{ width: "95%" }}
-                  />
-                </Box>
-
-                <PerfectScrollbar
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                >
+              </Box>*/}
                   <Box
                     sx={{
                       display: "flex",
-                      flexDirection: "row",
-                      flexWrap: "wrap",
+                      flexDirection: "column",
                       alignItems: "center",
-                      justifyContent: "center",
-                      gap: 2,
+                      justifyContent: "space-around",
+                      width: "90%",
+                      height: "auto",
+                      minHeight: "16rem",
+                      background: "#955eef",
+                      borderRadius: 3,
+                      boxShadow: 3,
                       mt: 2,
                     }}
                   >
-                    {uploadedFileURLs.map((url, index) => (
-                      <Box
-                        key={index}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        minHeight: "5rem",
+                        width: isMobile ? "90%" : "100%",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={{}}
+                        sx={{ width: "95%" }}
+                      />
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        width: "95%",
+                        gap: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        onClick={{}}
                         sx={{
-                          position: "relative",
-                          maxWidth: "150px",
-                          marginBottom: "10px",
+                          borderColor: "#FFFFFF",
+                          borderRadius: 3,
+                          background: "#9A6CDB",
+                          color: "#FFFFFF",
+                          ":active": {
+                            borderColor: "#9A6CDB",
+                            background: "#FFFFFF",
+                            color: "#9A6CDB",
+                          },
+                          ":hover": {
+                            borderColor: "#9A6CDB",
+                            background: "#FFFFFF",
+                            color: "#9A6CDB",
+                          },
                         }}
                       >
-                        <img
-                          src={url}
-                          alt={`Imagem ${index}`}
-                          style={{ maxWidth: "100%", height: "auto" }}
-                        />
-                        <IconButton
-                          sx={{
-                            position: "absolute",
-                            top: -8,
-                            right: -8,
-                            background: "#FFFFFF",
-                            boxShadow: 2,
-                          }}
-                          onClick={() => handleDeleteFile(index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    ))}
+                        Salvar
+                      </Button>
+                    </Box>
                   </Box>
-                </PerfectScrollbar>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    width: "95%",
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    onClick={handleSave}
-                    sx={{
-                      borderColor: "#FFFFFF",
-                      borderRadius: 3,
-                      background: "#9A6CDB",
-                      color: "#FFFFFF",
-                      ":active": {
-                        borderColor: "#9A6CDB",
-                        background: "#FFFFFF",
-                        color: "#9A6CDB",
-                      },
-                      ":hover": {
-                        borderColor: "#9A6CDB",
-                        background: "#FFFFFF",
-                        color: "#9A6CDB",
-                      },
-                    }}
-                  >
-                    Salvar
-                  </Button>
                 </Box>
               </Box>
-            </Box>
-          </Box>
-        </PerfectScrollbar>
+            </PerfectScrollbar>
+          </>
+        )}
+
         {!isMobile && <DashboardSidebar />}
       </Box>
     </>

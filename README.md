@@ -1,4 +1,3 @@
-
 **LavaJá - Painel Admin da Aplicação Web**
 
 Seja bem-vindo ao repositório do Painel Admin Web do LavaJá!
@@ -19,9 +18,11 @@ O Painel Admin do LavaJá é uma ferramenta poderosa construída com tecnologias
 ### Funcionalidades Principais
 
 1. **Gestão Inteligente:**
+
    - Controle todas as operações do seu lava-rápido de maneira inteligente e eficiente, com visões detalhadas sobre agendamentos, clientes e equipes.
 
 2. **Agendamentos Simplificados:**
+
    - Ofereça uma experiência premium aos seus clientes com agendamentos rápidos e intuitivos.
 
 3. **Integração com Busca CEP:**
@@ -30,9 +31,11 @@ O Painel Admin do LavaJá é uma ferramenta poderosa construída com tecnologias
 ### Como Começar
 
 1. **Instalação das Dependências:**
+
    - Execute `npm install` para instalar todas as dependências necessárias para o projeto.
 
 2. **Configuração do Firebase:**
+
    - Configure suas credenciais Firebase no arquivo de configuração para habilitar recursos como autenticação e armazenamento em nuvem.
 
 3. **Iniciando o Servidor:**
@@ -42,4 +45,4 @@ O Painel Admin do LavaJá é uma ferramenta poderosa construída com tecnologias
 
 Se precisar de ajuda ou tiver alguma dúvida, não hesite em entrar em contato comigo. Estou sempre disponível para ajudar!
 
-Obrigado por explorar o Painel Admin do LavaJá. 
+Obrigado por explorar o Painel Admin do LavaJá.

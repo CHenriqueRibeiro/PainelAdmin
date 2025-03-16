@@ -1,81 +1,108 @@
-/* eslint-disable react-refresh/only-export-components */
 // eslint-disable-next-line no-unused-vars
 import React, { createContext, useState, useContext, useEffect } from "react";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
-import { app } from "../FirebaseConfig/Firebase";
 
 const AuthContext = createContext();
 
 // eslint-disable-next-line react/prop-types
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const auth = getAuth(app);
+
+  const cadastrarUsuario = async (email, senha, nomeDoCliente, telefone) => {
+    const userData = {
+      name: nomeDoCliente,
+      email: email,
+      phone: telefone,
+      password: senha,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/owner/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao criar usuário");
+      }
+
+      const result = await response.json();
+      setUser(result.owner);
+      const token = result.token;
+      const expirationTime = new Date().getTime() + 60 * 60 * 1000;
+
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("tokenExpiration", expirationTime.toString());
+      localStorage.setItem("user", JSON.stringify(result.owner));
+
+      console.log("Usuário criado:", result);
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+  };
+
+  const login = async (email, senha) => {
+    const userData = {
+      email: email,
+      password: senha,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao fazer login");
+      }
+
+      const result = await response.json();
+      setUser(result.owner);
+      const token = result.token;
+      const expirationTime = new Date().getTime() + 60 * 60 * 1000;
+
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("tokenExpiration", expirationTime.toString());
+      localStorage.setItem("user", JSON.stringify(result.owner));
+
+      console.log("Login realizado com sucesso:", result);
+    } catch (error) {
+      console.error("Erro ao logar:", error);
+    }
+  };
+
+  const isTokenValid = () => {
+    const tokenExpiration = localStorage.getItem("tokenExpiration");
+    const currentTime = new Date().getTime();
+
+    if (tokenExpiration && currentTime < parseInt(tokenExpiration)) {
+      return true;
+    }
+
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("tokenExpiration");
+    localStorage.removeItem("user");
+    return false;
+  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user ? user.uid : null);
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
-
-  const cadastrarUsuario = async (email, senha) => {
-    try {
-      const auth = getAuth(app);
-
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        senha
-      );
-      setUser(userCredential.user.uid);
-      return userCredential;
-    } catch (error) {
-      console.error("Erro ao cadastrar:", error.message);
-      throw error;
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  };
-
-  const userLogin = async (email, password) => {
-    try {
-      const auth = getAuth(app);
-
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      setUser(userCredential.user.uid);
-      return userCredential;
-    } catch (error) {
-      console.error("Erro ao fazer login:", error.message);
-      throw error;
-    }
-  };
-
-  const userLogout = async () => {
-    try {
-      const auth = getAuth(app);
-
-      await signOut(auth);
-      setUser(null);
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error.message);
-      throw error;
-    }
-  };
+  }, []);
 
   const authContextValue = {
-    cadastrarUsuario,
-    userLogin,
-    userLogout, 
     user,
+    cadastrarUsuario,
+    login,
+    isTokenValid,
   };
 
   return (

@@ -5,7 +5,6 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import Navbar from "../Components/Header";
 import DashboardSidebar from "../Components/DashboardSidebar";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import EventNoteRoundedIcon from "@mui/icons-material/EventNoteRounded";
@@ -27,13 +26,11 @@ export default function Home() {
           width: isMobile ? "100dvw" : "80dvw",
           marginLeft: isMobile ? "0" : "20dvw",
           height: "100dvh",
-          background: "#EDEDED",
+          background: "#F5F6FA",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <Navbar />
-
         <PerfectScrollbar
           style={{
             display: "flex",
