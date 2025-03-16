@@ -16,13 +16,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/owner/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        "https://backlavaja.onrender.com/api/owner/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Erro ao criar usuário");
@@ -50,13 +53,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        "https://backlavaja.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Erro ao fazer login");

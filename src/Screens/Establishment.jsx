@@ -84,7 +84,7 @@ export default function Establishment() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/establishment/owner/${ownerId}`,
+        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -131,7 +131,7 @@ export default function Establishment() {
     console.log(userData);
     try {
       const response = await fetch(
-        "http://localhost:3000/api/establishment/create",
+        "https://backlavaja.onrender.com/api/establishment/create",
         {
           method: "POST",
           headers: {
