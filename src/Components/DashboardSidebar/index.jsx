@@ -44,7 +44,7 @@ const DashboardSidebar = () => {
           sx={{
             boxShadow: 4,
             "& > :first-of-type": {
-              background: "linear-gradient(0deg, #a13fad 0%, #9211bb 100%)",
+              background: "linear-gradient(180deg, #8C4AF2 100%, #f4f4fe 100%)",
               display: "flex",
               flexDirection: "flex",
               alignItems: "center",

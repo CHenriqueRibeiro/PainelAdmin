@@ -27,11 +27,12 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error("Erro ao criar usuário");
+        throw new Error(result.message || "Erro ao criar usuário");
       }
 
-      const result = await response.json();
       setUser(result.owner);
       const token = result.token;
       const expirationTime = new Date().getTime() + 60 * 60 * 1000;
@@ -39,36 +40,30 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("authToken", token);
       localStorage.setItem("tokenExpiration", expirationTime.toString());
       localStorage.setItem("user", JSON.stringify(result.owner));
-
-      console.log("Usuário criado:", result);
     } catch (error) {
       console.error("Erro:", error);
+      throw error;
     }
   };
 
   const login = async (email, senha) => {
-    const userData = {
-      email: email,
-      password: senha,
-    };
+    const userData = { email, password: senha };
 
     try {
       const response = await fetch(
         "https://backlavaja.onrender.com/api/auth/login",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(userData),
         }
       );
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error("Erro ao fazer login");
+        throw new Error(result.message || "Erro ao fazer login");
       }
 
-      const result = await response.json();
       setUser(result.owner);
       const token = result.token;
       const expirationTime = new Date().getTime() + 60 * 60 * 1000;
@@ -76,10 +71,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("authToken", token);
       localStorage.setItem("tokenExpiration", expirationTime.toString());
       localStorage.setItem("user", JSON.stringify(result.owner));
-
-      console.log("Login realizado com sucesso:", result);
     } catch (error) {
       console.error("Erro ao logar:", error);
+      throw error;
     }
   };
 
