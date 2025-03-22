@@ -209,11 +209,20 @@ const Login = () => {
               </Typography>
             </Link>
           </Box>
+        </Box>
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             type="submit"
             variant="outlined"
             sx={{
-              width: "100%",
+              width: "70%",
               height: "3rem",
               mt: 4,
               borderRadius: 2,
