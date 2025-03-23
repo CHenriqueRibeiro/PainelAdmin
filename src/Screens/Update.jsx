@@ -84,7 +84,7 @@ const Update = () => {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "flex-start",
-          pb: isMobile ? "7rem" : 15,
+          pb: isMobile ? "7rem" : 0,
         }}
       >
         <Box
