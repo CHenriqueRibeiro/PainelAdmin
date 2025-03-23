@@ -124,7 +124,7 @@ const Update = () => {
           onSubmit={handleUpdate}
           sx={{
             height: "40rem",
-            width: "80%",
+            width: "100%",
             maxWidth: "40rem",
             padding: "20px",
             borderRadius: 3,

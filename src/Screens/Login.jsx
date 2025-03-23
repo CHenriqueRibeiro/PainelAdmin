@@ -19,7 +19,6 @@ import Logo from "../../public/logosemfundo.png";
 import BackgroundImage from "../../public/background.png";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyIcon from "@mui/icons-material/Key";
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -115,7 +114,7 @@ const Login = () => {
           component="form"
           onSubmit={handleLogin}
           sx={{
-            width: "80%",
+            width: "100%",
             maxWidth: "40rem",
             padding: "20px",
             borderRadius: "8px",
@@ -124,7 +123,7 @@ const Login = () => {
             alignItems: "center",
             justifyContent: "center",
             gap: 3,
-            overflow: "auto",
+            overflow: "hidden",
           }}
         >
           <OutlinedInput
@@ -244,6 +243,7 @@ const Login = () => {
                 borderColor: "#6F00BF",
               },
             }}
+            onClick={handleLogin}
           >
             Entrar
           </Button>
