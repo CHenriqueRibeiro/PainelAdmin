@@ -35,6 +35,7 @@ export default function Establishment() {
   const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
   const OwnerUser = JSON.parse(localStorage.getItem("user"));
+
   useEffect(() => {
     fetchEstablishments();
   }, []);
@@ -156,8 +157,7 @@ export default function Establishment() {
     <>
       <Box
         sx={{
-          width: isMobile ? "100dvw" : "80dvw",
-          marginLeft: isMobile ? "0" : "20dvw",
+          width: isMobile ? "100dvw" : "100dvw",
           height: "100dvh",
           background:
             "linear-gradient(180deg, #eaecff 0%, #e8eefd 81%, #e7e8fc 100%)",
@@ -165,6 +165,7 @@ export default function Establishment() {
           flexDirection: "column",
         }}
       >
+        <DashboardSidebar />
         {dataEstablishment.length > 0 ? (
           <PerfectScrollbar
             style={{
@@ -576,8 +577,6 @@ export default function Establishment() {
             </PerfectScrollbar>
           </>
         )}
-
-        {!isMobile && <DashboardSidebar />}
       </Box>
     </>
   );

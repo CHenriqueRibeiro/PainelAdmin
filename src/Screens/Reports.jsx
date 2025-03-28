@@ -54,6 +54,7 @@ export default function Reports() {
           flexDirection: "column",
         }}
       >
+        <DashboardSidebar />
         <PerfectScrollbar
           style={{
             display: "flex",
@@ -670,7 +671,6 @@ export default function Reports() {
             </Box>
           </Box>
         </PerfectScrollbar>
-        {!isMobile && <DashboardSidebar />}
       </Box>
     </>
   );

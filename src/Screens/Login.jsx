@@ -40,9 +40,7 @@ const Login = () => {
       navigate("/estabelecimento", { replace: true });
     } catch (error) {
       console.error("Erro ao logar:", error);
-      setError(
-        error.message.message || "Usuário não cadastrado ou senha incorreta."
-      );
+      setError(error.message || "Usuário não cadastrado ou senha incorreta.");
       setPasswordError(true);
     } finally {
       setLoading(false);
@@ -65,67 +63,46 @@ const Login = () => {
         backgroundPosition: "center",
         height: "100vh",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Box
-        sx={{ width: "100%", position: "fixed", top: 0, left: 0, zIndex: 1300 }}
-      >
-        {loading && (
-          <LinearProgress
-            sx={{
-              backgroundColor: "#D3C2FB",
-              "& .MuiLinearProgress-bar": {
-                backgroundColor: "#6F00BF",
-              },
-            }}
-          />
-        )}
-      </Box>
+      {loading && (
+        <LinearProgress
+          sx={{
+            width: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: "#6F00BF",
+            },
+          }}
+        />
+      )}
       <Box
         sx={{
           background:
             "linear-gradient(180deg, #d3c2fb 0%, #945bf2 100%, #f4f4fe 100%)",
-          height: "100vh",
-          width: isMobile ? "100dvw" : "30dvw",
+          width: isMobile ? "90%" : "30rem",
+          padding: "2rem",
+          borderRadius: "8px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
-          pb: isMobile ? "7rem" : 27,
+          boxShadow: 3,
         }}
       >
-        <Box>
-          <img
-            src={Logo}
-            alt="logo"
-            style={{
-              width: "100%",
-              height: "25dvh",
-            }}
-          />
-        </Box>
-        <Typography variant="h4" color={"#FFFFFF"} gutterBottom>
+        <img
+          src={Logo}
+          alt="logo"
+          style={{ width: "50%", marginBottom: "1rem" }}
+        />
+        <Typography variant="h5" color="white" gutterBottom>
           Login
         </Typography>
-        <Box
-          component="form"
-          onSubmit={handleLogin}
-          sx={{
-            width: "100%",
-            maxWidth: "40rem",
-            padding: "20px",
-            borderRadius: "8px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 3,
-            overflow: "hidden",
-          }}
-        >
+
+        <Box component="form" onSubmit={handleLogin} sx={{ width: "100%" }}>
           <OutlinedInput
             type="email"
             value={email}
@@ -135,7 +112,7 @@ const Login = () => {
               handleInputChange();
             }}
             startAdornment={
-              <InputAdornment position="start" sx={{ pl: 1 }}>
+              <InputAdornment position="start">
                 <PersonIcon />
               </InputAdornment>
             }
@@ -143,10 +120,8 @@ const Login = () => {
             sx={{
               borderRadius: 3,
               background: "#FFFFFF",
-              boxShadow: 5,
-              "& fieldset": {
-                border: "none",
-              },
+              boxShadow: 1,
+              marginBottom: "1rem",
             }}
             required
           />
@@ -163,14 +138,12 @@ const Login = () => {
             sx={{
               borderRadius: 3,
               background: "#FFFFFF",
-              boxShadow: 5,
-              "& fieldset": {
-                border: "none",
-              },
+              boxShadow: 1,
+              marginBottom: "1rem",
             }}
             required
             startAdornment={
-              <InputAdornment position="start" sx={{ pl: 1 }}>
+              <InputAdornment position="start">
                 <KeyIcon />
               </InputAdornment>
             }
@@ -182,78 +155,37 @@ const Login = () => {
               </InputAdornment>
             }
           />
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              pl: 1,
-              gap: 2,
-            }}
-          >
-            <Typography>Não tem conta? </Typography>
-
-            <Link
-              to="/cadastro"
-              color="inherit"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-              }}
-            >
-              <Typography sx={{ color: "#FFFFFF", textDecoration: "none" }}>
-                Criar conta
-              </Typography>
-            </Link>
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
           <Button
             type="submit"
-            variant="outlined"
+            variant="contained"
+            fullWidth
             sx={{
-              width: "70%",
-              height: "3rem",
-              mt: 4,
-              borderRadius: 2,
-              background: "#6F00BF",
-              color: "#FFFFFF",
-              textTransform: "capitalize",
-              borderColor: "#6F00BF",
-              transition: "transform 0.3s",
-              ":active": {
-                transform: "scale(0.95)",
-                background:
-                  "linear-gradient(180deg, #8C4AF2 100%, #f4f4fe 100%)",
-                color: "#6F00BF",
-                borderColor: "#6F00BF",
-              },
-              ":hover": {
-                background: "#FFFFFF",
-                color: "#6F00BF",
-                borderColor: "#6F00BF",
-              },
+              backgroundColor: "#6F00BF",
+              color: "white",
+              textTransform: "none",
+              padding: "0.75rem",
+              borderRadius: "8px",
+              ":hover": { backgroundColor: "#5a00a3" },
             }}
-            onClick={handleLogin}
           >
             Entrar
           </Button>
         </Box>
+        <Typography mt={2} color="white">
+          Não tem conta?{" "}
+          <Link
+            to="/cadastro"
+            style={{ color: "#FFF", textDecoration: "none" }}
+          >
+            Criar conta
+          </Link>
+        </Typography>
       </Box>
       {passwordError && error && (
         <Stack
           sx={{
             position: "fixed",
-            bottom: isMobile ? 20 : 50,
+            bottom: 20,
             left: "50%",
             transform: "translateX(-50%)",
             width: isMobile ? "90%" : "25rem",
@@ -264,9 +196,7 @@ const Login = () => {
           <Alert
             severity="error"
             onClose={() => setPasswordError(false)}
-            sx={{
-              borderRadius: 3,
-            }}
+            sx={{ borderRadius: 3 }}
           >
             {error}
           </Alert>

@@ -31,6 +31,7 @@ export default function Home() {
           flexDirection: "column",
         }}
       >
+        <DashboardSidebar />
         <PerfectScrollbar
           style={{
             display: "flex",
@@ -1048,7 +1049,6 @@ export default function Home() {
             </Box>
           </Box>
         </PerfectScrollbar>
-        {!isMobile && <DashboardSidebar />}
       </Box>
     </>
   );
