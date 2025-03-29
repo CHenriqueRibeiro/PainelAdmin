@@ -9,12 +9,12 @@ import { Navigate, Outlet } from "react-router-dom";
 
 const NAVIGATION = [
   {
-    segment: "home",
+    segment: "Home",
     icon: <DashboardIcon />,
     onClick: () => Navigate("/home"),
   },
   {
-    segment: "estabelecimento",
+    segment: "Estabelecimento",
     icon: <ShoppingCartIcon />,
     onClick: () => Navigate("/estabelecimento"),
   },
@@ -51,7 +51,24 @@ export default function DashboardLayoutBasic(props) {
 
   return (
     <AppProvider navigation={NAVIGATION} theme={demoTheme} window={demoWindow}>
-      <DashboardLayout>
+      <DashboardLayout
+        sx={{
+          "& .MuiAppBar-root": {
+            height: "5rem",
+            color: "#fff",
+            display: "flex",
+            justifyContent: "center",
+            border: 0,
+          },
+          "& .MuiDrawer-paper": {
+            pt: 2,
+            borderColor: "#F1EEFF",
+          },
+          "& .MuiStack-root.css-1d9cypr-MuiStack-root": {
+            display: "none",
+          },
+        }}
+      >
         <Outlet />
       </DashboardLayout>
     </AppProvider>

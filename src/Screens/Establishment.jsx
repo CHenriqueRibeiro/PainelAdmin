@@ -161,6 +161,7 @@ export default function Establishment() {
           height: "100dvh",
           alignItems: "center",
           justifyContent: "center",
+          background: "#F1EEFF",
         }}
       >
         {dataEstablishment.length > 0 ? (

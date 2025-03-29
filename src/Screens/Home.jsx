@@ -23,9 +23,9 @@ export default function Home() {
       <Box
         sx={{
           height: "100dvh",
-          background: "#F5F6FA",
           display: "flex",
           flexDirection: "column",
+          background: "#F1EEFF",
         }}
       >
         <PerfectScrollbar
