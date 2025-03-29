@@ -55,7 +55,7 @@ export default function DashboardLayoutBasic(props) {
         sx={{
           "& .MuiAppBar-root": {
             height: "5rem",
-            color: "#fff",
+            background: "#F9F8FF",
             display: "flex",
             justifyContent: "center",
             border: 0,
@@ -63,6 +63,7 @@ export default function DashboardLayoutBasic(props) {
           "& .MuiDrawer-paper": {
             pt: 2,
             borderColor: "#F1EEFF",
+            background: "#F9F8FF",
           },
           "& .MuiStack-root.css-1d9cypr-MuiStack-root": {
             display: "none",
