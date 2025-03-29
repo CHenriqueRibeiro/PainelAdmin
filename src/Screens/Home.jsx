@@ -5,7 +5,6 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import DashboardSidebar from "../Components/DashboardSidebar";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import EventNoteRoundedIcon from "@mui/icons-material/EventNoteRounded";
 import DriveEtaRoundedIcon from "@mui/icons-material/DriveEtaRounded";
@@ -23,15 +22,12 @@ export default function Home() {
     <>
       <Box
         sx={{
-          width: isMobile ? "100dvw" : "80dvw",
-          marginLeft: isMobile ? "0" : "20dvw",
           height: "100dvh",
           background: "#F5F6FA",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <DashboardSidebar />
         <PerfectScrollbar
           style={{
             display: "flex",
@@ -48,7 +44,7 @@ export default function Home() {
             sx={{
               mt: isMobile ? 4 : 0,
               height: "100%",
-              width: isMobile ? "90%" : "85%",
+              width: isMobile ? "100dvw" : "85%",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",

@@ -8,7 +8,6 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import DashboardSidebar from "../Components/DashboardSidebar";
 import PerfectScrollbar from "react-perfect-scrollbar";
 //import DeleteIcon from "@mui/icons-material/Delete";
 //import InputMask from "react-input-mask";
@@ -157,15 +156,13 @@ export default function Establishment() {
     <>
       <Box
         sx={{
-          width: isMobile ? "100dvw" : "100dvw",
-          height: "100dvh",
-          background:
-            "linear-gradient(180deg, #eaecff 0%, #e8eefd 81%, #e7e8fc 100%)",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
+          height: "100dvh",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <DashboardSidebar />
         {dataEstablishment.length > 0 ? (
           <PerfectScrollbar
             style={{

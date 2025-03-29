@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-unused-vars
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -11,12 +13,13 @@ import Screen401 from "../Screens/Screen401";
 import Reports from "../Screens/Reports";
 import Establishment from "../Screens/Establishment";
 import { useAuth } from "../Context/AuthContext";
-import { useEffect, useState } from "react";
+
+// Layout com menu
+import DashboardLayoutBasic from "../Components/DashboardSidebar"; // Importar o layout que inclui o menu
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
   const { isTokenValid } = useAuth();
-
   return isTokenValid() ? element : <Navigate to="/" />;
 };
 
@@ -43,16 +46,24 @@ const Rotas = () => {
         <Route path="/cadastro" element={<Update />} />
         <Route path="/acessoNegado" element={<Screen401 />} />
 
-        {/* Rotas protegidas */}
-        <Route path="/home" element={<ProtectedRoute element={<Home />} />} />
+        <Route
+          path="/home"
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Home />} />
+        </Route>
         <Route
           path="/relatorios"
-          element={<ProtectedRoute element={<Reports />} />}
-        />
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Reports />} />
+        </Route>
         <Route
           path="/estabelecimento"
-          element={<ProtectedRoute element={<Establishment />} />}
-        />
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Establishment />} />
+        </Route>
       </Routes>
     </Router>
   );

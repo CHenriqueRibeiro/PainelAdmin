@@ -44,6 +44,7 @@ export default function Reports() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   return (
     <>
+      <DashboardSidebar />
       <Box
         sx={{
           width: isMobile ? "100dvw" : "80dvw",
@@ -54,7 +55,6 @@ export default function Reports() {
           flexDirection: "column",
         }}
       >
-        <DashboardSidebar />
         <PerfectScrollbar
           style={{
             display: "flex",
@@ -672,6 +672,7 @@ export default function Reports() {
           </Box>
         </PerfectScrollbar>
       </Box>
+      <DashboardSidebar />
     </>
   );
 }
