@@ -258,7 +258,9 @@ const ScheduledServices = () => {
               : "1fr 1fr 2fr 1.5fr 1.5fr 1fr",
             alignItems: "center",
             py: 1,
-            borderBottom: "1px solid #f0f0f0",
+            borderBottom: isMobile
+              ? "2px solid #6a1b9a"
+              : " 1.5px   solid #f0f0f0",
             color: "#6a1b9a",
             textAlign: isMobile ? "left" : "center",
           }}
