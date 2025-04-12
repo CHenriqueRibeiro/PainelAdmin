@@ -14,8 +14,7 @@ import Reports from "../Screens/Reports";
 import Establishment from "../Screens/Establishment";
 import { useAuth } from "../Context/AuthContext";
 
-// Layout com menu
-import DashboardLayoutBasic from "../Components/DashboardSidebar"; // Importar o layout que inclui o menu
+import DashboardLayoutBasic from "../Components/DashboardSidebar";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {

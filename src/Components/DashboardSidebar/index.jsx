@@ -3,28 +3,24 @@ import * as React from "react";
 import { createTheme } from "@mui/material/styles";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import { Navigate, Outlet } from "react-router-dom";
 
 const NAVIGATION = [
   {
     segment: "Home",
-    icon: <DashboardIcon />,
+    icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
     onClick: () => Navigate("/home"),
   },
   {
     segment: "Estabelecimento",
-    icon: <ShoppingCartIcon />,
+    icon: <StorefrontIcon sx={{ color: "#009688", fontSize: 28 }} />,
     onClick: () => Navigate("/estabelecimento"),
   },
 ];
 
 const demoTheme = createTheme({
-  colorSchemes: { light: true },
-  cssVariables: {
-    colorSchemeSelector: "class",
-  },
   breakpoints: {
     values: {
       xs: 0,
@@ -39,13 +35,6 @@ const demoTheme = createTheme({
 export default function DashboardLayoutBasic(props) {
   // eslint-disable-next-line react/prop-types
   const { window } = props;
-  //const navigate = useNavigate();
-  //const { userLogout } = useAuth();
-
-  /*const handleLogout = () => {
-    userLogout();
-    navigate("/", { replace: true });
-  };*/
 
   const demoWindow = window ? window() : undefined;
 
@@ -67,6 +56,16 @@ export default function DashboardLayoutBasic(props) {
           },
           "& .MuiStack-root.css-1d9cypr-MuiStack-root": {
             display: "none",
+          },
+          "& .MuiListItemText-root.MuiTypography-root.MuiTypography-body1": {
+            color: "#AC42F7",
+          },
+          "& .MuiListItemIcon-root svg": {
+            color: "#6A1B9A",
+            fontSize: "28px",
+          },
+          "& .MuiIconButton-root.MuiIconButton-sizeMedium": {
+            color: "#6A1B9A",
           },
         }}
       >
