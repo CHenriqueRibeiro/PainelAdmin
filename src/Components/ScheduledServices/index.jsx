@@ -324,6 +324,7 @@ const ScheduledServices = () => {
                       <Typography variant="body2">
                         Status:{" "}
                         <Chip
+                          variant="outlined"
                           size="small"
                           label={item.status}
                           color={getStatusColor(item.status)}
@@ -350,6 +351,7 @@ const ScheduledServices = () => {
                     <Typography variant="body2">{item.service}</Typography>
                     <Tooltip title="Clique para alterar o status" arrow>
                       <Chip
+                        variant="outlined"
                         size="small"
                         label={item.status}
                         color={getStatusColor(item.status)}
