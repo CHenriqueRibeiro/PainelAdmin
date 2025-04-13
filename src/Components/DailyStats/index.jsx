@@ -1,6 +1,12 @@
 // eslint-disable-next-line no-unused-vars
-import React from "react";
-import { Box, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  Skeleton,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import NoCrashRoundedIcon from "@mui/icons-material/NoCrashRounded";
 import CarCrashRoundedIcon from "@mui/icons-material/CarCrashRounded";
@@ -11,11 +17,18 @@ const DailyStatus = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Box
       sx={{
         width: "95%",
-        height: isMobile ? "20rem" : "7rem",
+        height: isMobile ? "17rem" : "7rem",
         display: "flex",
         flexDirection: isMobile ? "column" : "row",
         justifyContent: "space-between",
@@ -66,9 +79,13 @@ const DailyStatus = () => {
           }}
         >
           <Box>
-            <Typography variant="h6" fontSize={26} fontWeight={600}>
-              50,00
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={80} height={30} />
+            ) : (
+              <Typography variant="h6" fontSize={26} fontWeight={600}>
+                50,00
+              </Typography>
+            )}
             <Typography variant="subtitle1">Recebido hoje</Typography>
           </Box>
           <Tooltip title="Valor recebido no dia">
@@ -76,6 +93,7 @@ const DailyStatus = () => {
           </Tooltip>
         </Box>
       </Box>
+
       <Box
         sx={{
           position: "relative",
@@ -116,12 +134,16 @@ const DailyStatus = () => {
           }}
         >
           <Box>
-            <Typography variant="h6" fontSize={26} fontWeight={600}>
-              5
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={40} height={30} />
+            ) : (
+              <Typography variant="h6" fontSize={26} fontWeight={600}>
+                5
+              </Typography>
+            )}
             <Typography variant="subtitle1">Lavagens</Typography>
           </Box>
-          <Tooltip title="Total de lavagens do dia">
+          <Tooltip title="Total de lavagens finalizadas hoje">
             <InfoRoundedIcon />
           </Tooltip>
         </Box>
@@ -166,12 +188,16 @@ const DailyStatus = () => {
           }}
         >
           <Box>
-            <Typography variant="h6" fontSize={26} fontWeight={600}>
-              2
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={40} height={30} />
+            ) : (
+              <Typography variant="h6" fontSize={26} fontWeight={600}>
+                2
+              </Typography>
+            )}
             <Typography variant="subtitle1">Lavagens pendentes</Typography>
           </Box>
-          <Tooltip title="Total de lavagens pedentes do dia">
+          <Tooltip title="Total de lavagens que ainda estão na fila">
             <InfoRoundedIcon />
           </Tooltip>
         </Box>

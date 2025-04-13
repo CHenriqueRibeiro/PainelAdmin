@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
   useTheme,
   Tooltip,
   Divider,
+  Skeleton,
 } from "@mui/material";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import WatchLaterRoundedIcon from "@mui/icons-material/WatchLaterRounded";
@@ -73,6 +74,12 @@ const ScheduledServices = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
   const [sortKey, setSortKey] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [openDialog, setOpenDialog] = useState(false);
@@ -146,11 +153,13 @@ const ScheduledServices = () => {
         background: "#f9f5ff",
         borderRadius: 5,
         p: 2,
+        mb: isMobile ? 5 : 0,
       }}
     >
       <Typography variant="h6" fontWeight={600} mb={2} color="#AC42F7">
         Agendamentos
       </Typography>
+
       {!isMobile && (
         <Box
           sx={{
@@ -247,85 +256,117 @@ const ScheduledServices = () => {
           </Box>
         </Box>
       )}
-
-      {sortedAppointments.map((item) => (
-        <Box
-          key={item.id}
-          sx={{
-            display: "grid",
-            gridTemplateColumns: isMobile
-              ? "1fr"
-              : "1fr 1fr 2fr 1.5fr 1.5fr 1fr",
-            alignItems: "center",
-            py: 1,
-            borderBottom: isMobile
-              ? "2px solid #6a1b9a"
-              : " 1.5px   solid #f0f0f0",
-            color: "#6a1b9a",
-            textAlign: isMobile ? "left" : "center",
-          }}
-        >
-          {isMobile ? (
-            <>
+      <Box
+        sx={{
+          overflow: "auto",
+          maxHeight: isMobile ? "20rem" : "40rem",
+        }}
+      >
+        {loading
+          ? Array.from(new Array(5)).map((_, index) => (
               <Box
-                gap={1.2}
-                display="flex"
-                flexDirection="column"
-                alignItems="start"
+                key={index}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile
+                    ? "1fr"
+                    : "0.8fr 1fr 1.2fr 1fr 1.2fr 0.4fr",
+                  alignItems: "center",
+                  py: 1,
+                  borderBottom: "1px solid #f0f0f0",
+                  color: "#6a1b9a",
+                  textAlign: isMobile ? "left" : "center",
+                }}
               >
-                <Typography variant="body2" fontWeight={500}>
-                  Nome: {item.clientName}
-                </Typography>
-                <Typography variant="body2">Hora: {item.time}</Typography>
-                <Typography variant="body2">Veículo: {item.vehicle}</Typography>
-                <Typography variant="body2">Serviço: {item.service}</Typography>
-                <Typography variant="body2">
-                  Status:{" "}
-                  <Chip
-                    size="small"
-                    label={item.status}
-                    color={getStatusColor(item.status)}
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => handleChipClick(item.status)}
-                  />
-                </Typography>
-                <Typography variant="body2">
-                  Valor: R$ {item.value.toFixed(2).replace(".", ",")}
-                </Typography>
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="text" width="70%" />
+                <Skeleton variant="text" width="70%" />
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="text" width="70%" />
+                <Skeleton variant="text" width="100%" />
               </Box>
-            </>
-          ) : (
-            <>
-              <Typography
-                variant="body2"
-                fontWeight={500}
-                sx={{ textAlign: "left" }}
+            ))
+          : sortedAppointments.map((item) => (
+              <Box
+                key={item.id}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile
+                    ? "1fr"
+                    : "1fr 1fr 2fr 1.5fr 1.5fr 1fr",
+                  alignItems: "center",
+                  py: 1,
+                  borderBottom: "1px solid #f0f0f0",
+                  color: "#6a1b9a",
+                  textAlign: isMobile ? "left" : "center",
+                }}
               >
-                {item.clientName}
-              </Typography>
-              <Typography variant="body2">{item.time}</Typography>
-              <Typography variant="body2">{item.vehicle}</Typography>
-              <Typography variant="body2">{item.service}</Typography>
-              <Tooltip title="Clique para alterar o status" arrow>
-                <Chip
-                  size="small"
-                  label={item.status}
-                  color={getStatusColor(item.status)}
-                  sx={{ justifySelf: "center", cursor: "pointer" }}
-                  onClick={() => handleChipClick(item.status)}
-                />
-              </Tooltip>
-              <Typography
-                variant="body2"
-                fontWeight={500}
-                sx={{ textAlign: "right", pr: 2 }}
-              >
-                R$ {item.value.toFixed(2).replace(".", ",")}
-              </Typography>
-            </>
-          )}
-        </Box>
-      ))}
+                {isMobile ? (
+                  <>
+                    <Box
+                      gap={1.2}
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="start"
+                    >
+                      <Typography variant="body2" fontWeight={500}>
+                        Nome: {item.clientName}
+                      </Typography>
+                      <Typography variant="body2">Hora: {item.time}</Typography>
+                      <Typography variant="body2">
+                        Veículo: {item.vehicle}
+                      </Typography>
+                      <Typography variant="body2">
+                        Serviço: {item.service}
+                      </Typography>
+                      <Typography variant="body2">
+                        Status:{" "}
+                        <Chip
+                          size="small"
+                          label={item.status}
+                          color={getStatusColor(item.status)}
+                          sx={{ cursor: "pointer" }}
+                          onClick={() => handleChipClick(item.status)}
+                        />
+                      </Typography>
+                      <Typography variant="body2">
+                        Valor: R$ {item.value.toFixed(2).replace(".", ",")}
+                      </Typography>
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      sx={{ textAlign: "left" }}
+                    >
+                      {item.clientName}
+                    </Typography>
+                    <Typography variant="body2">{item.time}</Typography>
+                    <Typography variant="body2">{item.vehicle}</Typography>
+                    <Typography variant="body2">{item.service}</Typography>
+                    <Tooltip title="Clique para alterar o status" arrow>
+                      <Chip
+                        size="small"
+                        label={item.status}
+                        color={getStatusColor(item.status)}
+                        sx={{ justifySelf: "center", cursor: "pointer" }}
+                        onClick={() => handleChipClick(item.status)}
+                      />
+                    </Tooltip>
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      sx={{ textAlign: "right", pr: 2 }}
+                    >
+                      R$ {item.value.toFixed(2).replace(".", ",")}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            ))}
+      </Box>
 
       <Dialog
         open={openDialog}

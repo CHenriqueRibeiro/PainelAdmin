@@ -7,13 +7,7 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { Navigate, Outlet } from "react-router-dom";
-import {
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-  Tooltip,
-} from "@mui/material";
+import { IconButton, Stack, Tooltip } from "@mui/material";
 
 const NAVIGATION = [
   {
@@ -49,22 +43,9 @@ function SidebarFooter() {
           rel="noopener noreferrer"
           style={{ textDecoration: "none", color: "inherit" }}
         >
-          <ListItem
-            button
-            sx={{
-              px: 2,
-              py: 2,
-            }}
-          >
-            <ListItemIcon sx={{ color: "#6A1B9A", minWidth: "auto" }}>
-              <WhatsAppIcon sx={{ fontSize: 28 }} />
-            </ListItemIcon>
-            <ListItemText
-              primaryTypographyProps={{
-                sx: { color: "#6A1B9A", fontWeight: 500 },
-              }}
-            />
-          </ListItem>
+          <IconButton sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}>
+            <WhatsAppIcon sx={{ fontSize: 29 }} />
+          </IconButton>
         </a>
       </Tooltip>
     </>
