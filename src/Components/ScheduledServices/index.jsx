@@ -150,7 +150,7 @@ const ScheduledServices = () => {
       sx={{
         width: "95%",
         height: "auto",
-        maxHeight: "30rem",
+        maxHeight: "35rem",
         mt: 5,
         background: "#f9f5ff",
         borderRadius: 5,
@@ -261,7 +261,7 @@ const ScheduledServices = () => {
       <Box
         sx={{
           overflow: "auto",
-          maxHeight: isMobile ? "25rem" : "40rem",
+          maxHeight: isMobile ? "30rem" : "40rem",
         }}
       >
         {loading

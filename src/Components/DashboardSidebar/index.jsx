@@ -72,6 +72,7 @@ export default function DashboardLayoutBasic(props) {
   return (
     <AppProvider navigation={NAVIGATION} theme={demoTheme} window={demoWindow}>
       <DashboardLayout
+        sidebarExpandedWidth={230}
         slots={{
           appTitle: CustomAppTitle,
           sidebarFooter: SidebarFooter,
