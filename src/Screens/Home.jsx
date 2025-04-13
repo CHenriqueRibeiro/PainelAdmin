@@ -20,7 +20,6 @@ export default function Home() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start",
           alignItems: "center",
           pt: 4,
         }}
