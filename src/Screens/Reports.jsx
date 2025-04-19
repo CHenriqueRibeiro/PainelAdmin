@@ -1,678 +1,580 @@
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
-import DashboardSidebar from "../Components/DashboardSidebar";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import EventNoteRoundedIcon from "@mui/icons-material/EventNoteRounded";
-import DriveEtaRoundedIcon from "@mui/icons-material/DriveEtaRounded";
-import WaterDropRoundedIcon from "@mui/icons-material/WaterDropRounded";
-import ArrowLeftRoundedIcon from "@mui/icons-material/ArrowLeftRounded";
-import ArrowRightRoundedIcon from "@mui/icons-material/ArrowRightRounded";
-import PerfectScrollbar from "react-perfect-scrollbar";
-import moment from "moment";
-import "react-perfect-scrollbar/dist/css/styles.css";
+// eslint-disable-next-line no-unused-vars
+import React, { useState } from "react";
+import { Box, Grid2, Typography, Card, CardContent } from "@mui/material";
+import Chart from "react-apexcharts";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
+import updateLocale from "dayjs/plugin/updateLocale";
+import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import NoCrashIcon from "@mui/icons-material/NoCrash";
+import PaidIcon from "@mui/icons-material/Paid";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-import { useState } from "react";
-export default function Reports() {
-  const [currentWeek, setCurrentWeek] = useState(moment());
-  const [currentMonth, setCurrentMonth] = useState(moment());
-  const [currentYear, setCurrentYear] = useState(moment());
-  const startOfWeek = currentWeek.clone().startOf("isoWeek");
-  const endOfWeek = currentWeek.clone().endOf("isoWeek");
-  const startOfMonth = currentMonth.clone().startOf("month");
-  const startOfYear = currentYear.clone().startOf("year");
-  const goToPreviousWeek = () => {
-    setCurrentWeek(currentWeek.clone().subtract(1, "week"));
-  };
+const ReportPage = () => {
+  dayjs.locale("pt-br");
+  dayjs.extend(updateLocale);
+  dayjs.updateLocale("pt-br", {
+    weekdaysMin: ["D", "S", "T", "Q", "Q", "S", "S"],
+  });
+  const [startDate, setStartDate] = useState(
+    dayjs().startOf("week").format("YYYY-MM-DD")
+  );
+  const [endDate, setEndDate] = useState(
+    dayjs().endOf("week").format("YYYY-MM-DD")
+  );
 
-  const goToNextWeek = () => {
-    setCurrentWeek(currentWeek.clone().add(1, "week"));
-  };
-  const goToPreviousMonth = () => {
-    setCurrentMonth(currentMonth.clone().subtract(1, "month"));
-  };
-
-  const goToNextMonth = () => {
-    setCurrentMonth(currentMonth.clone().add(1, "month"));
-  };
-  const goToPreviousYear = () => {
-    setCurrentYear(currentYear.clone().subtract(1, "year"));
+  const commonCardStyles = {
+    background: "rgba(255, 255, 255, 0.5)",
+    boxShadow: 3,
+    backdropFilter: "blur(10px)",
+    borderRadius: 4,
   };
 
-  const goToNextYear = () => {
-    setCurrentYear(currentYear.clone().add(1, "year"));
+  const barChartOptions = {
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "50%",
+        borderRadius: 6,
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    xaxis: {
+      categories: ["João", "Maria", "Lucas", "Ana"],
+    },
+    colors: ["#9333ea"],
   };
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const serviceChartOptions = {
+    ...barChartOptions,
+    xaxis: {
+      categories: ["Simples", "Completa", "Premium"],
+    },
+  };
+
+  const pieChartOptions = {
+    chart: {
+      type: "pie",
+    },
+    labels: ["Cartão", "Dinheiro", "Pix"],
+    colors: ["#9333ea", "#c084fc", "#e9d5ff"],
+    legend: {
+      position: "bottom",
+    },
+  };
+
   return (
-    <>
-      <DashboardSidebar />
-      <Box
+    <Box sx={{ p: 4, background: "#F1EEFF" }}>
+      <Grid2
+        container
+        spacing={1}
         sx={{
-          width: isMobile ? "100dvw" : "80dvw",
-          marginLeft: isMobile ? "0" : "20dvw",
-          height: "100dvh",
-          background: "#F5F6FA",
-          display: "flex",
-          flexDirection: "column",
+          background: "rgba(255, 255, 255, 0.5)",
+          boxShadow: 3,
+          backdropFilter: "blur(10px)",
+          borderRadius: 6,
+          p: 1.4,
+          mb: 3,
         }}
       >
-        <PerfectScrollbar
-          style={{
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: "center",
-            justifyItems: "center",
-            overflow: "auto",
-            height: "100%",
-            width: "100%",
-          }}
-        >
-          <Box
-            id="teste2"
+        <Grid2 size={{ xs: 12, md: 12, lg: 4 }}>
+          <Card
             sx={{
-              mt: isMobile ? 4 : 0,
+              background: "transparent",
+              boxShadow: 0,
+              borderRadius: 4,
               height: "100%",
-              width: isMobile ? "90%" : "85%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
             }}
           >
-            <Box
+            <CardContent
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: isMobile ? "90%" : "95%",
-                height: isMobile ? "35rem" : "95%",
-                background: "#FFFFFF",
-                borderRadius: 6,
-                boxShadow: 5,
+                background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+                borderRadius: 4,
+                height: "100%",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "90%",
-                  height: isMobile ? "10%" : "5%",
-                  minHeight: "2rem",
-                  borderBottom: "1px #955eef solid",
-                }}
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#FFFFFF", fontWeight: 600 }}
               >
-                <Typography variant="h6">Recebido hoje</Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "90%",
-                  height: isMobile ? "25%" : "25%",
-                  minHeight: "5rem",
-                  background: "#955eef",
-                  borderRadius: 3,
-                  boxShadow: 3,
-                  mt: 2,
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: "#FFFFFF", marginBottom: "1px #FFFFFF solid" }}
+                Filtrar por período
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="pt-br"
                 >
-                  25/03/2024
-                </Typography>
-                <Typography
-                  variant="h4"
-                  sx={{ color: "#FFFFFF", marginBottom: "1px #FFFFFF solid" }}
-                >
-                  R$ 100,00
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                  height: "90%",
-                  alignItems: "center",
-
-                  overflow: "auto",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: "90%",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    borderBottom: "1px #955eef solid",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                  <DatePicker
+                    label="Início"
+                    format="DD/MM/YYYY"
+                    value={startDate ? dayjs(startDate) : null}
+                    onChange={(newValue) => {
+                      if (newValue) setStartDate(newValue.format("YYYY-MM-DD"));
                     }}
-                  >
-                    <Box
-                      sx={{
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          justifyContent: "space-around",
-                          width: "65%",
-                          height: "10rem",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <PersonRoundedIcon />
-                          <Typography>Henrique</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <EventNoteRoundedIcon />
-                          <Typography>30/03/2024 - 09:00</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <DriveEtaRoundedIcon />
-                          <Typography>Polo</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <WaterDropRoundedIcon />
-                          <Typography>Lavagem Simples</Typography>
-                        </Box>
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "flex-end",
-                          width: "35%",
-                          color: "#955eef",
-                        }}
-                      >
-                        <Typography>R$ 35,00</Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    width: "90%",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    borderBottom: "1px #955eef solid",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        sx: {
+                          color: "#FFFFFF",
+                          input: {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiSvgIcon-root": {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiInputLabel-root.Mui-focused": {
+                            color: "#FFFFFF",
+                          },
+                          "& label.Mui-focused": {
+                            color: "#B2BA",
+                          },
+                          "& .MuiInput-underline:after": {
+                            borderBottomColor: "#B2BA",
+                          },
+                          "& .css-joz0rk-MuiPickersSectionList-section-MuiPickersInputBase-section":
+                            {
+                              color: "#FFFFFF",
+                            },
+                          "& .MuiOutlinedInput-root": {
+                            "& fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                          },
+                        },
+                      },
+                      day: {
+                        sx: {
+                          color: "#FFFFFF",
+                          "&.Mui-selected": {
+                            backgroundColor: "#1976d2",
+                            color: "#FFFFFF",
+                          },
+                          "&:hover": {
+                            backgroundColor: "#FFFFFF",
+                            color: "#6b21a8",
+                          },
+                        },
+                      },
+                      popper: {
+                        sx: {
+                          "& .MuiPaper-root": {
+                            color: "#FFFFFF",
+                            backgroundColor: "#6b21a8",
+                            borderRadius: 4,
+                          },
+                        },
+                      },
                     }}
-                  >
-                    <Box
-                      sx={{
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          justifyContent: "space-around",
-                          width: "65%",
-                          height: "10rem",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <PersonRoundedIcon />
-                          <Typography>Ana kesia</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <EventNoteRoundedIcon />
-                          <Typography>26/03/2024 - 12:30</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <DriveEtaRoundedIcon />
-                          <Typography>Gol</Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            color: "#955eef",
-                          }}
-                        >
-                          <WaterDropRoundedIcon />
-                          <Typography>Lavagem Simples</Typography>
-                        </Box>
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "flex-end",
-                          width: "35%",
-                          color: "#955eef",
-                        }}
-                      >
-                        <Typography>R$ 65,00</Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+                  />
 
-          <Box
-            id="teste"
+                  <DatePicker
+                    label="Fim"
+                    format="DD/MM/YYYY"
+                    value={endDate ? dayjs(endDate) : null}
+                    onChange={(newValue) => {
+                      if (newValue) setEndDate(newValue.format("YYYY-MM-DD"));
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        sx: {
+                          color: "#FFFFFF",
+                          input: {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiSvgIcon-root": {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: "#FFFFFF",
+                          },
+                          "& .MuiInputLabel-root.Mui-focused": {
+                            color: "#FFFFFF",
+                          },
+                          "& label.Mui-focused": {
+                            color: "#B2BA",
+                          },
+                          "& .MuiInput-underline:after": {
+                            borderBottomColor: "#B2BA",
+                          },
+                          "& .css-joz0rk-MuiPickersSectionList-section-MuiPickersInputBase-section":
+                            {
+                              color: "#FFFFFF",
+                            },
+                          "& .MuiOutlinedInput-root": {
+                            "& fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#FFFFFF",
+                            },
+                          },
+                        },
+                      },
+                      day: {
+                        sx: {
+                          "&.Mui-selected": {
+                            backgroundColor: "#1976d2",
+                            color: "#FFFFFF",
+                          },
+                          "&:hover": {
+                            backgroundColor: "#FFFFFF",
+                            color: "#6b21a8",
+                          },
+                        },
+                      },
+                      popper: {
+                        sx: {
+                          "& .MuiPaper-root": {
+                            color: "#FFFFFF",
+                            backgroundColor: "#6b21a8",
+                            borderRadius: 4,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 12, lg: 2.66 }}>
+          <Card
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
+              background: "transparent",
+              boxShadow: 0,
+              borderRadius: 4,
               height: "100%",
-              width: isMobile ? "90%" : "85%",
             }}
           >
-            <Box
+            <CardContent
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                alignItems: "center",
-                height: "95%",
-                width: "100%",
-                gap: 3,
+                position: "relative",
+                background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+                height: "100%",
+                borderRadius: 4,
               }}
             >
-              <Box
+              <PaidIcon
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: isMobile ? "90%" : "95%",
-                  height: isMobile ? "15rem" : "25%",
-                  background: "#FFFFFF",
-                  borderRadius: 6,
-                  boxShadow: 5,
+                  position: "absolute",
+                  top: "55%",
+                  left: "-1rem",
+                  transform: "translateY(-50%)",
+                  fontSize: 60,
+                  color: "#FFFFFF",
+                  opacity: 0.2,
+                  zIndex: 0,
+                }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#FFFFFF", fontWeight: 600 }}
+              >
+                Receita
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 28,
+                  lineHeight: 1.8,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "90%",
-                    height: "10%",
-                    minHeight: "2rem",
-                    borderBottom: "1px #955eef solid",
-                  }}
-                >
-                  <Typography variant="h6">Semanal</Typography>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                    height: "90%",
-                    alignItems: "center",
-                    overflow: "auto",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "90%",
-                      height: isMobile ? "75%" : "75%",
-                      minHeight: "5rem",
-                      background: "#955eef",
-                      borderRadius: 3,
-                      boxShadow: 3,
-                      mt: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <ArrowLeftRoundedIcon
-                        onClick={goToPreviousWeek}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          color: "#FFFFFF",
-                          marginBottom: "1px #FFFFFF solid",
-                        }}
-                      >
-                        {startOfWeek.format("DD/MM")} a{" "}
-                        {endOfWeek.format("DD/MM/YYYY")}
-                      </Typography>
-                      <ArrowRightRoundedIcon
-                        onClick={goToNextWeek}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </Box>
-
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: "#FFFFFF",
-                        marginBottom: "1px #FFFFFF solid",
-                      }}
-                    >
-                      R$ 3700,00
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                R$ 1.541,12
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }}>
+          <Card
+            sx={{
+              background: "transparent",
+              boxShadow: 0,
+              borderRadius: 4,
+              height: "100%",
+            }}
+          >
+            <CardContent
+              sx={{
+                position: "relative",
+                background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+                height: "100%",
+                borderRadius: 4,
+              }}
+            >
+              <NoCrashIcon
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: isMobile ? "90%" : "95%",
-                  height: isMobile ? "15rem" : "25%",
-                  background: "#FFFFFF",
-                  borderRadius: 6,
-                  boxShadow: 5,
+                  position: "absolute",
+                  top: "50%",
+                  left: "-1rem",
+                  transform: "translateY(-50%)",
+                  fontSize: 70,
+                  color: "#FFFFFF",
+                  opacity: 0.2,
+                  zIndex: 0,
+                }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#FFFFFF", fontWeight: 600 }}
+              >
+                Lavagens totais
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 28,
+                  lineHeight: 1.8,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "90%",
-                    height: "10%",
-                    minHeight: "2rem",
-                    borderBottom: "1px #955eef solid",
-                  }}
-                >
-                  <Typography variant="h6">Mensal</Typography>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                    height: "90%",
-                    alignItems: "center",
-
-                    overflow: "auto",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "90%",
-                      height: isMobile ? "75%" : "75%",
-                      minHeight: "5rem",
-                      background: "#955eef",
-                      borderRadius: 3,
-                      boxShadow: 3,
-                      mt: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <ArrowLeftRoundedIcon
-                        onClick={goToPreviousMonth}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          color: "#FFFFFF",
-                          marginBottom: "1px #FFFFFF solid",
-                        }}
-                      >
-                        {startOfMonth.format("MMM YYYY", { locale: "pt-br" })}
-                      </Typography>
-                      <ArrowRightRoundedIcon
-                        onClick={goToNextMonth}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </Box>
-
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: "#FFFFFF",
-                        marginBottom: "1px #FFFFFF solid",
-                      }}
-                    >
-                      R$ 18.560,00
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
+                126
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }}>
+          <Card
+            sx={{
+              background: "transparent",
+              boxShadow: 0,
+              borderRadius: 4,
+              height: "100%",
+            }}
+          >
+            <CardContent
+              sx={{
+                position: "relative",
+                background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+                height: "100%",
+                borderRadius: 4,
+              }}
+            >
+              <WaterDropIcon
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: isMobile ? "90%" : "95%",
-                  height: isMobile ? "15rem" : "25%",
-                  background: "#FFFFFF",
-                  borderRadius: 6,
-                  boxShadow: 5,
+                  position: "absolute",
+                  top: "55%",
+                  left: "-1.5rem",
+                  transform: "translateY(-50%)",
+                  fontSize: 70,
+                  color: "#FFFFFF",
+                  opacity: 0.2,
+                  zIndex: 0,
+                }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#FFFFFF", fontWeight: 600 }}
+              >
+                Mais lavado
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 28,
+                  lineHeight: 1.8,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "90%",
-                    height: "10%",
-                    minHeight: "2rem",
-                    borderBottom: "1px #955eef solid",
-                  }}
-                >
-                  <Typography variant="h6">Anual</Typography>
-                </Box>
+                Moto
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid2>
+      </Grid2>
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                    height: "90%",
-                    alignItems: "center",
+      <Grid2 container spacing={3} sx={{ mb: 3 }}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Receita Semanal
+              </Typography>
+              <Chart
+                options={{
+                  ...barChartOptions,
+                  chart: { id: "area", toolbar: { show: false } },
+                  xaxis: {
+                    categories: [
+                      "Dom",
+                      "Seg",
+                      "Ter",
+                      "Qua",
+                      "Qui",
+                      "Sex",
+                      "Sáb",
+                    ],
+                  },
+                  stroke: { curve: "smooth" },
+                  fill: {
+                    type: "gradient",
+                    gradient: {
+                      shadeIntensity: 1,
+                      opacityFrom: 0.5,
+                      opacityTo: 0,
+                      stops: [0, 90, 100],
+                    },
+                  },
+                }}
+                series={[
+                  { name: "Receita", data: [12, 15, 11, 18, 14, 20, 25] },
+                ]}
+                type="area"
+                height={250}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Funcionários que Mais Lavaram
+              </Typography>
+              <Chart
+                options={barChartOptions}
+                series={[{ name: "Lavagens", data: [30, 25, 20, 18] }]}
+                type="bar"
+                height={250}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+      </Grid2>
 
-                    overflow: "auto",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "90%",
-                      height: isMobile ? "75%" : "75%",
-                      minHeight: "5rem",
-                      background: "#955eef",
-                      borderRadius: 3,
-                      boxShadow: 3,
-                      mt: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        width: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <ArrowLeftRoundedIcon
-                        onClick={goToPreviousYear}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          color: "#FFFFFF",
-                          marginBottom: "1px #FFFFFF solid",
-                        }}
-                      >
-                        {startOfYear.format("YYYY")}
-                      </Typography>
-                      <ArrowRightRoundedIcon
-                        onClick={goToNextYear}
-                        sx={{
-                          color: "#FFFFFF",
-                          fontSize: 45,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </Box>
-
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: "#FFFFFF",
-                        marginBottom: "1px #FFFFFF solid",
-                      }}
-                    >
-                      R$ 154.654,54
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </PerfectScrollbar>
-      </Box>
-      <DashboardSidebar />
-    </>
+      <Grid2 container spacing={3} sx={{ mb: 3 }}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Tipos de Serviço
+              </Typography>
+              <Chart
+                options={serviceChartOptions}
+                series={[{ name: "Quantidade", data: [50, 30, 20] }]}
+                type="bar"
+                height={250}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Formas de Pagamento
+              </Typography>
+              <Chart
+                options={pieChartOptions}
+                series={[40, 35, 25]}
+                type="pie"
+                height={265}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+      </Grid2>
+      <Grid2 container spacing={3} sx={{ mb: 3 }}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Horários Mais Reservados
+              </Typography>
+              <Chart
+                options={{
+                  chart: { id: "horarios", toolbar: { show: false } },
+                  xaxis: {
+                    categories: [
+                      "08h",
+                      "09h",
+                      "10h",
+                      "11h",
+                      "12h",
+                      "13h",
+                      "14h",
+                    ],
+                  },
+                  colors: ["#7e22ce"],
+                  dataLabels: { enabled: false },
+                }}
+                series={[{ name: "Reservas", data: [5, 8, 15, 12, 7, 9, 4] }]}
+                type="bar"
+                height={250}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <Card sx={commonCardStyles}>
+            <CardContent>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#6b21a8", fontWeight: 600 }}
+              >
+                Origem do Agendamento
+              </Typography>
+              <Chart
+                options={{
+                  labels: ["Aplicativo", "Sistema"],
+                  legend: { position: "bottom" },
+                  colors: ["#6b21a8", "#c084fc"],
+                }}
+                series={[60, 40]}
+                type="donut"
+                height={265}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+      </Grid2>
+    </Box>
   );
-}
+};
+
+export default ReportPage;

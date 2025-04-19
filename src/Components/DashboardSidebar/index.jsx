@@ -6,19 +6,28 @@ import { AppProvider } from "@toolpad/core/AppProvider";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicRounded";
 import { Navigate, Outlet } from "react-router-dom";
 import { IconButton, Stack, Tooltip } from "@mui/material";
 
 const NAVIGATION = [
   {
     segment: "Home",
-    icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
+    icon: (
+      <AutoAwesomeMosaicRoundedIcon sx={{ color: "#009688", fontSize: 28 }} />
+    ),
     onClick: () => Navigate("/home"),
   },
   {
     segment: "Estabelecimento",
     icon: <StorefrontIcon sx={{ color: "#009688", fontSize: 28 }} />,
     onClick: () => Navigate("/estabelecimento"),
+  },
+
+  {
+    segment: "Relatorios",
+    icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
+    onClick: () => Navigate("/relatorios"),
   },
 ];
 

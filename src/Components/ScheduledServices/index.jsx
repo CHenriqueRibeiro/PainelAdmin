@@ -156,6 +156,7 @@ const ScheduledServices = () => {
         borderRadius: 5,
         p: 2,
         mb: 3,
+        boxShadow: 3,
       }}
     >
       <Typography variant="h6" fontWeight={600} mb={2} color="#AC42F7">

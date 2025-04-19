@@ -37,6 +37,7 @@ const DailyStatus = () => {
         borderRadius: 6,
         p: 1.4,
         gap: 1,
+        boxShadow: 3,
       }}
     >
       <Box
