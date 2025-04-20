@@ -10,6 +10,7 @@ import NoCrashIcon from "@mui/icons-material/NoCrash";
 import PaidIcon from "@mui/icons-material/Paid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { ptBR } from "@mui/x-date-pickers/locales";
 
 const ReportPage = () => {
   dayjs.locale("pt-br");
@@ -76,7 +77,7 @@ const ReportPage = () => {
         container
         spacing={1}
         sx={{
-          background: "rgba(255, 255, 255, 0.5)",
+          background: "#FFFFFF",
           boxShadow: 3,
           backdropFilter: "blur(10px)",
           borderRadius: 6,
@@ -111,6 +112,10 @@ const ReportPage = () => {
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
                 >
                   <DatePicker
                     label="Início"
@@ -162,7 +167,6 @@ const ReportPage = () => {
                       },
                       day: {
                         sx: {
-                          color: "#FFFFFF",
                           "&.Mui-selected": {
                             backgroundColor: "#1976d2",
                             color: "#FFFFFF",

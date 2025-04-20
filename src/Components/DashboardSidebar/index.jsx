@@ -7,8 +7,9 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicRounded";
-import { Navigate, Outlet } from "react-router-dom";
-import { IconButton, Stack, Tooltip } from "@mui/material";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Box, IconButton, Stack, Tooltip } from "@mui/material";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
 const NAVIGATION = [
   {
@@ -43,20 +44,50 @@ const demoTheme = createTheme({
   },
 });
 function SidebarFooter() {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("tokenExpiration");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
   return (
     <>
-      <Tooltip title="Suporte">
-        <a
-          href="https://wa.me/5585991673309"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <IconButton sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}>
-            <WhatsAppIcon sx={{ fontSize: 29 }} />
-          </IconButton>
-        </a>
-      </Tooltip>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        <Box>
+          <Tooltip title="Suporte">
+            <a
+              href="https://wa.me/5585991673309"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <IconButton
+                sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}
+              >
+                <WhatsAppIcon sx={{ fontSize: 29 }} />
+              </IconButton>
+            </a>
+          </Tooltip>
+        </Box>
+        <Box>
+          <Tooltip title="Sair">
+            <IconButton
+              onClick={handleLogout}
+              sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}
+            >
+              <LogoutRoundedIcon sx={{ fontSize: 29 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
     </>
   );
 }

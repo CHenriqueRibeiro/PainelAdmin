@@ -14,6 +14,8 @@ import {
   Tooltip,
   Divider,
   Skeleton,
+  TextField,
+  IconButton,
 } from "@mui/material";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import WatchLaterRoundedIcon from "@mui/icons-material/WatchLaterRounded";
@@ -23,6 +25,9 @@ import MonetizationOnRoundedIcon from "@mui/icons-material/MonetizationOnRounded
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import LocalCarWashRoundedIcon from "@mui/icons-material/LocalCarWashRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 const mockAppointments = [
   {
     id: 1,
@@ -72,28 +77,51 @@ const mockAppointments = [
 ];
 const ScheduledServices = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogStatus, setOpenDialogStatus] = useState(false);
+  const [openDialogScheduling, setOpenDialogScheduling] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [newSelectedStatus, setNewSelectedStatus] = useState("");
+  const [currentStatus, setCurrentStatus] = useState("");
+
+  const handleEditClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    setOpenDialog(true);
+  };
+  const handleOpenDialogStatus = () => {
+    setOpenDialogStatus(true);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedAppointment(null);
+  };
+  const handleCloseDialogStatus = () => {
+    setOpenDialogStatus(false);
+  };
+  const handleCloseDialogScheduling = () => {
+    setOpenDialogScheduling(false);
+  };
+  const handleOpenDialogScheduling = () => {
+    setOpenDialogScheduling(true);
+  };
+  const handleSave = () => {
+    console.log("Salvar alterações para o agendamento", selectedAppointment);
+    setOpenDialog(false);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
-  const [sortKey, setSortKey] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newSelectedStatus, setNewSelectedStatus] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
 
   const handleChipClick = (status) => {
     setCurrentStatus(status);
     setNewSelectedStatus("");
     setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
   };
 
   const getStatusColor = (status) => {
@@ -159,15 +187,32 @@ const ScheduledServices = () => {
         boxShadow: 3,
       }}
     >
-      <Typography variant="h6" fontWeight={600} mb={2} color="#AC42F7">
-        Agendamentos
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
+          mb: 2,
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6" fontWeight={600} color="#AC42F7">
+          Agendamentos
+        </Typography>
+        <Tooltip title="Adicionar agendamento" arrow>
+          <IconButton onClick={handleOpenDialogScheduling}>
+            <AddRoundedIcon color="#D49EF5" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {!isMobile && (
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 2fr 1.5fr 1.5fr 1fr",
+            gridTemplateColumns: "0.8fr 1fr 1fr 1.5fr 1fr 0.5fr 0.46fr",
             alignItems: "center",
             pb: 1,
             borderBottom: "1px solid #ddd",
@@ -257,6 +302,14 @@ const ScheduledServices = () => {
                 <ArrowDropDownIcon />
               ))}
           </Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            justifyContent="center"
+          >
+            <SettingsRoundedIcon fontSize="small" />
+          </Box>
         </Box>
       )}
       <Box
@@ -273,7 +326,7 @@ const ScheduledServices = () => {
                   display: "grid",
                   gridTemplateColumns: isMobile
                     ? "1fr"
-                    : "0.8fr 1fr 1.2fr 1fr 1.2fr 0.4fr",
+                    : "0.6fr 0fr 1fr 0.4fr 0.8fr 0.6fr 0.4fr",
                   alignItems: "center",
                   py: 1,
                   borderBottom: "1px solid #f0f0f0",
@@ -296,10 +349,12 @@ const ScheduledServices = () => {
                   display: "grid",
                   gridTemplateColumns: isMobile
                     ? "1fr"
-                    : "1fr 1fr 2fr 1.5fr 1.5fr 1fr",
+                    : "0.8fr 1fr 1fr 1.5fr 1fr 0.44fr 0.46fr",
                   alignItems: "center",
                   py: 1,
-                  borderBottom: "1px solid #f0f0f0",
+                  borderBottom: isMobile
+                    ? "3px solid #f0f0f0"
+                    : "1px solid #f0f0f0",
                   color: "#6a1b9a",
                   textAlign: isMobile ? "left" : "center",
                 }}
@@ -309,33 +364,53 @@ const ScheduledServices = () => {
                     <Box
                       gap={1.2}
                       display="flex"
-                      flexDirection="column"
-                      alignItems="start"
+                      flexDirection="row"
+                      alignItems="center"
+                      justifyContent="space-between"
                     >
-                      <Typography variant="body2" fontWeight={500}>
-                        Nome: {item.clientName}
-                      </Typography>
-                      <Typography variant="body2">Hora: {item.time}</Typography>
-                      <Typography variant="body2">
-                        Veículo: {item.vehicle}
-                      </Typography>
-                      <Typography variant="body2">
-                        Serviço: {item.service}
-                      </Typography>
-                      <Typography variant="body2">
-                        Status:{" "}
-                        <Chip
-                          variant="outlined"
-                          size="small"
-                          label={item.status}
-                          color={getStatusColor(item.status)}
-                          sx={{ cursor: "pointer" }}
-                          onClick={() => handleChipClick(item.status)}
-                        />
-                      </Typography>
-                      <Typography variant="body2">
-                        Valor: R$ {item.value.toFixed(2).replace(".", ",")}
-                      </Typography>
+                      <Box
+                        gap={1.2}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="start"
+                        width={"75%"}
+                      >
+                        <Typography variant="body2" fontWeight={500}>
+                          Nome: {item.clientName}
+                        </Typography>
+                        <Typography variant="body2">
+                          Hora: {item.time}
+                        </Typography>
+                        <Typography variant="body2">
+                          Veículo: {item.vehicle}
+                        </Typography>
+                        <Typography variant="body2">
+                          Serviço: {item.service}
+                        </Typography>
+                        <Typography variant="body2">
+                          Status:{" "}
+                          <Chip
+                            variant="outlined"
+                            size="small"
+                            label={item.status}
+                            color={getStatusColor(item.status)}
+                            sx={{ cursor: "pointer" }}
+                            onClick={() => handleChipClick(item.status)}
+                          />
+                        </Typography>
+                        <Typography variant="body2">
+                          Valor: R$ {item.value.toFixed(2).replace(".", ",")}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditClick(item)}
+                        sx={{ color: "#AC42F7", pr: 3 }}
+                      >
+                        <Tooltip title="Editar agendamento" arrow>
+                          <MoreVertRoundedIcon />
+                        </Tooltip>
+                      </IconButton>
                     </Box>
                   </>
                 ) : (
@@ -343,30 +418,33 @@ const ScheduledServices = () => {
                     <Typography
                       variant="body2"
                       fontWeight={500}
-                      sx={{ textAlign: "left" }}
+                      textAlign={"start"}
                     >
                       {item.clientName}
                     </Typography>
                     <Typography variant="body2">{item.time}</Typography>
                     <Typography variant="body2">{item.vehicle}</Typography>
                     <Typography variant="body2">{item.service}</Typography>
-                    <Tooltip title="Clique para alterar o status" arrow>
-                      <Chip
-                        variant="outlined"
-                        size="small"
-                        label={item.status}
-                        color={getStatusColor(item.status)}
-                        sx={{ justifySelf: "center", cursor: "pointer" }}
-                        onClick={() => handleChipClick(item.status)}
-                      />
-                    </Tooltip>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      sx={{ textAlign: "right", pr: 2 }}
-                    >
-                      R$ {item.value.toFixed(2).replace(".", ",")}
+                    <Chip
+                      variant="outlined"
+                      size="small"
+                      label={item.status}
+                      color={getStatusColor(item.status)}
+                      onClick={() => handleOpenDialogStatus(item.status)}
+                    />
+                    <Typography variant="body2" fontWeight={500}>
+                      R$ {item.value}
                     </Typography>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditClick(item)}
+                      sx={{ color: "#AC42F7" }}
+                    >
+                      <Tooltip title="Editar agendamento" arrow>
+                        <MoreVertRoundedIcon />
+                      </Tooltip>
+                    </IconButton>
                   </>
                 )}
               </Box>
@@ -374,8 +452,8 @@ const ScheduledServices = () => {
       </Box>
 
       <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
+        open={openDialogStatus}
+        onClose={handleCloseDialogStatus}
         PaperProps={{
           sx: {
             background:
@@ -423,7 +501,7 @@ const ScheduledServices = () => {
           <Button
             size="small"
             variant="outlined"
-            onClick={handleCloseDialog}
+            onClick={handleCloseDialogStatus}
             sx={{
               background: "#FFF",
               color: "#ac42f7",
@@ -435,11 +513,285 @@ const ScheduledServices = () => {
           <Button
             size="small"
             variant="outlined"
-            onClick={() => setOpenDialog(false)}
+            onClick={() => setOpenDialogStatus(false)}
             sx={{
               color: "#FFF",
               background: "#ac42f7",
               borderColor: "#ac42f7",
+            }}
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+            padding: 2,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ textAlign: "center", fontWeight: "bold", fontSize: 20 }}
+        >
+          Editar Agendamento
+        </DialogTitle>
+        <DialogContent>
+          {selectedAppointment && (
+            <>
+              <TextField
+                size="small"
+                fullWidth
+                label="Nome do Cliente"
+                value={selectedAppointment.clientName}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    clientName: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  mt: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Hora"
+                value={selectedAppointment.time}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    time: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Veículo"
+                value={selectedAppointment.vehicle}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    vehicle: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Serviço"
+                value={selectedAppointment.service}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    service: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Valor"
+                value={selectedAppointment.value}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    value: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseDialog}
+            variant="outlined"
+            sx={{ color: "#fff", borderColor: "#fff" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleCloseDialog}
+            variant="contained"
+            sx={{
+              backgroundColor: "red",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#red",
+              },
+            }}
+          >
+            Excluir agendamento
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{
+              backgroundColor: "#7209b7",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#5a0990",
+              },
+            }}
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialogScheduling}
+        onClose={handleCloseDialogScheduling}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+            padding: 2,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ textAlign: "center", fontWeight: "bold", fontSize: 20 }}
+        >
+          Cadastrar Agendamento
+        </DialogTitle>
+        <DialogContent>
+          <>
+            <TextField
+              size="small"
+              fullWidth
+              label="Nome do Cliente"
+              sx={{
+                mb: 2,
+                mt: 2,
+                bgcolor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Hora"
+              sx={{
+                mb: 2,
+                bgcolor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Veículo"
+              sx={{
+                mb: 2,
+                bgcolor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Serviço"
+              sx={{
+                mb: 2,
+                bgcolor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Valor"
+              sx={{
+                mb: 2,
+                bgcolor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            />
+          </>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseDialogScheduling}
+            variant="outlined"
+            sx={{ color: "#fff", borderColor: "#fff" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleCloseDialogScheduling}
+            variant="contained"
+            sx={{
+              backgroundColor: "#7209b7",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#5a0990",
+              },
             }}
           >
             Salvar
