@@ -21,10 +21,10 @@ import { useAuth } from "../../Context/AuthContext";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 const EstablishmentServices = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [dataEstablishment, setDataEstablishment] = useState([]);
   const { isTokenValid } = useAuth();
-  const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
   const OwnerUser = JSON.parse(localStorage.getItem("user"));
 

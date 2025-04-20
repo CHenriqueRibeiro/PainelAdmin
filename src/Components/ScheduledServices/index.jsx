@@ -28,55 +28,13 @@ import LocalCarWashRoundedIcon from "@mui/icons-material/LocalCarWashRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
-const mockAppointments = [
-  {
-    id: 1,
-    clientName: "João Silva",
-    time: "09:30",
-    vehicle: "Fiat Uno - ABC1D23",
-    status: "Entregue",
-    service: "Combo simples",
-    value: 50,
-  },
-  {
-    id: 2,
-    clientName: "Maria Oliveira",
-    time: "11:00",
-    vehicle: "Honda Civic - XYZ4E56",
-    service: "Combo simples",
-    status: "Aguardando cliente",
-    value: 70,
-  },
-  {
-    id: 3,
-    clientName: "Carlos Lima",
-    time: "13:45",
-    vehicle: "Ford Ka - GHI7J89",
-    service: "Lavagem completa",
-    status: "Iniciado",
-    value: 40,
-  },
-  {
-    id: 4,
-    clientName: "Henrique",
-    time: "13:00",
-    vehicle: "Ford Focus- FHK7L99",
-    service: "Lavagem simples",
-    status: "Cancelado",
-    value: 40,
-  },
-  {
-    id: 5,
-    clientName: "Ana",
-    time: "16:00",
-    vehicle: "Ford Ranger- FHK7L99",
-    service: "Combo completo",
-    status: "Na fila",
-    value: 40,
-  },
-];
+import { useAuth } from "../../Context/AuthContext";
+import { useNavigate } from "react-router";
+
 const ScheduledServices = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
+  const [dataEstablishment, setDataEstablishment] = useState([]);
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState(null);
@@ -87,7 +45,36 @@ const ScheduledServices = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [newSelectedStatus, setNewSelectedStatus] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
+  const { isTokenValid } = useAuth();
+  const token = localStorage.getItem("authToken");
+  //const OwnerUser = JSON.parse(localStorage.getItem("user"));
+  const fetchEstablishments = async () => {
+    try {
+      const response = await fetch(
+        "https://backlavaja.onrender.com/api/appointments/appointments/67d64cec87b9bd7f27e2dd8c",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
+      if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
+
+      const data = await response.json();
+      console.log(data);
+      setDataEstablishment(data);
+    } catch (error) {
+      console.error("Erro:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchEstablishments();
+  }, [loading]);
   const handleEditClick = (appointment) => {
     setSelectedAppointment(appointment);
     setOpenDialog(true);
@@ -114,16 +101,16 @@ const ScheduledServices = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!isTokenValid()) {
+      navigate("/");
+    }
+  }, [isTokenValid]);
 
   const handleChipClick = (status) => {
     setCurrentStatus(status);
     setNewSelectedStatus("");
-    setOpenDialog(true);
+    setOpenDialogStatus(true);
   };
-
   const getStatusColor = (status) => {
     switch (status) {
       case "Entregue":
@@ -134,7 +121,7 @@ const ScheduledServices = () => {
         return "error";
       case "Iniciado":
         return "info";
-      case "Na fila":
+      case "Agendado":
         return "secondary";
       default:
         return "default";
@@ -151,9 +138,9 @@ const ScheduledServices = () => {
   };
 
   const sortedAppointments = useMemo(() => {
-    if (!sortKey) return mockAppointments;
+    if (!sortKey) return dataEstablishment;
 
-    return [...mockAppointments].sort((a, b) => {
+    return [...dataEstablishment].sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
 
@@ -318,137 +305,136 @@ const ScheduledServices = () => {
           maxHeight: isMobile ? "30rem" : "40rem",
         }}
       >
-        {loading
-          ? Array.from(new Array(5)).map((_, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: isMobile
-                    ? "1fr"
-                    : "0.6fr 0fr 1fr 0.4fr 0.8fr 0.6fr 0.4fr",
-                  alignItems: "center",
-                  py: 1,
-                  borderBottom: "1px solid #f0f0f0",
-                  color: "#6a1b9a",
-                  textAlign: isMobile ? "left" : "center",
-                }}
-              >
-                <Skeleton variant="text" width="80%" />
-                <Skeleton variant="text" width="70%" />
-                <Skeleton variant="text" width="70%" />
-                <Skeleton variant="text" width="80%" />
-                <Skeleton variant="text" width="70%" />
-                <Skeleton variant="text" width="100%" />
-              </Box>
-            ))
-          : sortedAppointments.map((item) => (
-              <Box
-                key={item.id}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: isMobile
-                    ? "1fr"
-                    : "0.8fr 1fr 1fr 1.5fr 1fr 0.44fr 0.46fr",
-                  alignItems: "center",
-                  py: 1,
-                  borderBottom: isMobile
-                    ? "3px solid #f0f0f0"
-                    : "1px solid #f0f0f0",
-                  color: "#6a1b9a",
-                  textAlign: isMobile ? "left" : "center",
-                }}
-              >
-                {isMobile ? (
-                  <>
+        {loading ? (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : "0.6fr 0fr 1fr 0.4fr 0.8fr 0.6fr 0.4fr",
+              alignItems: "center",
+              py: 1,
+              borderBottom: "1px solid #f0f0f0",
+              color: "#6a1b9a",
+              textAlign: isMobile ? "left" : "center",
+            }}
+          >
+            <Skeleton variant="text" width="80%" />
+            <Skeleton variant="text" width="70%" />
+            <Skeleton variant="text" width="70%" />
+            <Skeleton variant="text" width="80%" />
+            <Skeleton variant="text" width="70%" />
+            <Skeleton variant="text" width="100%" />
+          </Box>
+        ) : (
+          sortedAppointments.map((item) => (
+            <Box
+              key={item.id}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "0.8fr 1fr 1fr 1.5fr 1fr 0.44fr 0.46fr",
+                alignItems: "center",
+                py: 1,
+                borderBottom: isMobile
+                  ? "3px solid #f0f0f0"
+                  : "1px solid #f0f0f0",
+                color: "#6a1b9a",
+                textAlign: isMobile ? "left" : "center",
+              }}
+            >
+              {isMobile ? (
+                <>
+                  <Box
+                    gap={1.2}
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
                     <Box
                       gap={1.2}
                       display="flex"
-                      flexDirection="row"
-                      alignItems="center"
-                      justifyContent="space-between"
+                      flexDirection="column"
+                      alignItems="start"
+                      width={"75%"}
                     >
-                      <Box
-                        gap={1.2}
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="start"
-                        width={"75%"}
-                      >
-                        <Typography variant="body2" fontWeight={500}>
-                          Nome: {item.clientName}
-                        </Typography>
-                        <Typography variant="body2">
-                          Hora: {item.time}
-                        </Typography>
-                        <Typography variant="body2">
-                          Veículo: {item.vehicle}
-                        </Typography>
-                        <Typography variant="body2">
-                          Serviço: {item.service}
-                        </Typography>
-                        <Typography variant="body2">
-                          Status:{" "}
-                          <Chip
-                            variant="outlined"
-                            size="small"
-                            label={item.status}
-                            color={getStatusColor(item.status)}
-                            sx={{ cursor: "pointer" }}
-                            onClick={() => handleChipClick(item.status)}
-                          />
-                        </Typography>
-                        <Typography variant="body2">
-                          Valor: R$ {item.value.toFixed(2).replace(".", ",")}
-                        </Typography>
-                      </Box>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditClick(item)}
-                        sx={{ color: "#AC42F7", pr: 3 }}
-                      >
-                        <Tooltip title="Editar agendamento" arrow>
-                          <MoreVertRoundedIcon />
-                        </Tooltip>
-                      </IconButton>
+                      <Typography variant="body2" fontWeight={500}>
+                        Nome: {item?.clientName}
+                      </Typography>
+                      <Typography variant="body2">
+                        Hora: {item?.startTime}
+                      </Typography>
+                      <Typography variant="body2">
+                        Veículo: {item?.veiculo}
+                      </Typography>
+                      <Typography variant="body2">
+                        Serviço: {item?.service}
+                      </Typography>
+                      <Typography variant="body2">
+                        Status:{" "}
+                        <Chip
+                          variant="outlined"
+                          size="small"
+                          label={item.status}
+                          color={getStatusColor(item.status)}
+                          sx={{ cursor: "pointer" }}
+                          onClick={() => handleChipClick(item.status)}
+                        />
+                      </Typography>
+                      <Typography variant="body2">
+                        Valor: R$ {item?.price}
+                      </Typography>
                     </Box>
-                  </>
-                ) : (
-                  <>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      textAlign={"start"}
-                    >
-                      {item.clientName}
-                    </Typography>
-                    <Typography variant="body2">{item.time}</Typography>
-                    <Typography variant="body2">{item.vehicle}</Typography>
-                    <Typography variant="body2">{item.service}</Typography>
-                    <Chip
-                      variant="outlined"
-                      size="small"
-                      label={item.status}
-                      color={getStatusColor(item.status)}
-                      onClick={() => handleOpenDialogStatus(item.status)}
-                    />
-                    <Typography variant="body2" fontWeight={500}>
-                      R$ {item.value}
-                    </Typography>
-
                     <IconButton
                       size="small"
                       onClick={() => handleEditClick(item)}
-                      sx={{ color: "#AC42F7" }}
+                      sx={{ color: "#AC42F7", pr: 3 }}
                     >
                       <Tooltip title="Editar agendamento" arrow>
                         <MoreVertRoundedIcon />
                       </Tooltip>
                     </IconButton>
-                  </>
-                )}
-              </Box>
-            ))}
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Typography
+                    variant="body2"
+                    fontWeight={500}
+                    textAlign={"start"}
+                  >
+                    {item?.clientName}
+                  </Typography>
+                  <Typography variant="body2">{item?.startTime}</Typography>
+                  <Typography variant="body2">{item?.veiculo}</Typography>
+                  <Typography variant="body2">{item?.serviceName}</Typography>
+                  <Chip
+                    variant="outlined"
+                    size="small"
+                    label={item?.status}
+                    color={getStatusColor(item?.status)}
+                    onClick={() => handleOpenDialogStatus(item?.status)}
+                  />
+                  <Typography variant="body2" fontWeight={500}>
+                    R$ {item?.price}
+                  </Typography>
+
+                  <IconButton
+                    size="small"
+                    onClick={() => handleEditClick(item)}
+                    sx={{ color: "#AC42F7" }}
+                  >
+                    <Tooltip title="Editar agendamento" arrow>
+                      <MoreVertRoundedIcon />
+                    </Tooltip>
+                  </IconButton>
+                </>
+              )}
+            </Box>
+          ))
+        )}
       </Box>
 
       <Dialog
@@ -477,7 +463,7 @@ const ScheduledServices = () => {
               "Aguardando cliente",
               "Cancelado",
               "Iniciado",
-              "Na fila",
+              "Agendado",
             ]
               .filter((status) => status !== currentStatus)
               .map((status) => (
@@ -571,11 +557,11 @@ const ScheduledServices = () => {
                 size="small"
                 fullWidth
                 label="Hora"
-                value={selectedAppointment.time}
+                value={selectedAppointment.startTime}
                 onChange={(e) =>
                   setSelectedAppointment({
                     ...selectedAppointment,
-                    time: e.target.value,
+                    startTime: e.target.value,
                   })
                 }
                 sx={{
@@ -591,11 +577,11 @@ const ScheduledServices = () => {
                 size="small"
                 fullWidth
                 label="Veículo"
-                value={selectedAppointment.vehicle}
+                value={selectedAppointment.veiculo}
                 onChange={(e) =>
                   setSelectedAppointment({
                     ...selectedAppointment,
-                    vehicle: e.target.value,
+                    veiculo: e.target.value,
                   })
                 }
                 sx={{
@@ -611,11 +597,11 @@ const ScheduledServices = () => {
                 size="small"
                 fullWidth
                 label="Serviço"
-                value={selectedAppointment.service}
+                value={selectedAppointment.serviceName}
                 onChange={(e) =>
                   setSelectedAppointment({
                     ...selectedAppointment,
-                    service: e.target.value,
+                    serviceName: e.target.value,
                   })
                 }
                 sx={{
@@ -631,11 +617,11 @@ const ScheduledServices = () => {
                 size="small"
                 fullWidth
                 label="Valor"
-                value={selectedAppointment.value}
+                value={selectedAppointment.price}
                 onChange={(e) =>
                   setSelectedAppointment({
                     ...selectedAppointment,
-                    value: e.target.value,
+                    price: e.target.value,
                   })
                 }
                 sx={{

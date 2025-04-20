@@ -84,7 +84,7 @@ const DailyStatus = () => {
               <Skeleton variant="text" width={80} height={30} />
             ) : (
               <Typography variant="h6" fontSize={26} fontWeight={600}>
-                50,00
+                R$ 50,00
               </Typography>
             )}
             <Typography variant="subtitle1">Recebido hoje</Typography>
