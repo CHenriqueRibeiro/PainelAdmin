@@ -13,17 +13,20 @@ import CarCrashRoundedIcon from "@mui/icons-material/CarCrashRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
 
-const DailyStatus = () => {
+// eslint-disable-next-line react/prop-types
+const DailyStatus = ({ services, loading }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
+  const servicesTotal = services;
+  const deliveredCount = servicesTotal.filter(
+    (item) => item.status === "Entregue"
+  ).length;
+  const totalPriceForDelivered = servicesTotal
+    .filter((item) => item.status === "Entregue")
+    .reduce((acc, item) => acc + item.price, 0);
+  const scheduledWashes = servicesTotal.filter(
+    (item) => item.status !== "Cancelado"
+  ).length;
   return (
     <Box
       sx={{
@@ -84,14 +87,16 @@ const DailyStatus = () => {
               <Skeleton variant="text" width={80} height={30} />
             ) : (
               <Typography variant="h6" fontSize={26} fontWeight={600}>
-                R$ 50,00
+                R$ {totalPriceForDelivered}
               </Typography>
             )}
             <Typography variant="subtitle1">Recebido hoje</Typography>
           </Box>
-          <Tooltip title="Valor recebido no dia">
-            <InfoRoundedIcon />
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip title="Valor recebido no dia">
+              <InfoRoundedIcon />
+            </Tooltip>
+          )}
         </Box>
       </Box>
 
@@ -139,14 +144,16 @@ const DailyStatus = () => {
               <Skeleton variant="text" width={40} height={30} />
             ) : (
               <Typography variant="h6" fontSize={26} fontWeight={600}>
-                5
+                {deliveredCount}
               </Typography>
             )}
-            <Typography variant="subtitle1">Lavagens</Typography>
+            <Typography variant="subtitle1">Lavagens finalizadas</Typography>
           </Box>
-          <Tooltip title="Total de lavagens finalizadas hoje">
-            <InfoRoundedIcon />
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip title="Total de lavagens finalizadas hoje">
+              <InfoRoundedIcon />
+            </Tooltip>
+          )}
         </Box>
       </Box>
       <Box
@@ -193,14 +200,16 @@ const DailyStatus = () => {
               <Skeleton variant="text" width={40} height={30} />
             ) : (
               <Typography variant="h6" fontSize={26} fontWeight={600}>
-                2
+                {scheduledWashes}
               </Typography>
             )}
-            <Typography variant="subtitle1">Lavagens pendentes</Typography>
+            <Typography variant="subtitle1">Lavagens no dia</Typography>
           </Box>
-          <Tooltip title="Total de lavagens que ainda estão na fila">
-            <InfoRoundedIcon />
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip title="Total de lavagens do dia">
+              <InfoRoundedIcon />
+            </Tooltip>
+          )}
         </Box>
       </Box>
     </Box>

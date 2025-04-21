@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useMemo, useEffect } from "react";
 import {
@@ -16,6 +17,11 @@ import {
   Skeleton,
   TextField,
   IconButton,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import WatchLaterRoundedIcon from "@mui/icons-material/WatchLaterRounded";
@@ -31,73 +37,199 @@ import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router";
 
-const ScheduledServices = () => {
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { ptBR } from "@mui/x-date-pickers/locales";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
+
+// eslint-disable-next-line react/prop-types
+const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [dataEstablishment, setDataEstablishment] = useState([]);
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [openDialog, setOpenDialog] = useState(false);
-  const [openDialogStatus, setOpenDialogStatus] = useState(false);
   const [openDialogScheduling, setOpenDialogScheduling] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [newSelectedStatus, setNewSelectedStatus] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
   const { isTokenValid } = useAuth();
-  const token = localStorage.getItem("authToken");
+  const [openDialogStatus, setOpenDialogStatus] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState("");
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [clientName, setClientName] = useState("");
+  const [veiculo, setVeiculo] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [date, setDate] = useState("");
+  const [statusCreateNew, setStatusCreateNew] = useState("");
+  const [service, setService] = useState("");
+  const [availableServices, setAvailableServices] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [newSelectedStatus, setNewSelectedStatus] = useState(null);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState("");
+  const establishmentId = owner?.establishments[0]._id;
+
   //const OwnerUser = JSON.parse(localStorage.getItem("user"));
-  const fetchEstablishments = async () => {
-    try {
-      const response = await fetch(
-        "https://backlavaja.onrender.com/api/appointments/appointments/67d64cec87b9bd7f27e2dd8c",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
-
-      const data = await response.json();
-      console.log(data);
-      setDataEstablishment(data);
-    } catch (error) {
-      console.error("Erro:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchEstablishments();
-  }, [loading]);
+  const statusCreate = [
+    "Agendado",
+    "Entregue",
+    "Aguardando cliente",
+    "Cancelado",
+    "Inciado",
+  ];
   const handleEditClick = (appointment) => {
     setSelectedAppointment(appointment);
     setOpenDialog(true);
   };
-  const handleOpenDialogStatus = () => {
-    setOpenDialogStatus(true);
-  };
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedAppointment(null);
   };
-  const handleCloseDialogStatus = () => {
-    setOpenDialogStatus(false);
-  };
+
   const handleCloseDialogScheduling = () => {
     setOpenDialogScheduling(false);
   };
   const handleOpenDialogScheduling = () => {
     setOpenDialogScheduling(true);
+    setDate("");
+    setService("");
+    setDate("");
   };
-  const handleSave = () => {
-    console.log("Salvar alterações para o agendamento", selectedAppointment);
-    setOpenDialog(false);
+  useEffect(() => {
+    if (date) {
+      setLoadingServices(true);
+      fetch(
+        `https://backlavaja.onrender.com/api/availability/67d64cec87b9bd7f27e2dd8c?date=${date}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          setAvailableServices(data.services);
+          setLoadingServices(false);
+        })
+        .catch(() => {
+          setLoadingServices(false);
+          alert("Erro ao buscar serviços.");
+        });
+    }
+  }, [date]);
+
+  useEffect(() => {
+    if (service && date) {
+      setLoadingSlots(true);
+      fetch(
+        `https://backlavaja.onrender.com/api/availability/67d64cec87b9bd7f27e2dd8c?date=${date}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          const serviceData = data.services.find(
+            (s) => s.serviceId === service
+          );
+          setAvailableSlots(serviceData?.availableSlots || []);
+          setLoadingSlots(false);
+        })
+        .catch(() => {
+          setLoadingSlots(false);
+          alert("Erro ao buscar horários.");
+        });
+    }
+  }, [service, date]);
+  const handleSave = async () => {
+    if (!selectedAppointment) return;
+
+    try {
+      const response = await fetch(
+        `https://backlavaja.onrender.com/api/appointments/appointments/${selectedAppointment._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            startTime: selectedAppointment.startTime,
+            veiculo: selectedAppointment.veiculo,
+            serviceName: selectedAppointment.serviceName,
+            price: selectedAppointment.price,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar agendamento");
+      }
+
+      const data = await response.json();
+      console.log("Atualizado com sucesso:", data);
+
+      setOpenDialogScheduling(false);
+      setSelectedAppointment(null);
+      onUpdateService();
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+  };
+
+  const newScheduling = async () => {
+    try {
+      if (!selectedSlot) return;
+
+      const [startHourRaw, endHourRaw] = selectedSlot.split(" - ");
+      const [startHourH, startHourM] = startHourRaw.split(":").map(Number);
+      const [endHourH, endHourM] = endHourRaw.split(":").map(Number);
+
+      const startHour = `${String(startHourH).padStart(2, "0")}:${String(
+        startHourM
+      ).padStart(2, "0")}`;
+
+      const endHourDate = new Date();
+      endHourDate.setHours(endHourH, endHourM - 1);
+
+      const endTime = `${String(endHourDate.getHours()).padStart(2, "0")}:${String(
+        endHourDate.getMinutes()
+      ).padStart(2, "0")}`;
+
+      const selectedService = availableServices.find(
+        (s) => s.serviceId === service
+      );
+
+      const response = await fetch(
+        `https://backlavaja.onrender.com/api/appointments/appointments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            clientName,
+            clientPhone,
+            veiculo,
+            serviceId: service,
+            date,
+            serviceName: selectedService?.serviceName,
+            establishmentId: establishmentId,
+            startTime: startHour,
+            endTime: endTime,
+            price: selectedService?.price,
+            status: statusCreateNew,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao criar agendamento");
+      }
+
+      const data = await response.json();
+      console.log("Agendamento criado com sucesso:", data);
+
+      setOpenDialog(false);
+      setSelectedAppointment(null);
+      onUpdateService();
+    } catch (error) {
+      console.error("Erro:", error);
+    }
   };
 
   useEffect(() => {
@@ -111,6 +243,19 @@ const ScheduledServices = () => {
     setNewSelectedStatus("");
     setOpenDialogStatus(true);
   };
+
+  const handleOpenDialogStatus = (status, id) => {
+    console.log("Abrindo dialog com status:", status, "e id:", id);
+    setCurrentStatus(status);
+    setSelectedServiceId(id);
+    setNewSelectedStatus(null);
+    setOpenDialogStatus(true);
+  };
+
+  const handleCloseDialogStatus = () => {
+    setOpenDialogStatus(false);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Entregue":
@@ -138,9 +283,8 @@ const ScheduledServices = () => {
   };
 
   const sortedAppointments = useMemo(() => {
-    if (!sortKey) return dataEstablishment;
-
-    return [...dataEstablishment].sort((a, b) => {
+    if (!sortKey) return services;
+    return [...services].sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
 
@@ -158,7 +302,7 @@ const ScheduledServices = () => {
 
       return 0;
     });
-  }, [sortKey, sortOrder]);
+  }, [sortKey, sortOrder, services]);
 
   return (
     <Box
@@ -326,6 +470,10 @@ const ScheduledServices = () => {
             <Skeleton variant="text" width="70%" />
             <Skeleton variant="text" width="100%" />
           </Box>
+        ) : sortedAppointments.length === 0 ? (
+          <Typography variant="body2" textAlign="center" p={2}>
+            Nenhum agendamento para hoje
+          </Typography>
         ) : (
           sortedAppointments.map((item) => (
             <Box
@@ -370,7 +518,7 @@ const ScheduledServices = () => {
                         Veículo: {item?.veiculo}
                       </Typography>
                       <Typography variant="body2">
-                        Serviço: {item?.service}
+                        Serviço: {item?.serviceName}
                       </Typography>
                       <Typography variant="body2">
                         Status:{" "}
@@ -415,7 +563,9 @@ const ScheduledServices = () => {
                     size="small"
                     label={item?.status}
                     color={getStatusColor(item?.status)}
-                    onClick={() => handleOpenDialogStatus(item?.status)}
+                    onClick={() =>
+                      handleOpenDialogStatus(item.status, item._id)
+                    }
                   />
                   <Typography variant="body2" fontWeight={500}>
                     R$ {item?.price}
@@ -499,11 +649,28 @@ const ScheduledServices = () => {
           <Button
             size="small"
             variant="outlined"
-            onClick={() => setOpenDialogStatus(false)}
-            sx={{
-              color: "#FFF",
-              background: "#ac42f7",
-              borderColor: "#ac42f7",
+            onClick={async () => {
+              if (!newSelectedStatus || !selectedServiceId) return;
+
+              console.log("Atualizando status para:", newSelectedStatus);
+              console.log("Para o serviço com id:", selectedServiceId);
+
+              try {
+                await fetch(
+                  `https://backlavaja.onrender.com/api/appointments/appointments/${selectedServiceId}`,
+                  {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: newSelectedStatus }),
+                  }
+                );
+
+                setOpenDialogStatus(false);
+                setNewSelectedStatus(null);
+                onUpdateService();
+              } catch (error) {
+                console.error("Erro ao atualizar status:", error);
+              }
             }}
           >
             Salvar
@@ -535,6 +702,7 @@ const ScheduledServices = () => {
               <TextField
                 size="small"
                 fullWidth
+                disabled="true"
                 label="Nome do Cliente"
                 value={selectedAppointment.clientName}
                 onChange={(e) =>
@@ -573,6 +741,7 @@ const ScheduledServices = () => {
                   },
                 }}
               />
+
               <TextField
                 size="small"
                 fullWidth
@@ -698,7 +867,6 @@ const ScheduledServices = () => {
               fullWidth
               label="Nome do Cliente"
               sx={{
-                mb: 2,
                 mt: 2,
                 bgcolor: "#fff",
                 borderRadius: 2,
@@ -706,59 +874,179 @@ const ScheduledServices = () => {
                   borderRadius: 2,
                 },
               }}
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
             />
             <TextField
               size="small"
               fullWidth
-              label="Hora"
+              label="Nº Telefone"
               sx={{
-                mb: 2,
+                mt: 1,
                 bgcolor: "#fff",
                 borderRadius: 2,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                 },
               }}
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
             />
             <TextField
               size="small"
               fullWidth
-              label="Veículo"
+              label="Veiculo"
               sx={{
-                mb: 2,
+                mt: 1,
                 bgcolor: "#fff",
                 borderRadius: 2,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                 },
               }}
+              value={veiculo}
+              onChange={(e) => setVeiculo(e.target.value)}
             />
-            <TextField
-              size="small"
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale="pt-br"
+              localeText={
+                ptBR.components.MuiLocalizationProvider.defaultProps.localeText
+              }
+            >
+              <DatePicker
+                label="Data"
+                format="DD/MM/YYYY"
+                value={date ? dayjs(date) : null}
+                onChange={(newValue) => {
+                  if (newValue) setDate(newValue.format("YYYY-MM-DD"));
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    sx: {
+                      mt: 2,
+                      mb: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    },
+                  },
+                  day: {
+                    sx: {
+                      "&.Mui-selected": {
+                        backgroundColor: "#1976d2",
+                        color: "#FFFFFF",
+                      },
+                      "&:hover": {
+                        backgroundColor: "#FFFFFF",
+                        color: "#6b21a8",
+                      },
+                    },
+                  },
+                  popper: {
+                    sx: {
+                      "& .MuiPaper-root": {
+                        color: "#FFFFFF",
+                        backgroundColor: "#6b21a8",
+                        borderRadius: 4,
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            {loadingServices ? (
+              <CircularProgress sx={{ display: "block", margin: "auto" }} />
+            ) : (
+              <FormControl
+                fullWidth
+                size="small"
+                variant="outlined"
+                sx={{ mb: 2 }}
+              >
+                <InputLabel>Serviço</InputLabel>
+                <Select
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  label="Serviço"
+                >
+                  {availableServices.map((service) => (
+                    <MenuItem key={service.serviceId} value={service.serviceId}>
+                      {service.serviceName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {loadingSlots ? (
+              <CircularProgress sx={{ display: "block", margin: "auto" }} />
+            ) : (
+              service &&
+              availableSlots.length > 0 && (
+                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                  <InputLabel>Horário</InputLabel>
+                  <Select
+                    value={selectedSlot}
+                    onChange={(e) => setSelectedSlot(e.target.value)}
+                    label="Horário"
+                  >
+                    {availableSlots.map((slot, index) => (
+                      <MenuItem key={index} value={slot}>
+                        {slot}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )
+            )}
+            {loadingServices ? (
+              <CircularProgress sx={{ display: "block", margin: "auto" }} />
+            ) : (
+              <FormControl
+                fullWidth
+                disabled="true"
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <InputLabel>Preço</InputLabel>
+                <Select
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  label="Preço"
+                >
+                  {availableServices.map((service) => (
+                    <MenuItem key={service.serviceId} value={service.serviceId}>
+                      {service.price}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            <FormControl
               fullWidth
-              label="Serviço"
-              sx={{
-                mb: 2,
-                bgcolor: "#fff",
-                borderRadius: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            />
-            <TextField
               size="small"
-              fullWidth
-              label="Valor"
-              sx={{
-                mb: 2,
-                bgcolor: "#fff",
-                borderRadius: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            />
+              variant="outlined"
+              sx={{ mb: 2 }}
+            >
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusCreateNew}
+                onChange={(e) => setStatusCreateNew(e.target.value)}
+                label="Status"
+              >
+                {statusCreate.map((service) => (
+                  <MenuItem key={service} value={service}>
+                    {service}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
@@ -769,19 +1057,240 @@ const ScheduledServices = () => {
           >
             Cancelar
           </Button>
-          <Button
-            onClick={handleCloseDialogScheduling}
-            variant="contained"
-            sx={{
-              backgroundColor: "#7209b7",
-              color: "#fff",
-              "&:hover": {
-                backgroundColor: "#5a0990",
+          <Dialog
+            open={openDialogScheduling}
+            onClose={handleCloseDialogScheduling}
+            PaperProps={{
+              sx: {
+                borderRadius: 4,
+                background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+                color: "#fff",
+                padding: 2,
               },
             }}
           >
-            Salvar
-          </Button>
+            <DialogTitle
+              sx={{ textAlign: "center", fontWeight: "bold", fontSize: 20 }}
+            >
+              Cadastrar Agendamento
+            </DialogTitle>
+            <DialogContent>
+              <>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Nome do Cliente"
+                  sx={{
+                    mt: 2,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                />
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Nº Telefone"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                />
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Veiculo"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                  value={veiculo}
+                  onChange={(e) => setVeiculo(e.target.value)}
+                />
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
+                >
+                  <DatePicker
+                    label="Data"
+                    format="DD/MM/YYYY"
+                    value={date ? dayjs(date) : null}
+                    onChange={(newValue) => {
+                      if (newValue) setDate(newValue.format("YYYY-MM-DD"));
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        sx: {
+                          mt: 2,
+                          mb: 2,
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                          },
+                        },
+                      },
+                      day: {
+                        sx: {
+                          "&.Mui-selected": {
+                            backgroundColor: "#1976d2",
+                            color: "#FFFFFF",
+                          },
+                          "&:hover": {
+                            backgroundColor: "#FFFFFF",
+                            color: "#6b21a8",
+                          },
+                        },
+                      },
+                      popper: {
+                        sx: {
+                          "& .MuiPaper-root": {
+                            color: "#FFFFFF",
+                            backgroundColor: "#6b21a8",
+                            borderRadius: 4,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+
+                {loadingServices ? (
+                  <CircularProgress sx={{ display: "block", margin: "auto" }} />
+                ) : (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                  >
+                    <InputLabel>Serviço</InputLabel>
+                    <Select
+                      value={service}
+                      onChange={(e) => setService(e.target.value)}
+                      label="Serviço"
+                    >
+                      {availableServices.map((service) => (
+                        <MenuItem
+                          key={service.serviceId}
+                          value={service.serviceId}
+                        >
+                          {service.serviceName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
+                {loadingSlots ? (
+                  <CircularProgress sx={{ display: "block", margin: "auto" }} />
+                ) : (
+                  service &&
+                  availableSlots.length > 0 && (
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                      <InputLabel>Horário</InputLabel>
+                      <Select
+                        value={selectedSlot}
+                        onChange={(e) => setSelectedSlot(e.target.value)}
+                        label="Horário"
+                      >
+                        {availableSlots.map((slot, index) => (
+                          <MenuItem key={index} value={slot}>
+                            {slot}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )
+                )}
+                {loadingServices ? (
+                  <CircularProgress sx={{ display: "block", margin: "auto" }} />
+                ) : (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Preço"
+                    value={
+                      service
+                        ? `R$ ${availableServices.find((s) => s.serviceId === service)?.price || 0}`
+                        : ""
+                    }
+                    disabled
+                    sx={{
+                      mb: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                )}
+                <FormControl
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                >
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={statusCreateNew}
+                    onChange={(e) => setStatusCreateNew(e.target.value)}
+                    label="Status"
+                  >
+                    {statusCreate.map((service) => (
+                      <MenuItem key={service} value={service}>
+                        {service}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+              <Button
+                onClick={handleCloseDialogScheduling}
+                variant="outlined"
+                sx={{ color: "#fff", borderColor: "#fff" }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={newScheduling}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#7209b7",
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#5a0990",
+                  },
+                }}
+              >
+                Salvar
+              </Button>
+            </DialogActions>
+          </Dialog>
         </DialogActions>
       </Dialog>
     </Box>
