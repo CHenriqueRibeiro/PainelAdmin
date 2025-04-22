@@ -27,7 +27,7 @@ export default function Home() {
     setLoading(false);
   };
 
-  const teste = async () => {
+  const establishmentSearch = async () => {
     const response = await fetch(
       `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
       {
@@ -44,14 +44,13 @@ export default function Home() {
   };
 
   useEffect(() => {
-    teste();
+    establishmentSearch();
     fetchAppointments();
   }, []);
 
   const handleServiceUpdated = () => {
     fetchAppointments();
   };
-  console.log(owner?.establishments[0]._id);
   return (
     <Box
       sx={{

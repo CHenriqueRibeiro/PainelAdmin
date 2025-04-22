@@ -77,7 +77,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     "Entregue",
     "Aguardando cliente",
     "Cancelado",
-    "Inciado",
+    "Iniciado",
   ];
   const handleEditClick = (appointment) => {
     setSelectedAppointment(appointment);
@@ -155,15 +155,11 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           }),
         }
       );
+      setOpenDialog(false);
 
       if (!response.ok) {
         throw new Error("Erro ao atualizar agendamento");
       }
-
-      const data = await response.json();
-      console.log("Atualizado com sucesso:", data);
-
-      setOpenDialogScheduling(false);
       setSelectedAppointment(null);
       onUpdateService();
     } catch (error) {
@@ -220,13 +216,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       if (!response.ok) {
         throw new Error("Erro ao criar agendamento");
       }
-
-      const data = await response.json();
-      console.log("Agendamento criado com sucesso:", data);
-
-      setOpenDialog(false);
+      setOpenDialogScheduling(false);
       setSelectedAppointment(null);
       onUpdateService();
+      setClientName("");
+      setClientPhone("");
+      setVeiculo("");
+      setDate("");
+      setService("");
     } catch (error) {
       console.error("Erro:", error);
     }
@@ -245,7 +242,6 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   };
 
   const handleOpenDialogStatus = (status, id) => {
-    console.log("Abrindo dialog com status:", status, "e id:", id);
     setCurrentStatus(status);
     setSelectedServiceId(id);
     setNewSelectedStatus(null);
@@ -284,9 +280,12 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
 
   const sortedAppointments = useMemo(() => {
     if (!sortKey) return services;
+
     return [...services].sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
+
+      console.log("Comparando:", aVal, bVal);
 
       if (aVal === undefined || bVal === undefined) return 0;
 
@@ -471,7 +470,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             <Skeleton variant="text" width="100%" />
           </Box>
         ) : sortedAppointments.length === 0 ? (
-          <Typography variant="body2" textAlign="center" p={2}>
+          <Typography variant="body2" textAlign="center" p={2} color="#6a1b9a">
             Nenhum agendamento para hoje
           </Typography>
         ) : (
@@ -648,13 +647,10 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           </Button>
           <Button
             size="small"
-            variant="outlined"
+            variant="contained"
+            sx={{ background: "#ac42f7" }}
             onClick={async () => {
               if (!newSelectedStatus || !selectedServiceId) return;
-
-              console.log("Atualizando status para:", newSelectedStatus);
-              console.log("Para o serviço com id:", selectedServiceId);
-
               try {
                 await fetch(
                   `https://backlavaja.onrender.com/api/appointments/appointments/${selectedServiceId}`,
@@ -1168,7 +1164,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                           "& .MuiPaper-root": {
                             color: "#FFFFFF",
                             backgroundColor: "#6b21a8",
-                            borderRadius: 4,
+                            borderRadius: 2,
                           },
                         },
                       },
@@ -1183,13 +1179,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     fullWidth
                     size="small"
                     variant="outlined"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, background: "#FFFFFF", borderRadius: 2 }}
                   >
                     <InputLabel>Serviço</InputLabel>
                     <Select
                       value={service}
                       onChange={(e) => setService(e.target.value)}
                       label="Serviço"
+                      sx={{ borderRadius: 2 }}
                     >
                       {availableServices.map((service) => (
                         <MenuItem
@@ -1208,12 +1205,17 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 ) : (
                   service &&
                   availableSlots.length > 0 && (
-                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <FormControl
+                      fullWidth
+                      size="small"
+                      sx={{ mb: 2, borderRadius: 2, background: "#FFFFFF" }}
+                    >
                       <InputLabel>Horário</InputLabel>
                       <Select
                         value={selectedSlot}
                         onChange={(e) => setSelectedSlot(e.target.value)}
                         label="Horário"
+                        sx={{ borderRadius: 2 }}
                       >
                         {availableSlots.map((slot, index) => (
                           <MenuItem key={index} value={slot}>
@@ -1251,13 +1253,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                   fullWidth
                   size="small"
                   variant="outlined"
-                  sx={{ mb: 2 }}
+                  sx={{ mb: 2, background: "#FFFFFF", borderRadius: 2 }}
                 >
                   <InputLabel>Status</InputLabel>
                   <Select
                     value={statusCreateNew}
                     onChange={(e) => setStatusCreateNew(e.target.value)}
                     label="Status"
+                    sx={{ borderRadius: 2 }}
                   >
                     {statusCreate.map((service) => (
                       <MenuItem key={service} value={service}>
@@ -1271,7 +1274,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
               <Button
                 onClick={handleCloseDialogScheduling}
-                variant="outlined"
+                variant="contained"
+                color="error"
                 sx={{ color: "#fff", borderColor: "#fff" }}
               >
                 Cancelar

@@ -102,7 +102,6 @@ const EstablishmentServices = () => {
       setIsLoading(false);
     }
   };
-  console.log(dataEstablishment);
   const handleOpenDialog = () => setOpenDialog(true);
 
   const handleCloseDialog = () => {
