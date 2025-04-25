@@ -4,7 +4,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import { useAuth } from "../Context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Alert,
   InputAdornment,
@@ -171,7 +171,7 @@ const Login = () => {
             Entrar
           </Button>
         </Box>
-        {/*<Typography mt={2} color="white">
+        <Typography mt={2} color="white">
           Não tem conta?{" "}
           <Link
             to="/cadastro"
@@ -179,7 +179,7 @@ const Login = () => {
           >
             Criar conta
           </Link>
-        </Typography>*/}
+        </Typography>
       </Box>
       {passwordError && error && (
         <Stack

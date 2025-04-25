@@ -8,6 +8,12 @@ import {
   Typography,
   Paper,
   Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
   Grid2,
 } from "@mui/material";
 import { useNavigate } from "react-router";
@@ -17,6 +23,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 const ScheduledData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dataEstablishment, setDataEstablishment] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
   const { isTokenValid } = useAuth();
   const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
@@ -59,6 +66,9 @@ const ScheduledData = () => {
     }
   };
 
+  const handleOpenDialog = () => setOpenDialog(true);
+  const handleCloseDialog = () => setOpenDialog(false);
+
   const renderSkeleton = () => (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
       <Box
@@ -88,8 +98,6 @@ const ScheduledData = () => {
     return <Box sx={{ width: "95%", mt: 5, mb: 3 }}>{renderSkeleton()}</Box>;
   }
 
-  if (!dataEstablishment.length) return null;
-
   const establishment = dataEstablishment[0];
 
   return (
@@ -109,64 +117,129 @@ const ScheduledData = () => {
           <Typography variant="h6" fontWeight={600} color="#AC42F7">
             Estabelecimento
           </Typography>
-          {dataEstablishment.length <= 0 && (
-            <Tooltip title="Adicionar Estabelecimento">
-              <IconButton>
-                <AddRoundedIcon sx={{ color: "#AC42F7" }} />
-              </IconButton>
-            </Tooltip>
-          )}
+
+          <Tooltip title="Adicionar Estabelecimento">
+            <IconButton onClick={handleOpenDialog}>
+              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+            </IconButton>
+          </Tooltip>
         </Box>
-        <Divider sx={{ my: 2 }} />
 
-        <Grid2 container spacing={2}>
-          <Grid2 xs={12} sm={6}>
-            <Typography color="#AC42F7">
-              <strong>Nome:</strong> {establishment.nameEstablishment}
-            </Typography>
-          </Grid2>
-
-          <Grid2 xs={12} sm={6}>
-            <Typography color="#AC42F7">
-              <strong>Endereço:</strong> {establishment.address.street}
-            </Typography>
-          </Grid2>
-          <Grid2 xs={12} sm={6}>
-            <Typography color="#AC42F7">
-              <strong>Número:</strong> {establishment.address.number}
-            </Typography>
-          </Grid2>
-
-          <Grid2 xs={12} sm={4}>
-            <Typography color="#AC42F7">
-              <strong>Bairro:</strong> {establishment.address.neighborhood}
-            </Typography>
-          </Grid2>
-          <Grid2 xs={12} sm={4}>
-            <Typography color="#AC42F7">
-              <strong>Cidade:</strong> {establishment.address.city}
-            </Typography>
-          </Grid2>
-          <Grid2 xs={12} sm={4}>
-            <Typography color="#AC42F7">
-              <strong>Estado:</strong> {establishment.address.state}
-            </Typography>
-          </Grid2>
-
-          <Grid2 xs={12} sm={6}>
-            <Typography color="#AC42F7">
-              <strong>Hora de abertura:</strong>{" "}
-              {establishment.openingHours.open}
-            </Typography>
-          </Grid2>
-          <Grid2 xs={12} sm={6}>
-            <Typography color="#AC42F7">
-              <strong>Hora de encerramento:</strong>{" "}
-              {establishment.openingHours.close}
-            </Typography>
-          </Grid2>
-        </Grid2>
+        {dataEstablishment.length > 0 ? (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Grid2 container spacing={2}>
+              <Grid2 xs={12} sm={6}>
+                <Typography color="#AC42F7">
+                  <strong>Nome:</strong> {establishment.nameEstablishment}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={6}>
+                <Typography color="#AC42F7">
+                  <strong>Endereço:</strong> {establishment.address.street}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={6}>
+                <Typography color="#AC42F7">
+                  <strong>Número:</strong> {establishment.address.number}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={4}>
+                <Typography color="#AC42F7">
+                  <strong>Bairro:</strong> {establishment.address.neighborhood}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={4}>
+                <Typography color="#AC42F7">
+                  <strong>Cidade:</strong> {establishment.address.city}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={4}>
+                <Typography color="#AC42F7">
+                  <strong>Estado:</strong> {establishment.address.state}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={6}>
+                <Typography color="#AC42F7">
+                  <strong>Hora de abertura:</strong>{" "}
+                  {establishment.openingHours.open}
+                </Typography>
+              </Grid2>
+              <Grid2 xs={12} sm={6}>
+                <Typography color="#AC42F7">
+                  <strong>Hora de encerramento:</strong>{" "}
+                  {establishment.openingHours.close}
+                </Typography>
+              </Grid2>
+            </Grid2>
+          </>
+        ) : (
+          <Typography color="textSecondary">
+            Cadastre um estabelecimento para começar a receber agendamentos.
+          </Typography>
+        )}
       </Paper>
+
+      {/* DIALOGO DE CADASTRO */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Novo Estabelecimento</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            margin="dense"
+            label="Nome do Estabelecimento"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField margin="dense" label="Rua" fullWidth variant="outlined" />
+          <TextField
+            margin="dense"
+            label="Número"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            label="Bairro"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            label="Cidade"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            label="Estado"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            label="Horário de Abertura"
+            fullWidth
+            variant="outlined"
+          />
+          <TextField
+            margin="dense"
+            label="Horário de Encerramento"
+            fullWidth
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancelar</Button>
+          <Button variant="contained" color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

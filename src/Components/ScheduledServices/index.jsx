@@ -63,7 +63,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [loadingServices, setLoadingServices] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState("");
-  const establishmentId = owner?.establishments[0]._id;
+  const establishmentId = owner?.establishments[0]?._id;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [availableHours, setAvailableHours] = useState([]);
@@ -95,10 +95,10 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     setDate("");
   };
   useEffect(() => {
-    if ((date, selectedDate)) {
+    if (date || selectedDate) {
       setLoadingServices(true);
       fetch(
-        `https://backlavaja.onrender.com/api/availability/67d64cec87b9bd7f27e2dd8c?date=${date || selectedDate}`
+        `https://backlavaja.onrender.com/api/availability/${owner}?date=${date || selectedDate}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -116,7 +116,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     if ((service && date) || (selectedDate && selectedDate)) {
       setLoadingSlots(true);
       fetch(
-        `https://backlavaja.onrender.com/api/availability/67d64cec87b9bd7f27e2dd8c?date=${date || selectedDate}`
+        `https://backlavaja.onrender.com/api/availability/${owner}?date=${date || selectedDate}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -980,6 +980,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     value={date ? dayjs(date) : null}
                     onChange={(newValue) => {
                       if (newValue) setDate(newValue.format("YYYY-MM-DD"));
+                      console.log(newValue.format("YYYY-MM-DD"));
                     }}
                     slotProps={{
                       textField: {

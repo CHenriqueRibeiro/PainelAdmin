@@ -34,7 +34,8 @@
     "react-input-mask": "^2.0.4",
     "react-perfect-scrollbar": "^1.5.8",
     "react-router": "^7.4.1",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^7.4.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",

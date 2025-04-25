@@ -50,7 +50,7 @@ const Update = () => {
       setSenha("");
       setNomeDoCliente("");
       setTelefone("");
-      navigate("/estabelecimento");
+      navigate("/home");
     } catch (err) {
       setError(err.message || "Erro ao cadastrar usuário. Tente novamente.");
       setPasswordError(true);

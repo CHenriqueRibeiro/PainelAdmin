@@ -1,4 +1,3 @@
-// Home.tsx
 import { Box } from "@mui/material";
 import DailyStatus from "../Components/DailyStats";
 import ScheduledServices from "../Components/ScheduledServices";
@@ -11,46 +10,69 @@ export default function Home() {
   const token = localStorage.getItem("authToken");
   const ownerUser = JSON.parse(localStorage.getItem("user"));
   const ownerId = ownerUser.id;
-  const fetchAppointments = async () => {
-    const response = await fetch(
-      "https://backlavaja.onrender.com/api/appointments/appointments/67d64cec87b9bd7f27e2dd8c",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    setServices(data);
-    setLoading(false);
+
+  const fetchAppointments = async (establishmentId) => {
+    try {
+      const response = await fetch(
+        `https://backlavaja.onrender.com/api/appointments/appointments/${establishmentId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setServices(data);
+    } catch (err) {
+      console.error("Erro ao buscar agendamentos:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const establishmentSearch = async () => {
-    const response = await fetch(
-      `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    setOwner(data);
-    setLoading(false);
+    try {
+      const response = await fetch(
+        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setOwner(data);
+    } catch (err) {
+      console.error("Erro ao buscar estabelecimentos:", err);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     establishmentSearch();
-    fetchAppointments();
   }, []);
 
+  useEffect(() => {
+    if (owner?.establishments?.[0]?._id) {
+      fetchAppointments(owner.establishments[0]._id);
+    } else if (
+      owner &&
+      (!owner.establishments || owner.establishments.length === 0)
+    ) {
+      setLoading(false);
+    }
+  }, [owner]);
+
   const handleServiceUpdated = () => {
-    fetchAppointments();
+    if (owner?.establishments?.[0]?._id) {
+      fetchAppointments(owner.establishments[0]._id);
+    }
   };
+
   return (
     <Box
       sx={{
