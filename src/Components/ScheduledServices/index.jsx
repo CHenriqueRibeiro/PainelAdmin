@@ -22,6 +22,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Menu,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
@@ -45,6 +46,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [sortKey, setSortKey] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogData, setOpenDialogData] = useState(false);
   const [openDialogScheduling, setOpenDialogScheduling] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const { isTokenValid } = useAuth();
@@ -67,7 +69,15 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [availableHours, setAvailableHours] = useState([]);
-  //const OwnerUser = JSON.parse(localStorage.getItem("user"));
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
   const statusCreate = [
     "Agendado",
     "Entregue",
@@ -77,12 +87,19 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   ];
   const handleEditClick = (appointment) => {
     setSelectedAppointment(appointment);
+    setAnchorEl(null);
     setOpenDialog(true);
   };
-
+  const handleEditClickData = (appointment) => {
+    setSelectedAppointment(appointment);
+    setAnchorEl(null);
+    setOpenDialogData(true);
+  };
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedAppointment(null);
+    setSelectedDate("");
+    setSelectedService("");
   };
 
   const handleCloseDialogScheduling = () => {
@@ -94,11 +111,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     setService("");
     setDate("");
   };
+  const handleCloseData = () => {
+    setOpenDialogData(false);
+  };
   useEffect(() => {
     if (date || selectedDate) {
       setLoadingServices(true);
       fetch(
-        `https://backlavaja.onrender.com/api/availability/${owner}?date=${date || selectedDate}`
+        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${date || selectedDate}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -116,7 +136,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     if ((service && date) || (selectedDate && selectedDate)) {
       setLoadingSlots(true);
       fetch(
-        `https://backlavaja.onrender.com/api/availability/${owner}?date=${date || selectedDate}`
+        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${date || selectedDate}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -154,12 +174,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         }
       );
       setOpenDialog(false);
-
+      setOpenDialogData(false);
       if (!response.ok) {
         throw new Error("Erro ao atualizar agendamento");
       }
       setSelectedAppointment(null);
       onUpdateService();
+      setSelectedDate("");
+      setSelectedService("");
     } catch (error) {
       console.error("Erro:", error);
     }
@@ -180,6 +202,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       );
 
       setOpenDialog(false);
+      setOpenDialogData(false);
 
       if (!response.ok) {
         throw new Error("Erro ao deletar agendamento");
@@ -187,6 +210,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
 
       setSelectedAppointment(null);
       onUpdateService();
+      setSelectedDate("");
+      setSelectedService("");
     } catch (error) {
       console.error("Erro:", error);
     }
@@ -341,7 +366,6 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           justifyContent: "space-between",
           width: "100%",
           mb: 2,
-          pr: 1,
         }}
       >
         <Typography variant="h6" fontWeight={600} color="#AC42F7">
@@ -358,7 +382,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "0.8fr 1fr 1fr 1.5fr 1fr 0.5fr 0.46fr",
+            gridTemplateColumns:
+              "0.4fr 0.7fr 0.4fr 0.65fr 0.9fr 0.45fr 0.35fr 0.12fr",
             alignItems: "center",
             pb: 1,
             borderBottom: "1px solid #ddd",
@@ -425,12 +450,19 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 <ArrowDropDownIcon />
               ))}
           </Box>
-
           <Box
             display="flex"
             alignItems="center"
             gap={0.5}
-            justifyContent="end"
+            justifyContent="start"
+          >
+            <Typography variant="body2">Responsável</Typography>
+          </Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+            justifyContent="center"
             sx={{ cursor: "pointer", pr: 2 }}
             onClick={() => handleSort("value")}
           >
@@ -464,7 +496,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
               display: "grid",
               gridTemplateColumns: isMobile
                 ? "1fr"
-                : "0.6fr 0fr 1fr 0.4fr 0.8fr 0.6fr 0.4fr",
+                : "0.4fr 0.8fr 0.4fr 0.8fr 0.8fr 0.5fr 0.46fr 0fr",
               alignItems: "center",
               py: 1,
               borderBottom: "1px solid #f0f0f0",
@@ -491,7 +523,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 display: "grid",
                 gridTemplateColumns: isMobile
                   ? "1fr"
-                  : "0.8fr 1fr 1fr 1.5fr 1fr 0.44fr 0.46fr",
+                  : "0.4fr 0.8fr 0.4fr 0.8fr 0.8fr 0.5fr 0.46fr 0fr",
                 alignItems: "center",
                 py: 1,
                 borderBottom: isMobile
@@ -543,18 +575,58 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                         />
                       </Typography>
                       <Typography variant="body2">
+                        Responsável: Luizinho
+                      </Typography>
+                      <Typography variant="body2">
                         Valor: R$ {item?.price}
                       </Typography>
                     </Box>
                     <IconButton
                       size="small"
-                      onClick={() => handleEditClick(item)}
-                      sx={{ color: "#AC42F7", pr: 3 }}
+                      onClick={handleMenuOpen}
+                      sx={{ color: "#AC42F7" }}
                     >
-                      <Tooltip title="Editar agendamento" arrow>
+                      <Tooltip title="Opções" arrow>
                         <MoreVertRoundedIcon />
                       </Tooltip>
                     </IconButton>
+                    <Menu
+                      id="demo-positioned-menu"
+                      aria-labelledby="demo-positioned-button"
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                      transformOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                      sx={{
+                        "& .MuiPaper-root": {
+                          minWidth: "5rem",
+                          background: "#f1eeff",
+                        },
+                      }}
+                    >
+                      <MenuItem
+                        sx={{
+                          fontSize: "10px",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => handleEditClickData(item)}
+                      >
+                        Alterar dados
+                      </MenuItem>
+                      <MenuItem
+                        sx={{ fontSize: "10px", padding: "8px 16px" }}
+                        onClick={() => handleEditClick(item)}
+                      >
+                        Alterar agendamento
+                      </MenuItem>
+                    </Menu>
                   </Box>
                 </>
               ) : (
@@ -579,18 +651,58 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     }
                   />
                   <Typography variant="body2" fontWeight={500}>
+                    Luizinho
+                  </Typography>
+                  <Typography variant="body2" fontWeight={500}>
                     R$ {item?.price}
                   </Typography>
 
                   <IconButton
                     size="small"
-                    onClick={() => handleEditClick(item)}
+                    onClick={handleMenuOpen}
                     sx={{ color: "#AC42F7" }}
                   >
-                    <Tooltip title="Editar agendamento" arrow>
+                    <Tooltip title="Opções" arrow>
                       <MoreVertRoundedIcon />
                     </Tooltip>
                   </IconButton>
+                  <Menu
+                    id="demo-positioned-menu"
+                    aria-labelledby="demo-positioned-button"
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "right",
+                    }}
+                    transformOrigin={{
+                      vertical: "bottom",
+                      horizontal: "right",
+                    }}
+                    sx={{
+                      "& .MuiPaper-root": {
+                        minWidth: "5rem",
+                        background: "#f1eeff",
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      sx={{
+                        fontSize: "10px",
+                        padding: "8px 16px",
+                      }}
+                      onClick={() => handleEditClickData(item)}
+                    >
+                      Alterar dados
+                    </MenuItem>
+                    <MenuItem
+                      sx={{ fontSize: "10px", padding: "8px 16px" }}
+                      onClick={() => handleEditClick(item)}
+                    >
+                      Alterar agendamento
+                    </MenuItem>
+                  </Menu>
                 </>
               )}
             </Box>
@@ -888,6 +1000,193 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       </Dialog>
 
       <Dialog
+        open={openDialogData}
+        onClose={handleCloseData}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+            padding: 2,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ textAlign: "center", fontWeight: "bold", fontSize: 20 }}
+        >
+          Editar dados do agendamento
+        </DialogTitle>
+
+        <DialogContent>
+          {selectedAppointment && (
+            <>
+              <TextField
+                size="small"
+                fullWidth
+                disabled
+                label="Nome do Cliente"
+                value={selectedAppointment.clientName}
+                sx={{
+                  mb: 2,
+                  mt: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <LocalizationProvider
+                adapterLocale="pt-br"
+                localeText={
+                  ptBR.components.MuiLocalizationProvider.defaultProps
+                    .localeText
+                }
+                dateAdapter={AdapterDayjs}
+              >
+                <DatePicker
+                  disabled
+                  label="Data"
+                  value={selectedDate || dayjs(selectedAppointment.date)}
+                  format="DD/MM/YYYY"
+                  onChange={(newDate) => {
+                    if (newDate && newDate.isSame(selectedDate, "day")) {
+                      setSelectedDate(newDate);
+                      return;
+                    }
+                    setSelectedDate(newDate);
+                    setSelectedService("");
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      sx: {
+                        mb: 2,
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
+              <TextField
+                label="Serviço"
+                fullWidth
+                disabled
+                size="small"
+                value={selectedAppointment.serviceName}
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <TextField
+                label="Horário"
+                fullWidth
+                disabled
+                size="small"
+                value={selectedAppointment.startTime}
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <TextField
+                size="small"
+                fullWidth
+                label="Veículo"
+                value={selectedAppointment.veiculo}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    veiculo: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Responsável"
+                disabled="true"
+                value="Luizinho"
+                //onChange={(e) =>
+                //setSelectedAppointment({
+                //...selectedAppointment,
+                //price: e.target.value,
+                //})
+                //}
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+              <TextField
+                size="small"
+                fullWidth
+                label="Valor"
+                disabled="true"
+                value={selectedAppointment.price}
+                onChange={(e) =>
+                  setSelectedAppointment({
+                    ...selectedAppointment,
+                    price: e.target.value,
+                  })
+                }
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseData}
+            variant="outlined"
+            sx={{ color: "#fff", borderColor: "#fff" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+            sx={{ color: "#fff", borderColor: "#fff" }}
+          >
+            Excluir
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ backgroundColor: "#7209b7", color: "#fff" }}
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={openDialogScheduling}
         onClose={handleCloseDialogScheduling}
         PaperProps={{
@@ -980,7 +1279,6 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     value={date ? dayjs(date) : null}
                     onChange={(newValue) => {
                       if (newValue) setDate(newValue.format("YYYY-MM-DD"));
-                      console.log(newValue.format("YYYY-MM-DD"));
                     }}
                     slotProps={{
                       textField: {

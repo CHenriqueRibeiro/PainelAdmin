@@ -15,6 +15,7 @@ import {
   Button,
   TextField,
   Grid2,
+  Collapse,
 } from "@mui/material";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../Context/AuthContext";
@@ -34,41 +35,21 @@ const EstablishmentServices = () => {
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
   const [dailyLimit, setDailyLimit] = useState("");
-
   const [availability, setAvailability] = useState([
-    {
-      day: "Segunda",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Terça",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Quarta",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Quinta",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Sexta",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Sábado",
-      availableHours: [{ start: "", end: "" }],
-    },
-    {
-      day: "Domingo",
-      availableHours: [{ start: "", end: "" }],
-    },
+    { day: "Segunda", availableHours: [{ start: "", end: "" }] },
+    { day: "Terça", availableHours: [{ start: "", end: "" }] },
+    { day: "Quarta", availableHours: [{ start: "", end: "" }] },
+    { day: "Quinta", availableHours: [{ start: "", end: "" }] },
+    { day: "Sexta", availableHours: [{ start: "", end: "" }] },
+    { day: "Sábado", availableHours: [{ start: "", end: "" }] },
+    { day: "Domingo", availableHours: [{ start: "", end: "" }] },
   ]);
+
+  const [expandedService, setExpandedService] = useState(null);
 
   useEffect(() => {
     fetchEstablishments();
-  }, []);
+  }, [openDialog]);
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -91,7 +72,6 @@ const EstablishmentServices = () => {
           },
         }
       );
-
       if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
 
       const data = await response.json();
@@ -102,8 +82,8 @@ const EstablishmentServices = () => {
       setIsLoading(false);
     }
   };
-  const handleOpenDialog = () => setOpenDialog(true);
 
+  const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setServiceName("");
@@ -120,6 +100,23 @@ const EstablishmentServices = () => {
   };
 
   const handleCreateService = async () => {
+    if (!serviceName || !price || !duration || !description || !dailyLimit) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    const hasInvalidAvailability = availability.some((day) =>
+      day.availableHours.some((hours) => hours.start === "" || hours.end === "")
+    );
+    if (hasInvalidAvailability) {
+      alert("Por favor, preencha todos os horários de disponibilidade.");
+      return;
+    }
+
+    const filteredAvailability = availability.filter((day) =>
+      day.availableHours.some((hours) => hours.start && hours.end)
+    );
+
     try {
       const establishment = dataEstablishment[0];
       const response = await fetch(
@@ -136,12 +133,11 @@ const EstablishmentServices = () => {
             duration: Number(duration),
             description,
             dailyLimit: Number(dailyLimit),
-            availability,
+            availability: filteredAvailability,
             establishment_id: establishment._id,
           }),
         }
       );
-
       if (!response.ok) {
         throw new Error("Erro ao criar serviço");
       }
@@ -152,6 +148,28 @@ const EstablishmentServices = () => {
       console.error(error);
       alert("Erro ao criar serviço");
     }
+  };
+
+  const toggleExpandService = (serviceId) => {
+    setExpandedService((prev) => (prev === serviceId ? null : serviceId));
+  };
+
+  const addAvailableHour = (dayIndex) => {
+    const newAvailability = [...availability];
+    newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
+    setAvailability(newAvailability);
+  };
+
+  const removeAvailableHour = (dayIndex, hourIndex) => {
+    const newAvailability = [...availability];
+    newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
+    setAvailability(newAvailability);
+  };
+
+  const handleHourChange = (dayIndex, hourIndex, field, value) => {
+    const newAvailability = [...availability];
+    newAvailability[dayIndex].availableHours[hourIndex][field] = value;
+    setAvailability(newAvailability);
   };
 
   const renderSkeleton = () => (
@@ -209,6 +227,76 @@ const EstablishmentServices = () => {
           </Tooltip>
         </Box>
         <Divider sx={{ my: 2 }} />
+        {dataEstablishment.map((establishment) => (
+          <Box
+            key={establishment._id}
+            sx={{ mb: 4, maxHeight: "13rem", overflow: "auto" }}
+          >
+            {establishment.services.map((service) => (
+              <Box key={service._id} sx={{ mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#F1EEFF",
+                    padding: 2,
+                    borderRadius: 2,
+                  }}
+                  onClick={() => toggleExpandService(service._id)}
+                >
+                  <Typography
+                    variant="body1"
+                    fontWeight={600}
+                    color={"#AC42F7"}
+                  >
+                    {service.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#AC42F7" }}>
+                    {expandedService === service._id ? "Fechar" : "Ver mais"}
+                  </Typography>
+                </Box>
+                <Collapse in={expandedService === service._id}>
+                  <Box sx={{ padding: 2 }}>
+                    <Typography variant="body2">
+                      Descrição: {service.description}
+                    </Typography>
+                    <Typography variant="body2">
+                      Preço: R${service.price}
+                    </Typography>
+                    <Typography variant="body2">
+                      Duração: {service.duration} minutos
+                    </Typography>
+                    <Typography variant="body2">
+                      Limite Diário: {service.dailyLimit}
+                    </Typography>
+                    <Typography variant="body2">
+                      Disponibilidade:
+                      {service.availability.map((day) => (
+                        <Box
+                          key={day._id}
+                          sx={{ display: "inline-block", mr: 2 }}
+                        >
+                          <Typography variant="body2">
+                            {day.day}:{" "}
+                            {day.availableHours.map((hour, index) => (
+                              <span key={index}>
+                                {hour.start} - {hour.end}
+                                {index < day.availableHours.length - 1 && ", "}
+                              </span>
+                            ))}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Typography>
+                  </Box>
+                </Collapse>
+                <Divider sx={{ my: 1 }} />
+              </Box>
+            ))}
+          </Box>
+        ))}
       </Paper>
 
       <Dialog
@@ -255,45 +343,61 @@ const EstablishmentServices = () => {
             fullWidth
           />
 
-          <Divider />
-          <Typography variant="subtitle1" fontWeight={600}>
-            Disponibilidade por dia
-          </Typography>
-
-          {availability.map((day, index) => (
-            <Box
-              key={index}
-              sx={{ display: "flex", gap: 2, alignItems: "center" }}
-            >
-              <Typography width={90}>{day.day}</Typography>
-              <TextField
-                label="Início"
-                type="time"
-                value={day.availableHours[0].start}
-                onChange={(e) => {
-                  const updated = [...availability];
-                  updated[index].availableHours[0].start = e.target.value;
-                  setAvailability(updated);
-                }}
-              />
-              <TextField
-                label="Fim"
-                type="time"
-                value={day.availableHours[0].end}
-                onChange={(e) => {
-                  const updated = [...availability];
-                  updated[index].availableHours[0].end = e.target.value;
-                  setAvailability(updated);
-                }}
-              />
+          {/* Campos de disponibilidade de horário */}
+          {availability.map((day, dayIndex) => (
+            <Box key={day.day}>
+              <Typography variant="body2" fontWeight={600}>
+                {day.day}
+              </Typography>
+              {day.availableHours.map((hour, hourIndex) => (
+                <Box key={hourIndex} sx={{ display: "flex", gap: 1 }}>
+                  <TextField
+                    label="Início"
+                    value={hour.start}
+                    onChange={(e) =>
+                      handleHourChange(
+                        dayIndex,
+                        hourIndex,
+                        "start",
+                        e.target.value
+                      )
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Fim"
+                    value={hour.end}
+                    onChange={(e) =>
+                      handleHourChange(
+                        dayIndex,
+                        hourIndex,
+                        "end",
+                        e.target.value
+                      )
+                    }
+                    fullWidth
+                  />
+                  <Button
+                    onClick={() => removeAvailableHour(dayIndex, hourIndex)}
+                    color="error"
+                  >
+                    Remover
+                  </Button>
+                </Box>
+              ))}
+              <Button
+                onClick={() => addAvailableHour(dayIndex)}
+                variant="outlined"
+                sx={{ mt: 1 }}
+              >
+                Adicionar horário
+              </Button>
             </Box>
           ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button variant="contained" onClick={handleCreateService}>
-            Salvar
-          </Button>
+          <Button onClick={handleCreateService}>Criar</Button>
         </DialogActions>
       </Dialog>
     </Box>
