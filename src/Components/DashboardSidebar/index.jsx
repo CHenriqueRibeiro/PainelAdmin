@@ -124,7 +124,7 @@ export default function DashboardLayoutBasic(props) {
         }}
         sx={{
           "& .MuiAppBar-root": {
-            height: "5rem",
+            height: "4rem",
             background: "#F9F8FF",
             display: "flex",
             justifyContent: "center",
