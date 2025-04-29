@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
 import {
@@ -17,18 +18,17 @@ import {
   Grid2,
   Collapse,
 } from "@mui/material";
-import { useNavigate } from "react-router";
-import { useAuth } from "../../Context/AuthContext";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
-const EstablishmentServices = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [dataEstablishment, setDataEstablishment] = useState([]);
-  const { isTokenValid } = useAuth();
+// eslint-disable-next-line react/prop-types
+const EstablishmentServices = ({
+  dataEstablishment,
+  isLoading,
+  setEstablishment = () => {},
+  setService = () => {},
+}) => {
   const token = localStorage.getItem("authToken");
-  const OwnerUser = JSON.parse(localStorage.getItem("user"));
 
   const [openDialog, setOpenDialog] = useState(false);
   const [serviceName, setServiceName] = useState("");
@@ -46,47 +46,42 @@ const EstablishmentServices = () => {
     { day: "Domingo", availableHours: [{ start: "", end: "" }] },
   ]);
 
+  useEffect(() => {
+    if (!dataEstablishment?.length) return;
+
+    const establishment = dataEstablishment[0];
+
+    const allDays = [
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+      "Domingo",
+    ];
+
+    const availableDays = Array.isArray(establishment.workingDays)
+      ? allDays.filter((day) => establishment.workingDays.includes(day))
+      : [];
+
+    const service = establishment.services?.[0];
+
+    const mappedAvailability = availableDays.map((day) => {
+      const serviceDay = service?.availability?.find((d) => d.day === day);
+      return {
+        day,
+        availableHours: serviceDay?.availableHours || [{ start: "", end: "" }],
+      };
+    });
+
+    setAvailability(mappedAvailability);
+  }, [dataEstablishment]);
+
   const [expandedService, setExpandedService] = useState(null);
-
-  useEffect(() => {
-    fetchEstablishments();
-  }, [openDialog]);
-
-  useEffect(() => {
-    if (!isTokenValid()) {
-      navigate("/");
-    }
-  }, [isTokenValid]);
-
-  const fetchEstablishments = async () => {
-    const ownerId = OwnerUser.id;
-    if (!ownerId || !token) return;
-
-    try {
-      const response = await fetch(
-        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
-
-      const data = await response.json();
-      setDataEstablishment(data.establishments);
-    } catch (error) {
-      console.error("Erro:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
-    setOpenDialog(false);
     setServiceName("");
     setPrice("");
     setDuration("");
@@ -141,9 +136,8 @@ const EstablishmentServices = () => {
     );
 
     try {
-      const establishment = dataEstablishment[0];
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/services/establishment/${establishment._id}/service`,
+        `https://backlavaja.onrender.com/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -157,18 +151,20 @@ const EstablishmentServices = () => {
             description,
             dailyLimit: Number(dailyLimit),
             availability: filteredAvailability,
-            establishment_id: establishment._id,
+            establishment_id: dataEstablishment[0]._id,
           }),
         }
       );
+
       if (!response.ok) {
         throw new Error("Erro ao criar serviço");
       }
 
+      setEstablishment((prev) => !prev);
+      setService((prev) => !prev);
       handleCloseDialog();
-      alert("Serviço criado com sucesso!");
+      setOpenDialog(false);
     } catch (error) {
-      console.error(error);
       alert("Erro ao criar serviço");
     }
   };
@@ -224,6 +220,7 @@ const EstablishmentServices = () => {
     return <Box sx={{ width: "95%", mt: 5, mb: 3 }}>{renderSkeleton()}</Box>;
   }
 
+  // eslint-disable-next-line react/prop-types
   if (!dataEstablishment.length) return null;
 
   return (
@@ -250,163 +247,171 @@ const EstablishmentServices = () => {
           </Tooltip>
         </Box>
         <Divider sx={{ my: 2 }} />
-        {dataEstablishment.length === 0 && (
-          <Typography variant="body2" color="#AC42F7">
-            Nenhum serviço encontrado.
+        {dataEstablishment[0].services.length === 0 ? (
+          <Typography color="textSecondary">
+            Cadastre serviço(s) para começar a receber agendamentos.
           </Typography>
-        )}
-        {dataEstablishment.map((establishment) => (
-          <Box
-            key={establishment._id}
-            sx={{ mb: 4, maxHeight: "13rem", overflow: "auto" }}
-          >
-            {establishment.services.map((service) => (
-              <Box key={service._id} sx={{ mb: 2 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    backgroundColor: "#F1EEFF",
-                    padding: 2,
-                    borderRadius: 2,
-                  }}
-                  onClick={() => toggleExpandService(service._id)}
-                >
-                  <Typography
-                    variant="body1"
-                    fontWeight={600}
-                    color={"#AC42F7"}
-                  >
-                    {service.name}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "#AC42F7" }}>
-                    {expandedService === service._id ? "Fechar" : "Ver mais"}
-                  </Typography>
-                </Box>
-                <Collapse in={expandedService === service._id}>
-                  <Box sx={{ padding: 2 }}>
-                    <Grid2 container spacing={2}>
-                      <Grid2 size={{ xs: 12, sm: 6, md: 6 }}>
-                        <Typography
-                          variant="caption"
-                          color={"#AC42F7"}
-                          fontWeight={600}
-                        >
-                          Descrição
-                        </Typography>
-                        <Typography variant="body2">
-                          {service.description}
-                        </Typography>
-                      </Grid2>
-
-                      <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                        <Typography
-                          variant="caption"
-                          color={"#AC42F7"}
-                          fontWeight={600}
-                        >
-                          Preço
-                        </Typography>
-                        <Typography variant="body2">
-                          R$ {service.price}
-                        </Typography>
-                      </Grid2>
-
-                      <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                        <Typography
-                          variant="caption"
-                          color={"#AC42F7"}
-                          fontWeight={600}
-                        >
-                          Duração
-                        </Typography>
-                        <Typography variant="body2">
-                          {service.duration} minutos
-                        </Typography>
-                      </Grid2>
-
-                      <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                        <Typography
-                          variant="caption"
-                          color={"#AC42F7"}
-                          fontWeight={600}
-                        >
-                          Limite Diário
-                        </Typography>
-                        <Typography variant="body2">
-                          {service.dailyLimit}
-                        </Typography>
-                      </Grid2>
+        ) : (
+          <>
+            {dataEstablishment.map((establishment) => (
+              <Box
+                key={dataEstablishment[0]._id}
+                sx={{ mb: 4, maxHeight: "13rem", overflow: "auto" }}
+              >
+                {establishment.services.map((service) => (
+                  <Box key={service._id} sx={{ mb: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        backgroundColor: "#F1EEFF",
+                        padding: 2,
+                        borderRadius: 2,
+                      }}
+                      onClick={() => toggleExpandService(service._id)}
+                    >
                       <Typography
-                        variant="caption"
-                        color="#AC42F7"
+                        variant="body1"
                         fontWeight={600}
+                        color={"#AC42F7"}
                       >
-                        Disponibilidade
+                        {service.name}
                       </Typography>
-                      <Grid2
-                        size={{ xs: 12, sm: 6, md: 12 }}
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row",
-                          gap: 2,
-                        }}
-                      >
-                        {service.availability.map((day) => (
-                          <Box
-                            key={day._id}
+                      <Typography variant="body2" sx={{ color: "#AC42F7" }}>
+                        {expandedService === service._id
+                          ? "Fechar"
+                          : "Ver mais"}
+                      </Typography>
+                    </Box>
+                    <Collapse in={expandedService === service._id}>
+                      <Box sx={{ padding: 2 }}>
+                        <Grid2 container spacing={2}>
+                          <Grid2 size={{ xs: 12, sm: 6, md: 6 }}>
+                            <Typography
+                              variant="caption"
+                              color={"#AC42F7"}
+                              fontWeight={600}
+                            >
+                              Descrição
+                            </Typography>
+                            <Typography variant="body2">
+                              {service.description}
+                            </Typography>
+                          </Grid2>
+
+                          <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                            <Typography
+                              variant="caption"
+                              color={"#AC42F7"}
+                              fontWeight={600}
+                            >
+                              Preço
+                            </Typography>
+                            <Typography variant="body2">
+                              R$ {service.price}
+                            </Typography>
+                          </Grid2>
+
+                          <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                            <Typography
+                              variant="caption"
+                              color={"#AC42F7"}
+                              fontWeight={600}
+                            >
+                              Duração
+                            </Typography>
+                            <Typography variant="body2">
+                              {service.duration} minutos
+                            </Typography>
+                          </Grid2>
+
+                          <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                            <Typography
+                              variant="caption"
+                              color={"#AC42F7"}
+                              fontWeight={600}
+                            >
+                              Limite Diário
+                            </Typography>
+                            <Typography variant="body2">
+                              {service.dailyLimit}
+                            </Typography>
+                          </Grid2>
+                          <Typography
+                            variant="caption"
+                            color="#AC42F7"
+                            fontWeight={600}
+                          >
+                            Disponibilidade
+                          </Typography>
+                          <Grid2
+                            size={{ xs: 12, sm: 6, md: 12 }}
                             sx={{
                               display: "flex",
-                              flexDirection: "column",
+                              flexDirection: "row",
+                              gap: 2,
                             }}
                           >
-                            <Typography
-                              variant="body2"
-                              fontWeight={500}
-                              color="#AC42F7"
-                            >
-                              {formatDay(day.day)}{" "}
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexWrap: "nowrap",
-                                gap: 1,
-                                mt: 0.5,
-                              }}
-                            >
-                              {day.availableHours.map((hour, index) => (
+                            {service.availability.map((day) => (
+                              <Box
+                                key={day._id}
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  fontWeight={500}
+                                  color="#AC42F7"
+                                >
+                                  {formatDay(day.day)}{" "}
+                                </Typography>
                                 <Box
-                                  key={index}
                                   sx={{
-                                    px: 2,
-                                    py: 0.5,
-                                    backgroundColor: "#E9D5FF",
-                                    color: "#6B21A8",
-                                    borderRadius: 2,
-                                    fontSize: 14,
-                                    fontWeight: 500,
-                                    whiteSpace: "nowrap",
+                                    display: "flex",
+                                    flexWrap: "nowrap",
+                                    gap: 1,
+                                    mt: 0.5,
                                   }}
                                 >
-                                  {formatHourRange(hour.start, hour.end)}{" "}
+                                  {day.availableHours.map((hour, index) => (
+                                    <Box
+                                      key={index}
+                                      sx={{
+                                        px: 2,
+                                        py: 0.5,
+                                        backgroundColor: "#E9D5FF",
+                                        color: "#6B21A8",
+                                        borderRadius: 2,
+                                        fontSize: 14,
+                                        fontWeight: 500,
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {formatHourRange(
+                                        hour.start,
+                                        hour.end
+                                      )}{" "}
+                                    </Box>
+                                  ))}
                                 </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        ))}
-                      </Grid2>
-                    </Grid2>
-                  </Box>
-                </Collapse>
+                              </Box>
+                            ))}
+                          </Grid2>
+                        </Grid2>
+                      </Box>
+                    </Collapse>
 
-                <Divider sx={{ my: 1 }} />
+                    <Divider sx={{ my: 1 }} />
+                  </Box>
+                ))}
               </Box>
             ))}
-          </Box>
-        ))}
+          </>
+        )}
       </Paper>
 
       <Dialog
@@ -497,80 +502,72 @@ const EstablishmentServices = () => {
             }}
           />
 
-          {availability.map((day, dayIndex) => (
-            <Box key={day.day}>
-              <Typography variant="body2" fontWeight={600}>
-                {day.day}
-              </Typography>
-              {day.availableHours.map((hour, hourIndex) => (
-                <Box
-                  key={hourIndex}
-                  sx={{ display: "flex", gap: 1, alignItems: "center" }}
-                >
-                  <TextField
-                    type="time"
-                    label="Início"
-                    value={hour.start}
-                    onChange={(e) =>
-                      handleHourChange(
-                        dayIndex,
-                        hourIndex,
-                        "start",
-                        e.target.value
-                      )
-                    }
-                    size="small"
-                    sx={{
-                      mt: 1,
-                      width: "35%",
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  />
-                  <TextField
-                    label="Fim"
-                    type="time"
-                    value={hour.end}
-                    onChange={(e) =>
-                      handleHourChange(
-                        dayIndex,
-                        hourIndex,
-                        "end",
-                        e.target.value
-                      )
-                    }
-                    size="small"
-                    sx={{
-                      mt: 1,
-                      width: "35%",
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  />
-                  <IconButton sx={{ mt: 1 }}>
-                    <Tooltip title="Adicionar horário">
-                      <AddRoundedIcon
-                        onClick={() => addAvailableHour(dayIndex)}
-                        color="primary"
-                      />
-                    </Tooltip>
-                  </IconButton>
+          <Typography variant="caption" fontSize={18} fontWeight={600}>
+            Horarios
+          </Typography>
 
-                  <Divider orientation="vertical" flexItem sx={{ mt: 1 }} />
-                  <IconButton sx={{ mt: 1 }}>
-                    <Tooltip title="Remover horário">
-                      <DeleteRoundedIcon
-                        onClick={() => removeAvailableHour(dayIndex, hourIndex)}
-                        color="error"
-                      />
-                    </Tooltip>
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
-          ))}
+          <Grid2
+            size={{ xs: 12, sm: 6, md: 12 }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {availability.map((day, dayIndex) => (
+              <Grid2 size={{ xs: 12, sm: 6, md: 12 }} key={day.day}>
+                <Typography variant="body2" fontWeight={500}>
+                  {day.day}
+                </Typography>
+                {day.availableHours.map((hour, hourIndex) => (
+                  <Grid2
+                    key={hourIndex}
+                    sx={{ display: "flex", gap: 1, mt: 0.5 }}
+                  >
+                    <TextField
+                      label="Início"
+                      type="time"
+                      value={hour.start}
+                      onChange={(e) =>
+                        handleHourChange(
+                          dayIndex,
+                          hourIndex,
+                          "start",
+                          e.target.value
+                        )
+                      }
+                      size="small"
+                      sx={{ bgcolor: "#fff", borderRadius: 2, width: "40%" }}
+                    />
+                    <TextField
+                      label="Fim"
+                      type="time"
+                      value={hour.end}
+                      onChange={(e) =>
+                        handleHourChange(
+                          dayIndex,
+                          hourIndex,
+                          "end",
+                          e.target.value
+                        )
+                      }
+                      size="small"
+                      sx={{ bgcolor: "#fff", borderRadius: 2, width: "40%" }}
+                    />
+                    <IconButton onClick={() => addAvailableHour(dayIndex)}>
+                      <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                    </IconButton>
+                    <Divider orientation="vertical" flexItem />
+                    <IconButton
+                      onClick={() => removeAvailableHour(dayIndex, hourIndex)}
+                    >
+                      <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
+                    </IconButton>
+                  </Grid2>
+                ))}
+              </Grid2>
+            ))}
+          </Grid2>
         </DialogContent>
         <DialogActions>
           <Button
@@ -580,7 +577,7 @@ const EstablishmentServices = () => {
               color: "#AC42F7",
               "&:hover": { borderColor: "#8a2be2", background: "#f9f5ff" },
             }}
-            onClick={handleCloseDialog}
+            onClick={() => setOpenDialog(false)}
           >
             Cancelar
           </Button>

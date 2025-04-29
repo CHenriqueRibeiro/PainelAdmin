@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
 import {
@@ -19,22 +20,22 @@ import {
   FormControlLabel,
   MenuItem,
 } from "@mui/material";
-import { useNavigate } from "react-router";
-import { useAuth } from "../../Context/AuthContext";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 
-const ScheduledData = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [dataEstablishment, setDataEstablishment] = useState([]);
+// eslint-disable-next-line react/prop-types
+const ScheduledData = ({
+  dataEstablishment,
+  isLoading,
+  setService = () => {},
+  setEstablishment = () => {},
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editEstablishmentId, setEditEstablishmentId] = useState("");
   const [originalCep, setOriginalCep] = useState("");
 
   const [openDialog, setOpenDialog] = useState(false);
-  const { isTokenValid } = useAuth();
-  const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
   const OwnerUser = JSON.parse(localStorage.getItem("user"));
   const [nameEstablishment, setNameEstablishment] = useState("");
@@ -56,15 +57,8 @@ const ScheduledData = () => {
   const [closingTime, setClosingTime] = useState("");
   const [hasLunchBreak, setHasLunchBreak] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
-  useEffect(() => {
-    fetchEstablishments();
-  }, []);
+  const [workingDays, setWorkingDays] = useState([]);
 
-  useEffect(() => {
-    if (!isTokenValid()) {
-      navigate("/");
-    }
-  }, [isTokenValid]);
   const handleEditEstablishment = (establishment) => {
     setIsEditing(true);
     setEditEstablishmentId(establishment._id);
@@ -91,36 +85,8 @@ const ScheduledData = () => {
     setOpenDialog(true);
   };
 
-  const fetchEstablishments = async () => {
-    const ownerId = OwnerUser.id;
-    if (!ownerId || !token) return;
-
-    try {
-      const response = await fetch(
-        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
-
-      const data = await response.json();
-      setDataEstablishment(data.establishments);
-    } catch (error) {
-      console.error("Erro:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
-    setOpenDialog(false);
     setIsEditing(false);
     setEditEstablishmentId(null);
     setNameEstablishment("");
@@ -150,23 +116,27 @@ const ScheduledData = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
         }}
       >
-        <Typography variant="h6" fontWeight={600} color="#AC42F7">
+        <Typography variant="h6" fontWeight={700} color="#AC42F7">
           Estabelecimento
         </Typography>
       </Box>
-      <Divider sx={{ my: 2 }} />
-      <Grid2 container spacing={2}>
-        {[...Array(6)].map((_, index) => (
-          <Grid2 key={index} xs={12} sm={4}>
+      <Divider sx={{ my: 1 }} />
+      <Grid2 container spacing={3} sx={{ mt: 2 }}>
+        {Array.from({ length: 12 }).map((_, index) => (
+          <Grid2 key={index} size={{ xs: 12, sm: 3 }}>
+            <Skeleton variant="text" height={30} />
             <Skeleton variant="text" width="80%" height={25} />
           </Grid2>
         ))}
+        <Grid2 size={{ xs: 12 }}>
+          <Skeleton variant="text" height={30} width="30%" sx={{ mb: 1 }} />
+        </Grid2>
       </Grid2>
     </Paper>
   );
+
   const handleSearchCep = async () => {
     try {
       const response = await fetch(
@@ -230,6 +200,7 @@ const ScheduledData = () => {
         intervalClose: lunchEnd,
       },
       paymentMethods,
+      workingDays,
       owner: OwnerUser.id,
     };
 
@@ -250,8 +221,33 @@ const ScheduledData = () => {
       });
 
       if (!response.ok) throw new Error("Erro ao salvar estabelecimento");
+      setOpenDialog(false);
+      setEstablishment((prev) => !prev);
+      setService((prev) => !prev);
+
       handleCloseDialog();
-      fetchEstablishments();
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+  };
+  const handleDeleteEstablishment = async () => {
+    try {
+      const url = `https://backlavaja.onrender.com/api/establishment/establishment/${editEstablishmentId}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Erro ao deletar estabelecimento");
+
+      setOpenDialog(false);
+      setEstablishment((prev) => !prev);
+      setService((prev) => !prev);
+      handleCloseDialog();
     } catch (error) {
       console.error("Erro:", error);
     }
@@ -309,10 +305,6 @@ const ScheduledData = () => {
                   label: "Hora de Abertura",
                   value: establishment.openingHours.open,
                 },
-                {
-                  label: "Hora de Encerramento",
-                  value: establishment.openingHours.close,
-                },
                 ...(establishment.openingHours?.hasLunchBreak
                   ? [
                       {
@@ -325,6 +317,10 @@ const ScheduledData = () => {
                       },
                     ]
                   : []),
+                {
+                  label: "Hora de Encerramento",
+                  value: establishment.openingHours.close,
+                },
               ].map((item, index) => (
                 <Grid2 key={index} size={{ xs: 12, sm: 3 }}>
                   <Typography
@@ -343,8 +339,40 @@ const ScheduledData = () => {
                   </Typography>
                 </Grid2>
               ))}
-
-              <Grid2 xs={12}>
+              <Grid2 size={{ xs: 12 }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  sx={{ mb: 1, color: "#AC42F7" }}
+                >
+                  Dias de Funcionamento
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {establishment.workingDays?.length > 0 ? (
+                    establishment.workingDays.map((method, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          backgroundColor: "#E9D5FF",
+                          color: "#6B21A8",
+                          borderRadius: 2,
+                          fontSize: 14,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {method}
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      Nenhum dia cadastrado
+                    </Typography>
+                  )}
+                </Box>
+              </Grid2>
+              <Grid2 size={{ xs: 12 }}>
                 <Typography
                   variant="subtitle2"
                   fontWeight={600}
@@ -423,6 +451,40 @@ const ScheduledData = () => {
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
               />
+            </Grid2>
+            <Grid2 size={{ xs: 12 }}>
+              <TextField
+                label="Dias de Funcionamento"
+                select
+                fullWidth
+                size="small"
+                value={workingDays}
+                onChange={(e) => setWorkingDays(e.target.value)}
+                SelectProps={{
+                  multiple: true,
+                  renderValue: (selected) => selected.join(", "),
+                }}
+                sx={{
+                  mb: 2,
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              >
+                {[
+                  "Domingo",
+                  "Segunda",
+                  "Terça",
+                  "Quarta",
+                  "Quinta",
+                  "Sexta",
+                  "Sábado",
+                ].map((payment) => (
+                  <MenuItem key={payment} value={payment}>
+                    {payment}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
               <TextField
@@ -698,7 +760,7 @@ const ScheduledData = () => {
 
         <DialogActions sx={{ justifyContent: "end", pb: 2, gap: 2 }}>
           <Button
-            onClick={handleCloseDialog}
+            onClick={() => setOpenDialog(false)}
             variant="outlined"
             sx={{
               borderColor: "#AC42F7",
@@ -708,6 +770,15 @@ const ScheduledData = () => {
           >
             Cancelar
           </Button>
+          {isEditing && (
+            <Button
+              variant="contained"
+              onClick={handleDeleteEstablishment}
+              color="error"
+            >
+              Excluir
+            </Button>
+          )}
           <Button
             variant="contained"
             onClick={handleSaveEstablishment}

@@ -70,7 +70,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [availableHours, setAvailableHours] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
-
+  const servicesEstablishment = owner?.establishments[0]?.services.length;
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -371,11 +371,22 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         <Typography variant="h6" fontWeight={600} color="#AC42F7">
           Agendamentos
         </Typography>
-        <Tooltip title="Adicionar agendamento" arrow>
-          <IconButton onClick={handleOpenDialogScheduling}>
-            <AddRoundedIcon color="#D49EF5" />
-          </IconButton>
-        </Tooltip>
+        {servicesEstablishment === 0 ? (
+          <Tooltip
+            title="Para realizar agendamentos e necessário cadastrar serviços"
+            arrow
+          >
+            <IconButton>
+              <AddRoundedIcon color="#D49EF5" disabled />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Adicionar agendamento" arrow>
+            <IconButton onClick={handleOpenDialogScheduling}>
+              <AddRoundedIcon color="#D49EF5" />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
 
       {!isMobile && (
