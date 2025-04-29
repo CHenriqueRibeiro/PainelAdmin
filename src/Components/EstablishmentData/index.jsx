@@ -22,10 +22,15 @@ import {
 import { useNavigate } from "react-router";
 import { useAuth } from "../../Context/AuthContext";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 
 const ScheduledData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dataEstablishment, setDataEstablishment] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editEstablishmentId, setEditEstablishmentId] = useState("");
+  const [originalCep, setOriginalCep] = useState("");
 
   const [openDialog, setOpenDialog] = useState(false);
   const { isTokenValid } = useAuth();
@@ -60,6 +65,31 @@ const ScheduledData = () => {
       navigate("/");
     }
   }, [isTokenValid]);
+  const handleEditEstablishment = (establishment) => {
+    setIsEditing(true);
+    setEditEstablishmentId(establishment._id);
+    setNameEstablishment(establishment.nameEstablishment || "");
+    setAddressData({
+      cep: establishment.address?.cep || "",
+      street: establishment.address?.street || "",
+      number: establishment.address?.number || "",
+      complement: establishment.address?.complement || "",
+      neighborhood: establishment.address?.neighborhood || "",
+      city: establishment.address?.city || "",
+      state: establishment.address?.state || "",
+      latitude: establishment.location?.coordinates[1] || "",
+      longitude: establishment.location?.coordinates[0] || "",
+    });
+    setOriginalCep(establishment.address?.cep || "");
+    setOpeningTime(establishment.openingHours?.open || "");
+    setClosingTime(establishment.openingHours?.close || "");
+    setHasLunchBreak(establishment.openingHours?.hasLunchBreak || false);
+    setLunchStart(establishment.openingHours?.intervalOpen || "");
+    setLunchEnd(establishment.openingHours?.intervalClose || "");
+    setPaymentMethods(establishment.paymentMethods || []);
+
+    setOpenDialog(true);
+  };
 
   const fetchEstablishments = async () => {
     const ownerId = OwnerUser.id;
@@ -89,7 +119,29 @@ const ScheduledData = () => {
   };
 
   const handleOpenDialog = () => setOpenDialog(true);
-  const handleCloseDialog = () => setOpenDialog(false);
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setIsEditing(false);
+    setEditEstablishmentId(null);
+    setNameEstablishment("");
+    setAddressData({
+      cep: "",
+      street: "",
+      number: "",
+      complement: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+      latitude: "",
+      longitude: "",
+    });
+    setOpeningTime("");
+    setClosingTime("");
+    setHasLunchBreak(false);
+    setLunchStart("");
+    setLunchEnd("");
+    setPaymentMethods([]);
+  };
 
   const renderSkeleton = () => (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
@@ -143,113 +195,187 @@ const ScheduledData = () => {
     return <Box sx={{ width: "95%", mt: 5, mb: 3 }}>{renderSkeleton()}</Box>;
   }
   const handleSaveEstablishment = async () => {
+    let latitude = addressData.latitude;
+    let longitude = addressData.longitude;
+
+    if (addressData.cep !== originalCep) {
+      try {
+        const response = await fetch(
+          `https://brasilapi.com.br/api/cep/v2/${addressData.cep}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          latitude = data.location?.coordinates?.latitude || "";
+          longitude = data.location?.coordinates?.longitude || "";
+        } else {
+          console.error("Erro ao buscar localização pelo novo CEP");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar novo CEP:", error);
+      }
+    }
+
     const establishmentData = {
       nameEstablishment,
-      address: addressData,
+      address: {
+        ...addressData,
+        latitude,
+        longitude,
+      },
       openingHours: {
         open: openingTime,
         close: closingTime,
+        hasLunchBreak: hasLunchBreak,
+        intervalOpen: lunchStart,
+        intervalClose: lunchEnd,
       },
       paymentMethods,
-      hasLunchBreak,
       owner: OwnerUser.id,
     };
 
     try {
-      const response = await fetch(
-        "https://backlavaja.onrender.com/api/establishment/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(establishmentData),
-        }
-      );
+      const url = isEditing
+        ? `https://backlavaja.onrender.com/api/establishment/establishment/${editEstablishmentId}`
+        : "https://backlavaja.onrender.com/api/establishment/create";
+
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(establishmentData),
+      });
 
       if (!response.ok) throw new Error("Erro ao salvar estabelecimento");
-
-      const data = await response.json();
-      console.log("Estabelecimento salvo com sucesso:", data);
       handleCloseDialog();
       fetchEstablishments();
     } catch (error) {
       console.error("Erro:", error);
     }
   };
+
   const establishment = dataEstablishment[0];
 
   return (
     <Box sx={{ width: "95%", mt: 5, mb: 3 }}>
-      <Paper
-        elevation={3}
-        sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}
-      >
+      <Paper sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 2,
           }}
         >
-          <Typography variant="h6" fontWeight={600} color="#AC42F7">
+          <Typography variant="h6" fontWeight={700} color="#AC42F7">
             Estabelecimento
           </Typography>
-
-          <Tooltip title="Adicionar Estabelecimento">
-            <IconButton onClick={handleOpenDialog}>
-              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
-            </IconButton>
-          </Tooltip>
+          {dataEstablishment.length > 0 ? (
+            <Tooltip title="Editar Estabelecimento">
+              <IconButton
+                onClick={() => handleEditEstablishment(establishment)}
+              >
+                <ModeEditRoundedIcon sx={{ color: "#AC42F7" }} />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Adicionar Estabelecimento">
+              <IconButton onClick={handleOpenDialog}>
+                <AddRoundedIcon sx={{ color: "#AC42F7" }} size="small" />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
 
         {dataEstablishment.length > 0 ? (
           <>
-            <Divider sx={{ my: 2 }} />
-            <Grid2 container spacing={2}>
-              <Grid2 xs={12} sm={6}>
-                <Typography color="#AC42F7">
-                  <strong>Nome:</strong> {establishment.nameEstablishment}
+            <Divider sx={{ my: 1 }} />
+            <Grid2 container spacing={3} sx={{ mt: 2 }}>
+              {[
+                { label: "Nome", value: establishment.nameEstablishment },
+                { label: "CEP", value: establishment.address.cep },
+                { label: "Endereço", value: establishment.address.street },
+                { label: "Número", value: establishment.address.number },
+                {
+                  label: "Complemento",
+                  value: establishment.address.complement,
+                },
+                { label: "Bairro", value: establishment.address.neighborhood },
+                { label: "Cidade", value: establishment.address.city },
+                { label: "Estado", value: establishment.address.state },
+                {
+                  label: "Hora de Abertura",
+                  value: establishment.openingHours.open,
+                },
+                {
+                  label: "Hora de Encerramento",
+                  value: establishment.openingHours.close,
+                },
+                ...(establishment.openingHours?.hasLunchBreak
+                  ? [
+                      {
+                        label: "Início do Intervalo",
+                        value: establishment.openingHours.intervalOpen,
+                      },
+                      {
+                        label: "Final do Intervalo",
+                        value: establishment.openingHours.intervalClose,
+                      },
+                    ]
+                  : []),
+              ].map((item, index) => (
+                <Grid2 key={index} size={{ xs: 12, sm: 3 }}>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={600}
+                    sx={{ color: "#AC42F7" }}
+                  >
+                    {item.label}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    fontWeight={500}
+                    color="textPrimary"
+                  >
+                    {item.value || "-"}
+                  </Typography>
+                </Grid2>
+              ))}
+
+              <Grid2 xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  sx={{ mb: 1, color: "#AC42F7" }}
+                >
+                  Formas de Pagamento
                 </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={6}>
-                <Typography color="#AC42F7">
-                  <strong>Endereço:</strong> {establishment.address.street}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={6}>
-                <Typography color="#AC42F7">
-                  <strong>Número:</strong> {establishment.address.number}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={4}>
-                <Typography color="#AC42F7">
-                  <strong>Bairro:</strong> {establishment.address.neighborhood}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={4}>
-                <Typography color="#AC42F7">
-                  <strong>Cidade:</strong> {establishment.address.city}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={4}>
-                <Typography color="#AC42F7">
-                  <strong>Estado:</strong> {establishment.address.state}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={6}>
-                <Typography color="#AC42F7">
-                  <strong>Hora de abertura:</strong>{" "}
-                  {establishment.openingHours.open}
-                </Typography>
-              </Grid2>
-              <Grid2 xs={12} sm={6}>
-                <Typography color="#AC42F7">
-                  <strong>Hora de encerramento:</strong>{" "}
-                  {establishment.openingHours.close}
-                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {establishment.paymentMethods?.length > 0 ? (
+                    establishment.paymentMethods.map((method, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          backgroundColor: "#E9D5FF",
+                          color: "#6B21A8",
+                          borderRadius: 2,
+                          fontSize: 14,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {method}
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      Nenhuma forma de pagamento cadastrada
+                    </Typography>
+                  )}
+                </Box>
               </Grid2>
             </Grid2>
           </>
@@ -278,10 +404,11 @@ const ScheduledData = () => {
         <DialogTitle
           sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "center" }}
         >
-          Novo Estabelecimento
+          {isEditing ? "Editar Estabelecimento" : "Novo Estabelecimento"}
         </DialogTitle>
+
         <DialogContent>
-          <Grid2 container spacing={2}>
+          <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
             <Grid2 size={{ xs: 12 }}>
               <TextField
                 label="Nome do Estabelecimento"
@@ -476,16 +603,16 @@ const ScheduledData = () => {
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 6 }}>
+            <Grid2 size={{ xs: 4 }}>
               <TextField
-                label="Horário de Abertura"
+                label="Hora de Abertura"
                 type="time"
                 fullWidth
                 size="small"
                 value={openingTime}
                 onChange={(e) => setOpeningTime(e.target.value)}
-                InputLabelProps={{ shrink: true }}
                 sx={{
+                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -493,16 +620,16 @@ const ScheduledData = () => {
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 6 }}>
+            <Grid2 size={{ xs: 4 }}>
               <TextField
-                label="Horário de Encerramento"
+                label="Hora de Fechamento"
                 type="time"
                 fullWidth
                 size="small"
                 value={closingTime}
                 onChange={(e) => setClosingTime(e.target.value)}
-                InputLabelProps={{ shrink: true }}
                 sx={{
+                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -510,39 +637,35 @@ const ScheduledData = () => {
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 6 }}>
+            <Grid2 container alignItems="center" spacing={1} size={{ xs: 4 }}>
               <FormControlLabel
                 control={
                   <Switch
+                    size="small"
                     checked={hasLunchBreak}
                     onChange={(e) => setHasLunchBreak(e.target.checked)}
-                    sx={{
-                      "& .MuiSwitch-switchBase.Mui-checked": {
-                        color: "#AC42F7",
-                      },
-                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                        {
-                          backgroundColor: "#AC42F7",
-                        },
-                    }}
                   />
                 }
-                label="Intervalo de Almoço"
-                sx={{ color: "#AC42F7" }}
+                label="Intervalo"
+                sx={{ mb: 2 }}
               />
+              <Grid2 item>
+                <Tooltip title="Intervalo de almoço">
+                  <InfoRoundedIcon sx={{ fontSize: "1rem", mb: 1.3 }} />
+                </Tooltip>
+              </Grid2>
             </Grid2>
 
             {hasLunchBreak && (
               <>
-                <Grid2 size={{ xs: 6 }}>
+                <Grid2 size={{ xs: 4 }}>
                   <TextField
-                    label="Início do Almoço"
+                    label="Início do Intervalo"
                     type="time"
                     fullWidth
                     size="small"
                     value={lunchStart}
                     onChange={(e) => setLunchStart(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
                     sx={{
                       mb: 2,
                       bgcolor: "#fff",
@@ -552,15 +675,14 @@ const ScheduledData = () => {
                   />
                 </Grid2>
 
-                <Grid2 size={{ xs: 6 }}>
+                <Grid2 size={{ xs: 4 }}>
                   <TextField
-                    label="Fim do Almoço"
+                    label="Fim do Intervalo"
                     type="time"
                     fullWidth
                     size="small"
                     value={lunchEnd}
                     onChange={(e) => setLunchEnd(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
                     sx={{
                       mb: 2,
                       bgcolor: "#fff",
@@ -574,7 +696,7 @@ const ScheduledData = () => {
           </Grid2>
         </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+        <DialogActions sx={{ justifyContent: "end", pb: 2, gap: 2 }}>
           <Button
             onClick={handleCloseDialog}
             variant="outlined"
