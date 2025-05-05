@@ -17,6 +17,9 @@ import {
   TextField,
   Grid2,
   Collapse,
+  InputLabel,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -31,6 +34,8 @@ const EstablishmentServices = ({
   const token = localStorage.getItem("authToken");
 
   const [openDialog, setOpenDialog] = useState(false);
+  const [concurrentService, setConcurrentService] = useState(false);
+  const [concurrentServiceValue, setConcurrentServiceValue] = useState(false);
   const [serviceName, setServiceName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
@@ -82,6 +87,8 @@ const EstablishmentServices = ({
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
+    setConcurrentService(false);
+    setConcurrentServiceValue("");
     setServiceName("");
     setPrice("");
     setDuration("");
@@ -152,6 +159,8 @@ const EstablishmentServices = ({
             dailyLimit: Number(dailyLimit),
             availability: filteredAvailability,
             establishment_id: dataEstablishment[0]._id,
+            concurrentService,
+            concurrentServiceValue,
           }),
         }
       );
@@ -288,7 +297,13 @@ const EstablishmentServices = ({
                     <Collapse in={expandedService === service._id}>
                       <Box sx={{ padding: 2 }}>
                         <Grid2 container spacing={2}>
-                          <Grid2 size={{ xs: 12, sm: 6, md: 6 }}>
+                          <Grid2
+                            size={{
+                              xs: 12,
+                              sm: 6,
+                              md: service.concurrentService ? 4 : 6,
+                            }}
+                          >
                             <Typography
                               variant="caption"
                               color={"#AC42F7"}
@@ -333,12 +348,26 @@ const EstablishmentServices = ({
                               color={"#AC42F7"}
                               fontWeight={600}
                             >
-                              Limite Diário
+                              Qtd. por dia
                             </Typography>
                             <Typography variant="body2">
                               {service.dailyLimit}
                             </Typography>
                           </Grid2>
+                          {service.concurrentService && (
+                            <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                              <Typography
+                                variant="caption"
+                                color={"#AC42F7"}
+                                fontWeight={600}
+                              >
+                                Qtd de Lavagem simultânea
+                              </Typography>
+                              <Typography variant="body2">
+                                {service.concurrentServiceValue}
+                              </Typography>
+                            </Grid2>
+                          )}
                           <Typography
                             variant="caption"
                             color="#AC42F7"
@@ -434,139 +463,247 @@ const EstablishmentServices = ({
         >
           Criar novo serviço
         </DialogTitle>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <TextField
-            onChange={(e) => setServiceName(e.target.value)}
-            value={serviceName}
-            label="Nome do serviço"
-            size="small"
-            sx={{
-              mt: 2,
-              mb: 2,
-              bgcolor: "#fff",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
-          <TextField
-            label="Descrição"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            size="small"
-            sx={{
-              mb: 2,
-              bgcolor: "#fff",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
-          <TextField
-            label="Preço (R$)"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            size="small"
-            sx={{
-              mb: 2,
-              bgcolor: "#fff",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
-          <TextField
-            label="Duração (min)"
-            type="number"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            size="small"
-            sx={{
-              mb: 2,
-              bgcolor: "#fff",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
-          <TextField
-            label="Limite diário"
-            type="number"
-            value={dailyLimit}
-            onChange={(e) => setDailyLimit(e.target.value)}
-            size="small"
-            sx={{
-              mb: 2,
-              bgcolor: "#fff",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
+        <DialogContent>
+          <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Nome do serviço
+              </InputLabel>
+              <TextField
+                fullWidth
+                onChange={(e) => setServiceName(e.target.value)}
+                value={serviceName}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
 
-          <Typography variant="caption" fontSize={18} fontWeight={600}>
-            Horarios
-          </Typography>
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Descrição do serviço
+              </InputLabel>
+              <TextField
+                fullWidth
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
 
-          <Grid2
-            size={{ xs: 12, sm: 6, md: 12 }}
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
-            {availability.map((day, dayIndex) => (
-              <Grid2 size={{ xs: 12, sm: 6, md: 12 }} key={day.day}>
-                <Typography variant="body2" fontWeight={500}>
-                  {day.day}
-                </Typography>
-                {day.availableHours.map((hour, hourIndex) => (
-                  <Grid2
-                    key={hourIndex}
-                    sx={{ display: "flex", gap: 1, mt: 0.5 }}
+            <Grid2 size={{ xs: 12, sm: 6 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Preço do serviço (R$)
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12, sm: 6 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Tempo do serviço (min)
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Quantidade de serviço por dia
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+            <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={concurrentService}
+                    onChange={(e) => setConcurrentService(e.target.checked)}
+                  />
+                }
+                label="Permitir atendimentos simultâneos?"
+              />
+            </Grid2>
+            {concurrentService && (
+              <>
+                <Grid2 size={{ xs: 12 }}>
+                  <InputLabel
+                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
                   >
-                    <TextField
-                      label="Início"
-                      type="time"
-                      value={hour.start}
-                      onChange={(e) =>
-                        handleHourChange(
-                          dayIndex,
-                          hourIndex,
-                          "start",
-                          e.target.value
-                        )
-                      }
-                      size="small"
-                      sx={{ bgcolor: "#fff", borderRadius: 2, width: "40%" }}
-                    />
-                    <TextField
-                      label="Fim"
-                      type="time"
-                      value={hour.end}
-                      onChange={(e) =>
-                        handleHourChange(
-                          dayIndex,
-                          hourIndex,
-                          "end",
-                          e.target.value
-                        )
-                      }
-                      size="small"
-                      sx={{ bgcolor: "#fff", borderRadius: 2, width: "40%" }}
-                    />
-                    <IconButton onClick={() => addAvailableHour(dayIndex)}>
-                      <AddRoundedIcon sx={{ color: "#AC42F7" }} />
-                    </IconButton>
-                    <Divider orientation="vertical" flexItem />
-                    <IconButton
-                      onClick={() => removeAvailableHour(dayIndex, hourIndex)}
-                    >
-                      <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
-                    </IconButton>
-                  </Grid2>
-                ))}
-              </Grid2>
-            ))}
+                    Quantos atendimentos simultâneos?
+                  </InputLabel>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    value={concurrentServiceValue}
+                    onChange={(e) => setConcurrentServiceValue(e.target.value)}
+                    size="small"
+                    sx={{
+                      mb: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                    }}
+                  />
+                </Grid2>
+              </>
+            )}
+            <Grid2 size={{ xs: 12 }}>
+              <Typography variant="caption" fontSize={18} fontWeight={600}>
+                Horários
+              </Typography>
+            </Grid2>
+
+            <Grid2
+              size={{ xs: 12 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {availability.map((day, dayIndex) => (
+                <Grid2 size={{ xs: 12 }} key={day.day}>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    sx={{ fontSize: 17 }}
+                  >
+                    {day.day}
+                  </Typography>
+
+                  {day.availableHours.length === 0 ? (
+                    <Tooltip title="Adicionar horário">
+                      <IconButton onClick={() => addAvailableHour(dayIndex)}>
+                        <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    day.availableHours.map((hour, hourIndex) => (
+                      <Grid2
+                        key={hourIndex}
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          mt: 1,
+                          alignItems: "flex-end",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "35%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Início
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            value={hour.start}
+                            onChange={(e) =>
+                              handleHourChange(
+                                dayIndex,
+                                hourIndex,
+                                "start",
+                                e.target.value
+                              )
+                            }
+                            size="small"
+                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "35%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Fim
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            value={hour.end}
+                            onChange={(e) =>
+                              handleHourChange(
+                                dayIndex,
+                                hourIndex,
+                                "end",
+                                e.target.value
+                              )
+                            }
+                            size="small"
+                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Tooltip title="Adicionar horário">
+                            <IconButton
+                              onClick={() => addAvailableHour(dayIndex)}
+                            >
+                              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Divider orientation="vertical" flexItem />
+                          <Tooltip title="Remover horário">
+                            <IconButton
+                              onClick={() =>
+                                removeAvailableHour(dayIndex, hourIndex)
+                              }
+                            >
+                              <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Grid2>
+                    ))
+                  )}
+                </Grid2>
+              ))}
+            </Grid2>
           </Grid2>
         </DialogContent>
         <DialogActions>

@@ -19,9 +19,9 @@ import {
   Switch,
   FormControlLabel,
   MenuItem,
+  InputLabel,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 
 // eslint-disable-next-line react/prop-types
@@ -438,14 +438,17 @@ const ScheduledData = ({
         <DialogContent>
           <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
             <Grid2 size={{ xs: 12 }}>
+              <InputLabel
+                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+              >
+                Nome do Estabelecimento
+              </InputLabel>
               <TextField
-                label="Nome do Estabelecimento"
                 fullWidth
                 size="small"
                 value={nameEstablishment}
                 onChange={(e) => setNameEstablishment(e.target.value)}
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -453,8 +456,12 @@ const ScheduledData = ({
               />
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
+              <InputLabel
+                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+              >
+                Dias de funcionamento
+              </InputLabel>
               <TextField
-                label="Dias de Funcionamento"
                 select
                 fullWidth
                 size="small"
@@ -465,7 +472,6 @@ const ScheduledData = ({
                   renderValue: (selected) => selected.join(", "),
                 }}
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -487,8 +493,12 @@ const ScheduledData = ({
               </TextField>
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
+              <InputLabel
+                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+              >
+                Formas de pagamento
+              </InputLabel>
               <TextField
-                label="Formas de Pagamento"
                 select
                 fullWidth
                 size="small"
@@ -499,7 +509,6 @@ const ScheduledData = ({
                   renderValue: (selected) => selected.join(", "),
                 }}
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -517,40 +526,56 @@ const ScheduledData = ({
                 ))}
               </TextField>
             </Grid2>
-            <Grid2 size={{ xs: 8 }}>
-              <TextField
-                label="CEP"
-                fullWidth
-                size="small"
-                value={addressData.cep}
-                onChange={(e) =>
-                  setAddressData({ ...addressData, cep: e.target.value })
-                }
-                onBlur={handleSearchCep}
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel
                 sx={{
-                  mb: 2,
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 4 }}>
-              <Button
-                onClick={handleSearchCep}
-                variant="outlined"
-                fullWidth
-                sx={{
-                  borderRadius: 2,
-                  borderColor: "#AC42F7",
-                  color: "#AC42F7",
-                  height: "40px",
-                  "&:hover": { borderColor: "#8a2be2", background: "#f9f5ff" },
+                  color: "#FFFFFF",
+                  pb: 0.5,
+                  pl: 0.3,
+                  fontWeight: 600,
+                  mb: 1,
                 }}
               >
-                Buscar CEP
-              </Button>
+                Endereço
+              </InputLabel>
+              <Grid2 container spacing={2}>
+                <Grid2 size={8}>
+                  <TextField
+                    label="CEP"
+                    fullWidth
+                    size="small"
+                    value={addressData.cep}
+                    onChange={(e) =>
+                      setAddressData({ ...addressData, cep: e.target.value })
+                    }
+                    onBlur={handleSearchCep}
+                    sx={{
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                    }}
+                  />
+                </Grid2>
+                <Grid2 size={4}>
+                  <Button
+                    onClick={handleSearchCep}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      height: "100%",
+                      borderRadius: 2,
+                      borderColor: "#AC42F7",
+                      color: "#AC42F7",
+                      "&:hover": {
+                        borderColor: "#8a2be2",
+                        background: "#f9f5ff",
+                      },
+                    }}
+                  >
+                    Buscar
+                  </Button>
+                </Grid2>
+              </Grid2>
             </Grid2>
 
             <Grid2 size={{ xs: 8 }}>
@@ -563,7 +588,6 @@ const ScheduledData = ({
                   setAddressData({ ...addressData, street: e.target.value })
                 }
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -581,7 +605,6 @@ const ScheduledData = ({
                   setAddressData({ ...addressData, number: e.target.value })
                 }
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -601,7 +624,6 @@ const ScheduledData = ({
                   })
                 }
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -621,7 +643,6 @@ const ScheduledData = ({
                   })
                 }
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -639,7 +660,6 @@ const ScheduledData = ({
                   setAddressData({ ...addressData, city: e.target.value })
                 }
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -665,16 +685,19 @@ const ScheduledData = ({
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 4 }}>
+            <Grid2 size={{ xs: 6 }}>
+              <InputLabel
+                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+              >
+                Horário de Abertura
+              </InputLabel>
               <TextField
-                label="Hora de Abertura"
                 type="time"
                 fullWidth
                 size="small"
                 value={openingTime}
                 onChange={(e) => setOpeningTime(e.target.value)}
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -682,16 +705,19 @@ const ScheduledData = ({
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 4 }}>
+            <Grid2 size={{ xs: 6 }}>
+              <InputLabel
+                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+              >
+                Horário de Fechamento
+              </InputLabel>
               <TextField
-                label="Hora de Fechamento"
                 type="time"
                 fullWidth
                 size="small"
                 value={closingTime}
                 onChange={(e) => setClosingTime(e.target.value)}
                 sx={{
-                  mb: 2,
                   bgcolor: "#fff",
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -699,7 +725,7 @@ const ScheduledData = ({
               />
             </Grid2>
 
-            <Grid2 container alignItems="center" spacing={1} size={{ xs: 4 }}>
+            <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
               <FormControlLabel
                 control={
                   <Switch
@@ -708,28 +734,25 @@ const ScheduledData = ({
                     onChange={(e) => setHasLunchBreak(e.target.checked)}
                   />
                 }
-                label="Intervalo"
-                sx={{ mb: 2 }}
+                label="Possui intervalo entre horario de funcionamento?"
               />
-              <Grid2 item>
-                <Tooltip title="Intervalo de almoço">
-                  <InfoRoundedIcon sx={{ fontSize: "1rem", mb: 1.3 }} />
-                </Tooltip>
-              </Grid2>
             </Grid2>
 
             {hasLunchBreak && (
               <>
-                <Grid2 size={{ xs: 4 }}>
+                <Grid2 size={{ xs: 6 }}>
+                  <InputLabel
+                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                  >
+                    Início do Intervalo
+                  </InputLabel>
                   <TextField
-                    label="Início do Intervalo"
                     type="time"
                     fullWidth
                     size="small"
                     value={lunchStart}
                     onChange={(e) => setLunchStart(e.target.value)}
                     sx={{
-                      mb: 2,
                       bgcolor: "#fff",
                       borderRadius: 2,
                       "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -737,16 +760,19 @@ const ScheduledData = ({
                   />
                 </Grid2>
 
-                <Grid2 size={{ xs: 4 }}>
+                <Grid2 size={{ xs: 6 }}>
+                  <InputLabel
+                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                  >
+                    Fim do Intervalo
+                  </InputLabel>
                   <TextField
-                    label="Fim do Intervalo"
                     type="time"
                     fullWidth
                     size="small"
                     value={lunchEnd}
                     onChange={(e) => setLunchEnd(e.target.value)}
                     sx={{
-                      mb: 2,
                       bgcolor: "#fff",
                       borderRadius: 2,
                       "& .MuiOutlinedInput-root": { borderRadius: 2 },

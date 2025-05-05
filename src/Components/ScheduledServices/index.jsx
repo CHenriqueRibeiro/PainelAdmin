@@ -70,6 +70,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [availableHours, setAvailableHours] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElStatus, setAnchorElStatus] = useState(null);
   const servicesEstablishment = owner?.establishments[0]?.services.length;
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -216,7 +217,13 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       console.error("Erro:", error);
     }
   };
+  const handleClickMenu = (event) => {
+    setAnchorElStatus(event.currentTarget);
+  };
 
+  const handleCloseMenu = () => {
+    setAnchorElStatus(null);
+  };
   const newScheduling = async () => {
     try {
       if (!selectedSlot) return;
@@ -371,7 +378,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         <Typography variant="h6" fontWeight={600} color="#AC42F7">
           Agendamentos
         </Typography>
-        {servicesEstablishment === 0 ? (
+        {servicesEstablishment === 0 || servicesEstablishment === undefined ? (
           <Tooltip
             title="Para realizar agendamentos e necessário cadastrar serviços"
             arrow
@@ -728,62 +735,133 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           sx: {
             background:
               "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
-            borderRadius: 3,
-            p: 1,
+            borderRadius: 5,
+            p: 3,
             color: "#FFFFFF",
+            width: "600px",
+            maxWidth: "90vw",
+            boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
           },
         }}
       >
-        <DialogTitle>Atualizar status</DialogTitle>
+        <DialogTitle
+          sx={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          Atualizar status
+        </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography
+            sx={{
+              fontSize: "1rem",
+              marginBottom: "8px",
+              textAlign: "center",
+            }}
+          >
             De: <strong>{currentStatus}</strong>
           </Typography>
-          <Divider sx={{ my: 1, background: "#FFFFFF" }} />
-          <Typography>Para:</Typography>
-          <Box sx={{ mt: 2 }}>
-            {[
-              "Entregue",
-              "Aguardando cliente",
-              "Cancelado",
-              "Iniciado",
-              "Agendado",
-            ]
-              .filter((status) => status !== currentStatus)
-              .map((status) => (
-                <Chip
-                  key={status}
-                  label={status}
-                  color={getStatusColor(status)}
-                  sx={{
-                    mr: 1,
-                    mb: 1,
-                    cursor: "pointer",
-                    border:
-                      newSelectedStatus === status ? "2px solid #FFF" : "none",
-                  }}
-                  onClick={() => setNewSelectedStatus(status)}
-                />
-              ))}
+          <Divider sx={{ my: 2, background: "#FFFFFF" }} />
+          <Typography
+            sx={{
+              fontSize: "1rem",
+              fontWeight: "bold",
+              marginBottom: "12px",
+              textAlign: "center",
+            }}
+          >
+            Para:
+          </Typography>
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Button
+              variant="outlined"
+              onClick={handleClickMenu}
+              sx={{
+                background: "#FFF",
+                color: "#ac42f7",
+                borderColor: "#FFF",
+                borderRadius: 2,
+                padding: "12px 24px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+              }}
+            >
+              {newSelectedStatus || "Selecione um Status"}
+            </Button>
+            <Menu
+              anchorEl={anchorElStatus}
+              open={Boolean(anchorElStatus)}
+              onClose={handleCloseMenu}
+              PaperProps={{
+                sx: {
+                  width: "15rem",
+                  color: "#ac42f7",
+                  borderRadius: 2,
+                  boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
+                },
+              }}
+            >
+              {[
+                "Entregue",
+                "Aguardando cliente",
+                "Cancelado",
+                "Iniciado",
+                "Agendado",
+              ]
+                .filter((status) => status !== currentStatus)
+                .map((status) => (
+                  <MenuItem
+                    key={status}
+                    onClick={() => {
+                      setNewSelectedStatus(status);
+                      handleCloseMenu();
+                    }}
+                    sx={{
+                      color: getStatusColor(status),
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {status}
+                  </MenuItem>
+                ))}
+            </Menu>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
           <Button
-            size="small"
+            size="large"
             variant="outlined"
             onClick={handleCloseDialogStatus}
             sx={{
               background: "#FFF",
               color: "#ac42f7",
               borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
             }}
           >
             Cancelar
           </Button>
           <Button
-            size="small"
+            size="large"
             variant="contained"
-            sx={{ background: "#ac42f7" }}
+            sx={{
+              background: "#ac42f7",
+              color: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
+              fontWeight: "bold",
+            }}
             onClick={async () => {
               if (!newSelectedStatus || !selectedServiceId) return;
               try {
@@ -1231,12 +1309,15 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             </DialogTitle>
             <DialogContent>
               <>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Nome do Cliente
+                </InputLabel>
                 <TextField
                   size="small"
                   fullWidth
-                  label="Nome do Cliente"
                   sx={{
-                    mt: 2,
                     bgcolor: "#fff",
                     borderRadius: 2,
                     "& .MuiOutlinedInput-root": {
@@ -1246,12 +1327,21 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                 />
+                <InputLabel
+                  sx={{
+                    color: "#FFFFFF",
+                    pb: 0.5,
+                    pl: 0.3,
+                    fontWeight: 600,
+                    mt: 1,
+                  }}
+                >
+                  Nº Telefone
+                </InputLabel>
                 <TextField
                   size="small"
                   fullWidth
-                  label="Nº Telefone"
                   sx={{
-                    mt: 1.5,
                     bgcolor: "#fff",
                     borderRadius: 2,
                     "& .MuiOutlinedInput-root": {
@@ -1261,12 +1351,21 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}
                 />
+                <InputLabel
+                  sx={{
+                    color: "#FFFFFF",
+                    pb: 0.5,
+                    pl: 0.3,
+                    fontWeight: 600,
+                    mt: 1,
+                  }}
+                >
+                  Veiculo
+                </InputLabel>
                 <TextField
                   size="small"
                   fullWidth
-                  label="Veiculo"
                   sx={{
-                    mt: 1.5,
                     bgcolor: "#fff",
                     borderRadius: 2,
                     "& .MuiOutlinedInput-root": {
@@ -1276,6 +1375,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                   value={veiculo}
                   onChange={(e) => setVeiculo(e.target.value)}
                 />
+
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
@@ -1296,7 +1396,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                         fullWidth: true,
                         size: "small",
                         sx: {
-                          mt: 2,
+                          mt: 3,
                           mb: 2,
                           bgcolor: "#fff",
                           borderRadius: 2,
@@ -1335,29 +1435,40 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                         sx={{ display: "block", margin: "auto" }}
                       />
                     ) : (
-                      <FormControl
-                        fullWidth
-                        size="small"
-                        variant="outlined"
-                        sx={{ mb: 2, background: "#FFFFFF", borderRadius: 2 }}
-                      >
-                        <InputLabel>Serviço</InputLabel>
-                        <Select
-                          value={service}
-                          onChange={(e) => setService(e.target.value)}
-                          label="Serviço"
-                          sx={{ borderRadius: 2 }}
+                      <>
+                        <InputLabel
+                          sx={{
+                            color: "#FFFFFF",
+                            pb: 0.5,
+                            pl: 0.3,
+                            fontWeight: 600,
+                          }}
                         >
-                          {availableServices.map((service) => (
-                            <MenuItem
-                              key={service.serviceId}
-                              value={service.serviceId}
-                            >
-                              {service.serviceName}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                          Serviço
+                        </InputLabel>
+                        <FormControl
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                          sx={{ mb: 2, background: "#FFFFFF", borderRadius: 2 }}
+                        >
+                          <InputLabel>Escolha uma opção</InputLabel>
+                          <Select
+                            value={service}
+                            onChange={(e) => setService(e.target.value)}
+                            sx={{ borderRadius: 2 }}
+                          >
+                            {availableServices.map((service) => (
+                              <MenuItem
+                                key={service.serviceId}
+                                value={service.serviceId}
+                              >
+                                {service.serviceName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </>
                     )}
 
                     {loadingSlots ? (
@@ -1367,32 +1478,56 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     ) : (
                       service &&
                       availableSlots.length > 0 && (
-                        <FormControl
-                          fullWidth
-                          size="small"
-                          sx={{ mb: 2, borderRadius: 2, background: "#FFFFFF" }}
-                        >
-                          <InputLabel>Horário</InputLabel>
-                          <Select
-                            value={selectedSlot}
-                            onChange={(e) => setSelectedSlot(e.target.value)}
-                            label="Horário"
-                            sx={{ borderRadius: 2 }}
+                        <>
+                          <InputLabel
+                            sx={{
+                              color: "#FFFFFF",
+                              pb: 0.5,
+                              pl: 0.3,
+                              fontWeight: 600,
+                            }}
                           >
-                            {availableSlots.map((slot, index) => (
-                              <MenuItem key={index} value={slot}>
-                                {slot}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
+                            Horário
+                          </InputLabel>
+                          <FormControl
+                            fullWidth
+                            size="small"
+                            sx={{
+                              mb: 2,
+                              borderRadius: 2,
+                              background: "#FFFFFF",
+                            }}
+                          >
+                            <InputLabel>Escolha uma opção</InputLabel>
+                            <Select
+                              value={selectedSlot}
+                              onChange={(e) => setSelectedSlot(e.target.value)}
+                              label="Horário"
+                              sx={{ borderRadius: 2 }}
+                            >
+                              {availableSlots.map((slot, index) => (
+                                <MenuItem key={index} value={slot}>
+                                  {slot}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </>
                       )
                     )}
-
+                    <InputLabel
+                      sx={{
+                        color: "#FFFFFF",
+                        pb: 0.5,
+                        pl: 0.3,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Preço
+                    </InputLabel>
                     <TextField
                       fullWidth
                       size="small"
-                      label="Preço"
                       value={
                         service
                           ? `R$ ${availableServices.find((s) => s.serviceId === service)?.price || 0}`
@@ -1400,7 +1535,6 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                       }
                       disabled
                       sx={{
-                        mb: 2,
                         bgcolor: "#fff",
                         borderRadius: 2,
                         "& .MuiOutlinedInput-root": {
@@ -1408,29 +1542,39 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                         },
                       }}
                     />
+                    <InputLabel
+                      sx={{
+                        color: "#FFFFFF",
+                        mt: 1,
+                        pb: 0.5,
+                        pl: 0.3,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Status
+                    </InputLabel>
+                    <FormControl
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      sx={{ background: "#FFFFFF", borderRadius: 2 }}
+                    >
+                      <InputLabel>Escolha uma opção</InputLabel>
+                      <Select
+                        value={statusCreateNew}
+                        onChange={(e) => setStatusCreateNew(e.target.value)}
+                        label="Status"
+                        sx={{ borderRadius: 2 }}
+                      >
+                        {statusCreate.map((service) => (
+                          <MenuItem key={service} value={service}>
+                            {service}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </>
                 )}
-
-                <FormControl
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  sx={{ mb: 2, background: "#FFFFFF", borderRadius: 2 }}
-                >
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={statusCreateNew}
-                    onChange={(e) => setStatusCreateNew(e.target.value)}
-                    label="Status"
-                    sx={{ borderRadius: 2 }}
-                  >
-                    {statusCreate.map((service) => (
-                      <MenuItem key={service} value={service}>
-                        {service}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
               </>
             </DialogContent>
             <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
