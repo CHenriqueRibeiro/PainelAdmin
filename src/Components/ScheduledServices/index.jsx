@@ -23,12 +23,15 @@ import {
   Select,
   MenuItem,
   Menu,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
+///import Alert from "@mui/material/Alert";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router";
 
@@ -70,14 +73,30 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [availableHours, setAvailableHours] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [anchorElStatus, setAnchorElStatus] = useState(null);
+  const [isLoadingButton, setIsLoadingButton] = useState(false);
+  const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const servicesEstablishment = owner?.establishments[0]?.services.length;
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = (event, item) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
+    setSelectedItem(item);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+    setSelectedItem(null);
+  };
+  const handleClickMenu = (event) => {
+    setAnchorElStatus(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorElStatus(null);
   };
   const statusCreate = [
     "Agendado",
@@ -159,6 +178,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     if (!selectedAppointment) return;
 
     try {
+      setIsLoadingButtonSave(true);
+
       const response = await fetch(
         `https://backlavaja.onrender.com/api/appointments/appointments/${selectedAppointment._id}`,
         {
@@ -174,17 +195,28 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           }),
         }
       );
-      setOpenDialog(false);
-      setOpenDialogData(false);
+
       if (!response.ok) {
         throw new Error("Erro ao atualizar agendamento");
       }
+
+      setOpenDialog(false);
+      setOpenDialogData(false);
+      setSnackbarMessage("Alteração salva com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+
       setSelectedAppointment(null);
       onUpdateService();
       setSelectedDate("");
       setSelectedService("");
     } catch (error) {
       console.error("Erro:", error);
+      setSnackbarMessage("Erro ao atualizar agendamento.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
     }
   };
 
@@ -192,6 +224,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     if (!selectedAppointment) return;
 
     try {
+      setIsLoadingButton(true);
+
       const response = await fetch(
         `https://backlavaja.onrender.com/api/appointments/appointments/${selectedAppointment._id}`,
         {
@@ -202,46 +236,47 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         }
       );
 
-      setOpenDialog(false);
-      setOpenDialogData(false);
-
       if (!response.ok) {
         throw new Error("Erro ao deletar agendamento");
       }
 
+      setOpenDialog(false);
+      setOpenDialogData(false);
       setSelectedAppointment(null);
       onUpdateService();
       setSelectedDate("");
       setSelectedService("");
+      setSnackbarMessage("Agendamento deletado com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Erro:", error);
+      setSnackbarMessage("Erro ao deletar agendamento.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButton(false);
     }
   };
-  const handleClickMenu = (event) => {
-    setAnchorElStatus(event.currentTarget);
-  };
 
-  const handleCloseMenu = () => {
-    setAnchorElStatus(null);
-  };
   const newScheduling = async () => {
     try {
-      if (!selectedSlot) return;
+      setIsLoadingButtonSave(true);
+      if (!selectedSlot) {
+        setSnackbarSeverity("error");
+        setSnackbarMessage("É preciso preencher os dados");
+        setOpenSnackbar(true);
+        return;
+      }
 
       const [startHourRaw, endHourRaw] = selectedSlot.split(" - ");
       const [startHourH, startHourM] = startHourRaw.split(":").map(Number);
       const [endHourH, endHourM] = endHourRaw.split(":").map(Number);
 
-      const startHour = `${String(startHourH).padStart(2, "0")}:${String(
-        startHourM
-      ).padStart(2, "0")}`;
-
+      const startHour = `${String(startHourH).padStart(2, "0")}:${String(startHourM).padStart(2, "0")}`;
       const endHourDate = new Date();
       endHourDate.setHours(endHourH, endHourM - 1);
-
-      const endTime = `${String(endHourDate.getHours()).padStart(2, "0")}:${String(
-        endHourDate.getMinutes()
-      ).padStart(2, "0")}`;
+      const endTime = `${String(endHourDate.getHours()).padStart(2, "0")}:${String(endHourDate.getMinutes()).padStart(2, "0")}`;
 
       const selectedService = availableServices.find(
         (s) => s.serviceId === service
@@ -251,9 +286,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         `https://backlavaja.onrender.com/api/appointments/appointments`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             clientName,
             clientPhone,
@@ -273,6 +306,10 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       if (!response.ok) {
         throw new Error("Erro ao criar agendamento");
       }
+
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Agendamento salvo com sucesso!");
+      setOpenSnackbar(true);
       setOpenDialogScheduling(false);
       setSelectedAppointment(null);
       onUpdateService();
@@ -283,6 +320,11 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       setService("");
     } catch (error) {
       console.error("Erro:", error);
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Erro ao criar agendamento.");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
     }
   };
 
@@ -357,6 +399,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         width: "95%",
         height: "auto",
         maxHeight: "35rem",
+        overflow: "hidden",
         mt: 5,
         background: "#f9f5ff",
         borderRadius: 5,
@@ -365,6 +408,21 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
         boxShadow: 3,
       }}
     >
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
       <Box
         sx={{
           display: "flex",
@@ -505,7 +563,8 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       <Box
         sx={{
           overflow: "auto",
-          maxHeight: isMobile ? "30rem" : "40rem",
+          maxHeight: isMobile ? "30rem" : "30rem",
+          pb: 5,
         }}
       >
         {loading ? (
@@ -677,7 +736,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
 
                   <IconButton
                     size="small"
-                    onClick={handleMenuOpen}
+                    onClick={(event) => handleMenuOpen(event, item)}
                     sx={{ color: "#AC42F7" }}
                   >
                     <Tooltip title="Opções" arrow>
@@ -706,17 +765,20 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     }}
                   >
                     <MenuItem
-                      sx={{
-                        fontSize: "10px",
-                        padding: "8px 16px",
+                      sx={{ fontSize: "10px", padding: "8px 16px" }}
+                      onClick={() => {
+                        handleEditClickData(selectedItem);
+                        handleMenuClose();
                       }}
-                      onClick={() => handleEditClickData(item)}
                     >
                       Alterar dados
                     </MenuItem>
                     <MenuItem
                       sx={{ fontSize: "10px", padding: "8px 16px" }}
-                      onClick={() => handleEditClick(item)}
+                      onClick={() => {
+                        handleEditClick(selectedItem);
+                        handleMenuClose();
+                      }}
                     >
                       Alterar agendamento
                     </MenuItem>
@@ -854,6 +916,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           <Button
             size="large"
             variant="contained"
+            loading={isLoadingButtonSave}
             sx={{
               background: "#ac42f7",
               color: "#FFF",
@@ -861,10 +924,15 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
               fontSize: "1rem",
               padding: "8px 24px",
               fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
             }}
             onClick={async () => {
               if (!newSelectedStatus || !selectedServiceId) return;
               try {
+                setIsLoadingButtonSave(true);
+
                 const response = await fetch(
                   `https://backlavaja.onrender.com/api/appointments/appointments/${selectedServiceId}`,
                   {
@@ -877,11 +945,21 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 if (!response.ok) {
                   throw new Error(`Erro na requisição: ${response.statusText}`);
                 }
+
                 setOpenDialogStatus(false);
                 setNewSelectedStatus(null);
                 onUpdateService();
+
+                setSnackbarMessage("Status alterado com sucesso!");
+                setSnackbarSeverity("success");
+                setOpenSnackbar(true);
               } catch (error) {
                 console.error("Erro ao atualizar status:", error);
+                setSnackbarMessage("Erro ao atualizar status.");
+                setSnackbarSeverity("error");
+                setOpenSnackbar(true);
+              } finally {
+                setIsLoadingButtonSave(false);
               }
             }}
           >
@@ -1072,16 +1150,30 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           </Button>
           <Button
             onClick={handleDelete}
+            loading={isLoadingButton}
             variant="contained"
             color="error"
-            sx={{ color: "#fff", borderColor: "#fff" }}
+            sx={{
+              color: "#fff",
+              borderColor: "#fff",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
           >
             Excluir
           </Button>
           <Button
+            loading={isLoadingButtonSave}
             onClick={handleSave}
             variant="contained"
-            sx={{ backgroundColor: "#7209b7", color: "#fff" }}
+            sx={{
+              backgroundColor: "#7209b7",
+              color: "#fff",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
           >
             Salvar
           </Button>
@@ -1258,6 +1350,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             Cancelar
           </Button>
           <Button
+            loading={isLoadingButton}
             onClick={handleDelete}
             variant="contained"
             color="error"
@@ -1266,9 +1359,16 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             Excluir
           </Button>
           <Button
+            loading={isLoadingButtonSave}
             onClick={handleSave}
             variant="contained"
-            sx={{ backgroundColor: "#7209b7", color: "#fff" }}
+            sx={{
+              backgroundColor: "#7209b7",
+              color: "#fff",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
           >
             Salvar
           </Button>
@@ -1588,12 +1688,16 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
               </Button>
               <Button
                 onClick={newScheduling}
+                loading={isLoadingButtonSave}
                 variant="contained"
                 sx={{
                   backgroundColor: "#7209b7",
                   color: "#fff",
                   "&:hover": {
                     backgroundColor: "#5a0990",
+                  },
+                  "& .MuiCircularProgress-root": {
+                    color: "#ffffff",
                   },
                 }}
               >
