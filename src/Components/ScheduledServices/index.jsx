@@ -430,7 +430,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           flexDirection: "row",
           justifyContent: "space-between",
           width: "100%",
-          mb: 2,
+          mb: 1.5,
         }}
       >
         <Typography variant="h6" fontWeight={600} color="#AC42F7">
