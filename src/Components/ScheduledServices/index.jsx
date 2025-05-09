@@ -30,6 +30,8 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import InputMask from "react-input-mask";
+
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 ///import Alert from "@mui/material/Alert";
 import { useAuth } from "../../Context/AuthContext";
@@ -117,9 +119,9 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   };
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedAppointment(null);
-    setSelectedDate("");
-    setSelectedService("");
+    //setSelectedAppointment(null);
+    //setSelectedDate("");
+    //setSelectedService("");
   };
 
   const handleCloseDialogScheduling = () => {
@@ -135,10 +137,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     setOpenDialogData(false);
   };
   useEffect(() => {
-    if (date || selectedDate) {
+    const selected = date || selectedDate;
+
+    // Verifica se há data e se está no formato completo com ano
+    if (selected && /^\d{4}-\d{2}-\d{2}$/.test(selected)) {
       setLoadingServices(true);
+
       fetch(
-        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${date || selectedDate}`
+        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${selected}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -164,6 +170,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             (s) => s.serviceId === service || s.serviceId === selectedService
           );
           setAvailableSlots(serviceData?.availableSlots || []);
+          setAvailableServices(data.services);
           setAvailableHours(serviceData?.availableSlots || []);
           setLoadingSlots(false);
         })
@@ -172,7 +179,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           alert("Erro ao buscar horários.");
         });
     }
-  }, [service, date, selectedService]);
+  }, [service, date, selectedService, selectedDate]);
 
   const handleSave = async () => {
     if (!selectedAppointment) return;
@@ -392,7 +399,11 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       return 0;
     });
   }, [sortKey, sortOrder, services]);
-
+  useEffect(() => {
+    if (openDialog && selectedAppointment) {
+      setSelectedDate(dayjs(selectedAppointment.date));
+    }
+  }, [openDialog, selectedAppointment]);
   return (
     <Box
       sx={{
@@ -845,7 +856,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 color: "#ac42f7",
                 borderColor: "#FFF",
                 borderRadius: 2,
-                padding: "12px 24px",
+                padding: "8px 24px",
                 fontSize: "1rem",
                 fontWeight: "bold",
               }}
@@ -920,9 +931,10 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             sx={{
               background: "#ac42f7",
               color: "#FFF",
+              borderColor: "#FFF",
               borderRadius: 3,
-              fontSize: "1rem",
               padding: "8px 24px",
+              fontSize: "1rem",
               fontWeight: "bold",
               "& .MuiCircularProgress-root": {
                 color: "#ffffff",
@@ -1018,12 +1030,13 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                   value={selectedDate || dayjs(selectedAppointment.date)}
                   format="DD/MM/YYYY"
                   onChange={(newDate) => {
-                    if (newDate && newDate.isSame(selectedDate, "day")) {
+                    const parsedDate = dayjs(newDate, "DD/MM/YYYY", true);
+                    if (parsedDate.isValid()) {
+                      setSelectedDate(parsedDate);
+                      setSelectedService("");
+                    } else {
                       setSelectedDate(newDate);
-                      return;
                     }
-                    setSelectedDate(newDate);
-                    setSelectedService("");
                   }}
                   slotProps={{
                     textField: {
@@ -1058,7 +1071,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     "& .MuiOutlinedInput-root": { borderRadius: 2 },
                   }}
                 >
-                  {availableServices.map((service) => (
+                  {availableServices?.map((service) => (
                     <MenuItem key={service.serviceId} value={service.serviceId}>
                       {service.serviceName}
                     </MenuItem>
@@ -1090,7 +1103,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                     "& .MuiOutlinedInput-root": { borderRadius: 2 },
                   }}
                 >
-                  {availableHours.map((slot, index) => (
+                  {availableHours?.map((slot, index) => (
                     <MenuItem key={index} value={slot}>
                       {slot}
                     </MenuItem>
@@ -1144,7 +1157,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           <Button
             onClick={handleCloseDialog}
             variant="outlined"
-            sx={{ color: "#fff", borderColor: "#fff" }}
+            sx={{
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
+            }}
           >
             Cancelar
           </Button>
@@ -1154,8 +1174,12 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             variant="contained"
             color="error"
             sx={{
-              color: "#fff",
-              borderColor: "#fff",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
               "& .MuiCircularProgress-root": {
                 color: "#ffffff",
               },
@@ -1168,8 +1192,13 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             onClick={handleSave}
             variant="contained"
             sx={{
-              backgroundColor: "#7209b7",
-              color: "#fff",
+              background: "#ac42f7",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
               "& .MuiCircularProgress-root": {
                 color: "#ffffff",
               },
@@ -1345,7 +1374,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           <Button
             onClick={handleCloseData}
             variant="outlined"
-            sx={{ color: "#fff", borderColor: "#fff" }}
+            sx={{
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
+            }}
           >
             Cancelar
           </Button>
@@ -1354,7 +1390,17 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             onClick={handleDelete}
             variant="contained"
             color="error"
-            sx={{ color: "#fff", borderColor: "#fff" }}
+            sx={{
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
           >
             Excluir
           </Button>
@@ -1363,8 +1409,13 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
             onClick={handleSave}
             variant="contained"
             sx={{
-              backgroundColor: "#7209b7",
-              color: "#fff",
+              background: "#ac42f7",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
               "& .MuiCircularProgress-root": {
                 color: "#ffffff",
               },
@@ -1438,19 +1489,27 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 >
                   Nº Telefone
                 </InputLabel>
-                <TextField
-                  size="small"
-                  fullWidth
-                  sx={{
-                    bgcolor: "#fff",
-                    borderRadius: 2,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                    },
-                  }}
+                <InputMask
+                  mask="(99) 99999-9999"
                   value={clientPhone}
+                  maskChar={null}
                   onChange={(e) => setClientPhone(e.target.value)}
-                />
+                >
+                  {(inputProps) => (
+                    <TextField
+                      {...inputProps}
+                      size="small"
+                      fullWidth
+                      sx={{
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+                  )}
+                </InputMask>
                 <InputLabel
                   sx={{
                     color: "#FFFFFF",
@@ -1534,7 +1593,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                       <CircularProgress
                         sx={{ display: "block", margin: "auto" }}
                       />
-                    ) : (
+                    ) : availableServices && availableServices.length > 0 ? (
                       <>
                         <InputLabel
                           sx={{
@@ -1568,111 +1627,127 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                             ))}
                           </Select>
                         </FormControl>
-                      </>
-                    )}
-
-                    {loadingSlots ? (
-                      <CircularProgress
-                        sx={{ display: "block", margin: "auto" }}
-                      />
-                    ) : (
-                      service &&
-                      availableSlots.length > 0 && (
-                        <>
-                          <InputLabel
-                            sx={{
-                              color: "#FFFFFF",
-                              pb: 0.5,
-                              pl: 0.3,
-                              fontWeight: 600,
-                            }}
-                          >
-                            Horário
-                          </InputLabel>
-                          <FormControl
-                            fullWidth
-                            size="small"
-                            sx={{
-                              mb: 2,
+                        {loadingSlots ? (
+                          <CircularProgress
+                            sx={{ display: "block", margin: "auto" }}
+                          />
+                        ) : (
+                          service &&
+                          availableSlots.length > 0 && (
+                            <>
+                              <InputLabel
+                                sx={{
+                                  color: "#FFFFFF",
+                                  pb: 0.5,
+                                  pl: 0.3,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Horário
+                              </InputLabel>
+                              <FormControl
+                                fullWidth
+                                size="small"
+                                sx={{
+                                  mb: 2,
+                                  borderRadius: 2,
+                                  background: "#FFFFFF",
+                                }}
+                              >
+                                <InputLabel>Escolha uma opção</InputLabel>
+                                <Select
+                                  value={selectedSlot}
+                                  onChange={(e) =>
+                                    setSelectedSlot(e.target.value)
+                                  }
+                                  label="Horário"
+                                  sx={{ borderRadius: 2 }}
+                                >
+                                  {availableSlots.map((slot, index) => (
+                                    <MenuItem key={index} value={slot}>
+                                      {slot}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </>
+                          )
+                        )}
+                        <InputLabel
+                          sx={{
+                            color: "#FFFFFF",
+                            pb: 0.5,
+                            pl: 0.3,
+                            fontWeight: 600,
+                          }}
+                        >
+                          Preço
+                        </InputLabel>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={
+                            service
+                              ? `R$ ${
+                                  availableServices.find(
+                                    (s) => s.serviceId === service
+                                  )?.price || 0
+                                }`
+                              : ""
+                          }
+                          disabled
+                          sx={{
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                            "& .MuiOutlinedInput-root": {
                               borderRadius: 2,
-                              background: "#FFFFFF",
-                            }}
+                            },
+                          }}
+                        />
+                        <InputLabel
+                          sx={{
+                            color: "#FFFFFF",
+                            mt: 1,
+                            pb: 0.5,
+                            pl: 0.3,
+                            fontWeight: 600,
+                          }}
+                        >
+                          Status
+                        </InputLabel>
+                        <FormControl
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                          sx={{ background: "#FFFFFF", borderRadius: 2 }}
+                        >
+                          <InputLabel>Escolha uma opção</InputLabel>
+                          <Select
+                            value={statusCreateNew}
+                            onChange={(e) => setStatusCreateNew(e.target.value)}
+                            label="Status"
+                            sx={{ borderRadius: 2 }}
                           >
-                            <InputLabel>Escolha uma opção</InputLabel>
-                            <Select
-                              value={selectedSlot}
-                              onChange={(e) => setSelectedSlot(e.target.value)}
-                              label="Horário"
-                              sx={{ borderRadius: 2 }}
-                            >
-                              {availableSlots.map((slot, index) => (
-                                <MenuItem key={index} value={slot}>
-                                  {slot}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </>
-                      )
-                    )}
-                    <InputLabel
-                      sx={{
-                        color: "#FFFFFF",
-                        pb: 0.5,
-                        pl: 0.3,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Preço
-                    </InputLabel>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={
-                        service
-                          ? `R$ ${availableServices.find((s) => s.serviceId === service)?.price || 0}`
-                          : ""
-                      }
-                      disabled
-                      sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                        },
-                      }}
-                    />
-                    <InputLabel
-                      sx={{
-                        color: "#FFFFFF",
-                        mt: 1,
-                        pb: 0.5,
-                        pl: 0.3,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Status
-                    </InputLabel>
-                    <FormControl
-                      fullWidth
-                      size="small"
-                      variant="outlined"
-                      sx={{ background: "#FFFFFF", borderRadius: 2 }}
-                    >
-                      <InputLabel>Escolha uma opção</InputLabel>
-                      <Select
-                        value={statusCreateNew}
-                        onChange={(e) => setStatusCreateNew(e.target.value)}
-                        label="Status"
-                        sx={{ borderRadius: 2 }}
+                            {statusCreate.map((service) => (
+                              <MenuItem key={service} value={service}>
+                                {service}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          color: "#fff",
+                          textAlign: "center",
+                          mt: 2,
+                          fontWeight: "bold",
+                        }}
                       >
-                        {statusCreate.map((service) => (
-                          <MenuItem key={service} value={service}>
-                            {service}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        Não há serviços disponíveis para a data selecionada.
+                      </Typography>
+                    )}
                   </>
                 )}
               </>
@@ -1682,7 +1757,14 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 onClick={handleCloseDialogScheduling}
                 variant="contained"
                 color="error"
-                sx={{ color: "#fff", borderColor: "#fff" }}
+                sx={{
+                  background: "#FFF",
+                  color: "#ac42f7",
+                  borderColor: "#FFF",
+                  borderRadius: 3,
+                  fontSize: "1rem",
+                  padding: "8px 24px",
+                }}
               >
                 Cancelar
               </Button>
@@ -1691,11 +1773,13 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 loading={isLoadingButtonSave}
                 variant="contained"
                 sx={{
-                  backgroundColor: "#7209b7",
-                  color: "#fff",
-                  "&:hover": {
-                    backgroundColor: "#5a0990",
-                  },
+                  background: "#ac42f7",
+                  color: "#FFF",
+                  borderColor: "#FFF",
+                  borderRadius: 3,
+                  padding: "8px 24px",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
                   "& .MuiCircularProgress-root": {
                     color: "#ffffff",
                   },

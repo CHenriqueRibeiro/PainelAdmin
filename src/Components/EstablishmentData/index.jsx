@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
-
+import InputMask from "react-input-mask";
 // eslint-disable-next-line react/prop-types
 const ScheduledData = ({
   dataEstablishment,
@@ -540,21 +540,29 @@ const ScheduledData = ({
               </InputLabel>
               <Grid2 container spacing={2}>
                 <Grid2 size={8}>
-                  <TextField
-                    label="CEP"
-                    fullWidth
-                    size="small"
+                  <InputMask
+                    mask="99999-999"
                     value={addressData.cep}
+                    maskChar={null}
                     onChange={(e) =>
                       setAddressData({ ...addressData, cep: e.target.value })
                     }
                     onBlur={handleSearchCep}
-                    sx={{
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  />
+                  >
+                    {(inputProps) => (
+                      <TextField
+                        label="CEP"
+                        {...inputProps}
+                        size="small"
+                        fullWidth
+                        sx={{
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                          "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                        }}
+                      />
+                    )}
+                  </InputMask>
                 </Grid2>
                 <Grid2 size={4}>
                   <Button
