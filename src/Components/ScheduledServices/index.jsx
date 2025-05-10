@@ -139,7 +139,6 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   useEffect(() => {
     const selected = date || selectedDate;
 
-    // Verifica se há data e se está no formato completo com ano
     if (selected && /^\d{4}-\d{2}-\d{2}$/.test(selected)) {
       setLoadingServices(true);
 

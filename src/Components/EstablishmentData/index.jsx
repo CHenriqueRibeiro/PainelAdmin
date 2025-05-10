@@ -20,6 +20,8 @@ import {
   FormControlLabel,
   MenuItem,
   InputLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
@@ -41,7 +43,11 @@ const ScheduledData = ({
   const [nameEstablishment, setNameEstablishment] = useState("");
   const [lunchStart, setLunchStart] = useState("");
   const [lunchEnd, setLunchEnd] = useState("");
-
+  const [isLoadingButton, setIsLoadingButton] = useState(false);
+  const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [addressData, setAddressData] = useState({
     cep: "",
     street: "",
@@ -205,6 +211,8 @@ const ScheduledData = ({
     };
 
     try {
+      setIsLoadingButtonSave(true);
+
       const url = isEditing
         ? `https://backlavaja.onrender.com/api/establishment/establishment/${editEstablishmentId}`
         : "https://backlavaja.onrender.com/api/establishment/create";
@@ -224,14 +232,30 @@ const ScheduledData = ({
       setOpenDialog(false);
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
-
+      setSnackbarMessage(
+        isEditing
+          ? "Alteração salva com sucesso!"
+          : "Estabelecimento cadastrado com sucesso!"
+      );
+      setSnackbarSeverity("success");
       handleCloseDialog();
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Erro:", error);
+      setSnackbarMessage(
+        isEditing
+          ? "Erro ao alterar dados do estabelecimento"
+          : "Erro ao cadastrar estabelecimento"
+      );
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
     }
   };
   const handleDeleteEstablishment = async () => {
     try {
+      setIsLoadingButton(true);
       const url = `https://backlavaja.onrender.com/api/establishment/establishment/${editEstablishmentId}`;
 
       const response = await fetch(url, {
@@ -245,11 +269,20 @@ const ScheduledData = ({
       if (!response.ok) throw new Error("Erro ao deletar estabelecimento");
 
       setOpenDialog(false);
+      setIsLoadingButton(false);
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
       handleCloseDialog();
+      setSnackbarSeverity("success");
+      handleCloseDialog();
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Erro:", error);
+      setSnackbarMessage("Erro ao deletar estabelecimento");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButton(false);
     }
   };
 
@@ -257,6 +290,20 @@ const ScheduledData = ({
 
   return (
     <Box sx={{ width: "95%", mt: 5, mb: 3 }}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <Paper sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
         <Box
           sx={{
@@ -797,9 +844,12 @@ const ScheduledData = ({
             onClick={() => setOpenDialog(false)}
             variant="outlined"
             sx={{
-              borderColor: "#AC42F7",
-              color: "#AC42F7",
-              "&:hover": { borderColor: "#8a2be2", background: "#f9f5ff" },
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
             }}
           >
             Cancelar
@@ -808,7 +858,19 @@ const ScheduledData = ({
             <Button
               variant="contained"
               onClick={handleDeleteEstablishment}
+              loading={isLoadingButton}
               color="error"
+              sx={{
+                color: "#FFF",
+                borderColor: "#FFF",
+                borderRadius: 3,
+                padding: "8px 24px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                "& .MuiCircularProgress-root": {
+                  color: "#ffffff",
+                },
+              }}
             >
               Excluir
             </Button>
@@ -816,10 +878,18 @@ const ScheduledData = ({
           <Button
             variant="contained"
             onClick={handleSaveEstablishment}
+            loading={isLoadingButtonSave}
             sx={{
-              background: "#AC42F7",
-              color: "#fff",
-              "&:hover": { background: "#8a2be2" },
+              background: "#ac42f7",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
             }}
           >
             Salvar

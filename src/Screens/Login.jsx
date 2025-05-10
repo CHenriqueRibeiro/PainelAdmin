@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import Logo from "../../public/logosemfundo.png";
+import Logo from "../../public/logosemfundonovo.png";
 import BackgroundImage from "../../public/background.png";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyIcon from "@mui/icons-material/Key";

@@ -19,7 +19,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import KeyIcon from "@mui/icons-material/Key";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
-import Logo from "../../public/logosemfundo.png";
+import Logo from "../../public/logosemfundonovo.png";
 import BackgroundImage from "../../public/background.png";
 
 const Update = () => {
