@@ -20,10 +20,16 @@ import {
   InputLabel,
   FormControlLabel,
   Switch,
+  Snackbar,
+  Alert,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-
+import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
+import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 // eslint-disable-next-line react/prop-types
 const EstablishmentServices = ({
   dataEstablishment,
@@ -32,8 +38,10 @@ const EstablishmentServices = ({
   setService = () => {},
 }) => {
   const token = localStorage.getItem("authToken");
-
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogEdit, setOpenDialogEdit] = useState(false);
   const [concurrentService, setConcurrentService] = useState(false);
   const [concurrentServiceValue, setConcurrentServiceValue] = useState(false);
   const [serviceName, setServiceName] = useState("");
@@ -41,6 +49,11 @@ const EstablishmentServices = ({
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
   const [dailyLimit, setDailyLimit] = useState("");
+  const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
+  const [isLoadingButton, setIsLoadingButton] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [availability, setAvailability] = useState([
     { day: "Segunda", availableHours: [{ start: "", end: "" }] },
     { day: "Terça", availableHours: [{ start: "", end: "" }] },
@@ -85,8 +98,89 @@ const EstablishmentServices = ({
 
   const [expandedService, setExpandedService] = useState(null);
 
-  const handleOpenDialog = () => setOpenDialog(true);
+  const handleOpenDialog = () => {
+    handleCloseDialog();
+    setOpenDialog(true);
+  };
+  const handleOpenDialogEdit = (service) => {
+    setServiceName(service.name);
+    setPrice(String(service.price));
+    setDuration(String(service.duration));
+    setDescription(service.description);
+    setDailyLimit(String(service.dailyLimit));
+    setConcurrentService(service.concurrentService);
+    setConcurrentServiceValue(
+      service.concurrentServiceValue
+        ? String(service.concurrentServiceValue)
+        : ""
+    );
+    setAvailability(service.availability);
+    setExpandedService(service._id);
+    setOpenDialogEdit(true);
+  };
+
+  const handleUpdateService = async () => {
+    if (!serviceName || !price || !duration || !description || !dailyLimit) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Preencha todos os campos");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      setIsLoadingButtonSave(true);
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: serviceName,
+            price: Number(price),
+            duration: Number(duration),
+            description,
+            dailyLimit: Number(dailyLimit),
+            availability,
+            concurrentService,
+            concurrentServiceValue: Number(concurrentServiceValue),
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Erro ao atualizar serviço");
+      setEstablishment((prev) => !prev);
+      setService((prev) => !prev);
+      handleCloseDialogEdit();
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Serviço atualizado com sucesso");
+      setOpenSnackbar(true);
+    } catch {
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Erro ao atualizar serviço");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
+    }
+  };
+
   const handleCloseDialog = () => {
+    setConcurrentService(false);
+    setConcurrentServiceValue("");
+    setServiceName("");
+    setPrice("");
+    setDuration("");
+    setDescription("");
+    setDailyLimit("");
+    setAvailability(
+      availability.map((day) => ({
+        ...day,
+        availableHours: [{ start: "", end: "" }],
+      }))
+    );
+  };
+  const handleCloseDialogEdit = () => {
     setConcurrentService(false);
     setConcurrentServiceValue("");
     setServiceName("");
@@ -126,7 +220,9 @@ const EstablishmentServices = ({
 
   const handleCreateService = async () => {
     if (!serviceName || !price || !duration || !description || !dailyLimit) {
-      alert("Por favor, preencha todos os campos.");
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Preencha todos os campos");
+      setOpenSnackbar(true);
       return;
     }
 
@@ -143,8 +239,9 @@ const EstablishmentServices = ({
     );
 
     try {
+      setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/services/establishment/${dataEstablishment[0]._id}/service`,
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -171,10 +268,48 @@ const EstablishmentServices = ({
 
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
-      handleCloseDialog();
+      //handleCloseDialog();
       setOpenDialog(false);
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Serviço criado com sucesso");
+      setOpenSnackbar(true);
     } catch (error) {
       alert("Erro ao criar serviço");
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Erro ao criar serviço");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
+    }
+  };
+  const handleDeleteService = async (serviceIdToDelete) => {
+    try {
+      setIsLoadingButton(true);
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Erro ao excluir serviço");
+
+      setEstablishment((prev) => !prev);
+      setService((prev) => !prev);
+      handleCloseDialogEdit();
+      setOpenDialogEdit(false);
+      setSnackbarSeverity("success");
+      setSnackbarMessage("Serviço excluído com sucesso");
+      setOpenSnackbar(true);
+    } catch (error) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Erro ao excluir serviço");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButton(false);
     }
   };
 
@@ -234,6 +369,20 @@ const EstablishmentServices = ({
 
   return (
     <Box sx={{ width: "95%", mt: 5, mb: 3 }}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <Paper
         elevation={3}
         sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}
@@ -274,12 +423,10 @@ const EstablishmentServices = ({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        cursor: "pointer",
                         backgroundColor: "#F1EEFF",
                         padding: 2,
                         borderRadius: 2,
                       }}
-                      onClick={() => toggleExpandService(service._id)}
                     >
                       <Typography
                         variant="body1"
@@ -288,11 +435,38 @@ const EstablishmentServices = ({
                       >
                         {service.name}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#AC42F7" }}>
-                        {expandedService === service._id
-                          ? "Fechar"
-                          : "Ver mais"}
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          width: isMobile ? "20%" : "8%",
+                        }}
+                      >
+                        {expandedService === service._id ? (
+                          <Tooltip title="Fechar detalhes">
+                            <ArrowDropUpRoundedIcon
+                              sx={{ color: "#AC42F7" }}
+                              onClick={() => toggleExpandService(service._id)}
+                            />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Abrir detalhes">
+                            <ArrowDropDownRoundedIcon
+                              sx={{ color: "#AC42F7" }}
+                              onClick={() => toggleExpandService(service._id)}
+                            />
+                          </Tooltip>
+                        )}
+                        <Divider orientation="vertical" flexItem />
+                        <Tooltip
+                          title="Editar serviço"
+                          onClick={() => handleOpenDialogEdit(service)}
+                        >
+                          <EditRoundedIcon sx={{ color: "#AC42F7" }} />
+                        </Tooltip>
+                      </Box>
                     </Box>
                     <Collapse in={expandedService === service._id}>
                       <Box sx={{ padding: 2 }}>
@@ -381,6 +555,7 @@ const EstablishmentServices = ({
                               display: "flex",
                               flexDirection: "row",
                               gap: 2,
+                              flexWrap: "wrap",
                             }}
                           >
                             {service.availability.map((day) => (
@@ -710,9 +885,12 @@ const EstablishmentServices = ({
           <Button
             variant="outlined"
             sx={{
-              borderColor: "#AC42F7",
-              color: "#AC42F7",
-              "&:hover": { borderColor: "#8a2be2", background: "#f9f5ff" },
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
             }}
             onClick={() => setOpenDialog(false)}
           >
@@ -720,14 +898,341 @@ const EstablishmentServices = ({
           </Button>
           <Button
             variant="contained"
+            loading={isLoadingButtonSave}
             sx={{
-              background: "#AC42F7",
-              color: "#fff",
-              "&:hover": { background: "#8a2be2" },
+              background: "#ac42f7",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
             }}
             onClick={handleCreateService}
           >
             Criar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialogEdit}
+        onClose={handleCloseDialogEdit}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+            padding: 2,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "center" }}
+        >
+          Editar serviço
+        </DialogTitle>
+        <DialogContent>
+          <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Nome do serviço
+              </InputLabel>
+              <TextField
+                fullWidth
+                onChange={(e) => setServiceName(e.target.value)}
+                value={serviceName}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Descrição do serviço
+              </InputLabel>
+              <TextField
+                fullWidth
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12, sm: 6 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Preço do serviço (R$)
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12, sm: 6 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Tempo do serviço (min)
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+
+            <Grid2 size={{ xs: 12 }}>
+              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
+                Quantidade de serviço por dia
+              </InputLabel>
+              <TextField
+                fullWidth
+                type="number"
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(e.target.value)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Grid2>
+            <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={concurrentService}
+                    onChange={(e) => setConcurrentService(e.target.checked)}
+                  />
+                }
+                label="Permitir atendimentos simultâneos?"
+              />
+            </Grid2>
+            {concurrentService && (
+              <>
+                <Grid2 size={{ xs: 12 }}>
+                  <InputLabel
+                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                  >
+                    Quantos atendimentos simultâneos?
+                  </InputLabel>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    value={concurrentServiceValue}
+                    onChange={(e) => setConcurrentServiceValue(e.target.value)}
+                    size="small"
+                    sx={{
+                      mb: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                    }}
+                  />
+                </Grid2>
+              </>
+            )}
+            <Grid2 size={{ xs: 12 }}>
+              <Typography variant="caption" fontSize={18} fontWeight={600}>
+                Horários
+              </Typography>
+            </Grid2>
+
+            <Grid2
+              size={{ xs: 12 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {availability.map((day, dayIndex) => (
+                <Grid2 size={{ xs: 12 }} key={day.day}>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    sx={{ fontSize: 17 }}
+                  >
+                    {day.day}
+                  </Typography>
+
+                  {day.availableHours.length === 0 ? (
+                    <Tooltip title="Adicionar horário">
+                      <IconButton onClick={() => addAvailableHour(dayIndex)}>
+                        <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    day.availableHours.map((hour, hourIndex) => (
+                      <Grid2
+                        key={hourIndex}
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          mt: 1,
+                          alignItems: "flex-end",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "35%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Início
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            value={hour.start}
+                            onChange={(e) =>
+                              handleHourChange(
+                                dayIndex,
+                                hourIndex,
+                                "start",
+                                e.target.value
+                              )
+                            }
+                            size="small"
+                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "35%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Fim
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            value={hour.end}
+                            onChange={(e) =>
+                              handleHourChange(
+                                dayIndex,
+                                hourIndex,
+                                "end",
+                                e.target.value
+                              )
+                            }
+                            size="small"
+                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Tooltip title="Adicionar horário">
+                            <IconButton
+                              onClick={() => addAvailableHour(dayIndex)}
+                            >
+                              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Divider orientation="vertical" flexItem />
+                          <Tooltip title="Remover horário">
+                            <IconButton
+                              onClick={() =>
+                                removeAvailableHour(dayIndex, hourIndex)
+                              }
+                            >
+                              <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Grid2>
+                    ))
+                  )}
+                </Grid2>
+              ))}
+            </Grid2>
+          </Grid2>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            sx={{
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "1rem",
+              padding: "8px 24px",
+            }}
+            onClick={() => setOpenDialogEdit(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            loading={isLoadingButton}
+            variant="contained"
+            color="error"
+            sx={{
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
+            onClick={() => handleDeleteService(expandedService)}
+          >
+            Excluir
+          </Button>
+          <Button
+            variant="contained"
+            loading={isLoadingButtonSave}
+            sx={{
+              background: "#ac42f7",
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
+            onClick={handleUpdateService}
+          >
+            Salvar
           </Button>
         </DialogActions>
       </Dialog>

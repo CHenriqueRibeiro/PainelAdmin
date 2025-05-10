@@ -29,7 +29,7 @@ const ReportPage = () => {
     background: "rgba(255, 255, 255, 0.5)",
     boxShadow: 3,
     backdropFilter: "blur(10px)",
-    borderRadius: 4,
+    borderRadius: 6,
   };
 
   const barChartOptions = {
@@ -77,6 +77,7 @@ const ReportPage = () => {
         container
         spacing={1}
         sx={{
+          height: "7rem",
           background: "#FFFFFF",
           boxShadow: 3,
           backdropFilter: "blur(10px)",
@@ -85,12 +86,12 @@ const ReportPage = () => {
           mb: 3,
         }}
       >
-        <Grid2 size={{ xs: 12, md: 12, lg: 4 }}>
+        <Grid2 size={{ xs: 12, md: 12, lg: 4 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
               boxShadow: 0,
-              borderRadius: 4,
+              borderRadius: 6,
               height: "100%",
             }}
           >
@@ -98,7 +99,7 @@ const ReportPage = () => {
               sx={{
                 background:
                   "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
-                borderRadius: 4,
+                borderRadius: 6,
                 height: "100%",
               }}
             >
@@ -108,7 +109,7 @@ const ReportPage = () => {
               >
                 Filtrar por período
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+              <Box sx={{ display: "flex", gap: 1, mt: 0.4 }}>
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
@@ -172,17 +173,15 @@ const ReportPage = () => {
                             color: "#FFFFFF",
                           },
                           "&:hover": {
-                            backgroundColor: "#FFFFFF",
-                            color: "#6b21a8",
+                            backgroundColor: "#6b21a8",
+                            color: "#FFFFFF",
                           },
                         },
                       },
                       popper: {
                         sx: {
                           "& .MuiPaper-root": {
-                            color: "#FFFFFF",
-                            backgroundColor: "#6b21a8",
-                            borderRadius: 4,
+                            borderRadius: 6,
                           },
                         },
                       },
@@ -244,17 +243,15 @@ const ReportPage = () => {
                             color: "#FFFFFF",
                           },
                           "&:hover": {
-                            backgroundColor: "#FFFFFF",
-                            color: "#6b21a8",
+                            backgroundColor: "#6b21a8",
+                            color: "#FFFFFF",
                           },
                         },
                       },
                       popper: {
                         sx: {
                           "& .MuiPaper-root": {
-                            color: "#FFFFFF",
-                            backgroundColor: "#6b21a8",
-                            borderRadius: 4,
+                            borderRadius: 6,
                           },
                         },
                       },
@@ -265,12 +262,12 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 12, lg: 2.66 }}>
+        <Grid2 size={{ xs: 12, md: 12, lg: 2.66 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
               boxShadow: 0,
-              borderRadius: 4,
+              borderRadius: 6,
               height: "100%",
             }}
           >
@@ -315,12 +312,12 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
               boxShadow: 0,
-              borderRadius: 4,
+              borderRadius: 6,
               height: "100%",
             }}
           >
@@ -330,7 +327,7 @@ const ReportPage = () => {
                 background:
                   "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
                 height: "100%",
-                borderRadius: 4,
+                borderRadius: 6,
               }}
             >
               <NoCrashIcon
@@ -365,12 +362,12 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
               boxShadow: 0,
-              borderRadius: 4,
+              borderRadius: 6,
               height: "100%",
             }}
           >
@@ -380,7 +377,7 @@ const ReportPage = () => {
                 background:
                   "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
                 height: "100%",
-                borderRadius: 4,
+                borderRadius: 6,
               }}
             >
               <WaterDropIcon

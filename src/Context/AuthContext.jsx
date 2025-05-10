@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "https://backlavaja.onrender.com/api/owner/register",
+        "https://lavaja.up.railway.app/api/owner/register",
         {
           method: "POST",
           headers: {
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "https://backlavaja.onrender.com/api/auth/login",
+        "https://lavaja.up.railway.app/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

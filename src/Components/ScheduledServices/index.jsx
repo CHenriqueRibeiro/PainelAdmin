@@ -143,7 +143,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       setLoadingServices(true);
 
       fetch(
-        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${selected}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selected}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -161,7 +161,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
     if ((service && date) || (selectedDate && selectedDate)) {
       setLoadingSlots(true);
       fetch(
-        `https://backlavaja.onrender.com/api/availability/${establishmentId}?date=${date || selectedDate}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date || selectedDate}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -187,7 +187,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       setIsLoadingButtonSave(true);
 
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: {
@@ -233,7 +233,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -289,7 +289,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       );
 
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/appointments/appointments`,
+        `https://lavaja.up.railway.app/api/appointments/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -945,7 +945,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `https://backlavaja.onrender.com/api/appointments/appointments/${selectedServiceId}`,
+                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },

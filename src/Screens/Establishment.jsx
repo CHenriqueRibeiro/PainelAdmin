@@ -26,7 +26,7 @@ export default function Establishment() {
 
     try {
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {

@@ -14,7 +14,7 @@ export default function Home() {
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/appointments/appointments/${establishmentId}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}`,
         {
           method: "GET",
           headers: {
@@ -35,7 +35,7 @@ export default function Home() {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `https://backlavaja.onrender.com/api/establishment/owner/${ownerId}`,
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
