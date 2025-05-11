@@ -2,19 +2,22 @@ import { Box } from "@mui/material";
 import DailyStatus from "../Components/DailyStats";
 import ScheduledServices from "../Components/ScheduledServices";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 export default function Home() {
+  const ownerUser = JSON.parse(localStorage.getItem("user"));
+  const ownerId = ownerUser.id;
+  const token = localStorage.getItem("authToken");
+  const day = dayjs().format("YYYY-MM-DD");
+  const [daySelect, setDaySelect] = useState(day);
   const [services, setServices] = useState([]);
   const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("authToken");
-  const ownerUser = JSON.parse(localStorage.getItem("user"));
-  const ownerId = ownerUser.id;
 
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
         {
           method: "GET",
           headers: {
@@ -66,7 +69,11 @@ export default function Home() {
       setLoading(false);
     }
   }, [owner]);
-
+  useEffect(() => {
+    if (owner?.establishments?.[0]?._id && daySelect) {
+      fetchAppointments(owner.establishments[0]._id);
+    }
+  }, [daySelect]);
   const handleServiceUpdated = () => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
@@ -99,6 +106,8 @@ export default function Home() {
           onUpdateService={handleServiceUpdated}
           loading={loading}
           owner={owner}
+          daySelect={daySelect}
+          setDaySelect={setDaySelect}
         />
       </Box>
     </Box>

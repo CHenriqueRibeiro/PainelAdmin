@@ -90,10 +90,10 @@ const DailyStatus = ({ services, loading }) => {
                 R$ {totalPriceForDelivered}
               </Typography>
             )}
-            <Typography variant="subtitle1">Recebido hoje</Typography>
+            <Typography variant="subtitle1">Recebido nesse dia</Typography>
           </Box>
           {!isMobile && (
-            <Tooltip title="Valor recebido no dia">
+            <Tooltip title="Valor recebido no dia selecionado">
               <InfoRoundedIcon />
             </Tooltip>
           )}
@@ -147,10 +147,12 @@ const DailyStatus = ({ services, loading }) => {
                 {deliveredCount}
               </Typography>
             )}
-            <Typography variant="subtitle1">Lavagens finalizadas</Typography>
+            <Typography variant="subtitle1">
+              Lavagens finalizadas nesse dia
+            </Typography>
           </Box>
           {!isMobile && (
-            <Tooltip title="Total de lavagens finalizadas hoje">
+            <Tooltip title="Total de lavagens finalizadas no dia selecionado">
               <InfoRoundedIcon />
             </Tooltip>
           )}
@@ -203,10 +205,12 @@ const DailyStatus = ({ services, loading }) => {
                 {scheduledWashes}
               </Typography>
             )}
-            <Typography variant="subtitle1">Lavagens no dia</Typography>
+            <Typography variant="subtitle1">
+              Lavagens totais nesse dia
+            </Typography>
           </Box>
           {!isMobile && (
-            <Tooltip title="Total de lavagens do dia">
+            <Tooltip title="Total de lavagens agendadas no dia selecionado">
               <InfoRoundedIcon />
             </Tooltip>
           )}

@@ -10,7 +10,7 @@ import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicR
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Box, IconButton, Stack, Tooltip } from "@mui/material";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import SwitchAccountRoundedIcon from "@mui/icons-material/SwitchAccountRounded";
+//import SwitchAccountRoundedIcon from "@mui/icons-material/SwitchAccountRounded";
 
 const NAVIGATION = [
   {
@@ -30,11 +30,11 @@ const NAVIGATION = [
     icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
     onClick: () => Navigate("/relatorios"),
   },
-  {
+  /*{
     segment: "Colaboradores",
     icon: <SwitchAccountRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
     onClick: () => Navigate("/colaboradores"),
-  },
+  },*/
 ];
 
 const demoTheme = createTheme({

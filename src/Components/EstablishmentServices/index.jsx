@@ -54,15 +54,8 @@ const EstablishmentServices = ({
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const [availability, setAvailability] = useState([
-    { day: "Segunda", availableHours: [{ start: "", end: "" }] },
-    { day: "Terça", availableHours: [{ start: "", end: "" }] },
-    { day: "Quarta", availableHours: [{ start: "", end: "" }] },
-    { day: "Quinta", availableHours: [{ start: "", end: "" }] },
-    { day: "Sexta", availableHours: [{ start: "", end: "" }] },
-    { day: "Sábado", availableHours: [{ start: "", end: "" }] },
-    { day: "Domingo", availableHours: [{ start: "", end: "" }] },
-  ]);
+  const [availability, setAvailability] = useState([]);
+  const [availabilityEdit, setAvailabilityEdit] = useState([]);
 
   useEffect(() => {
     if (!dataEstablishment?.length) return;
@@ -94,7 +87,8 @@ const EstablishmentServices = ({
     });
 
     setAvailability(mappedAvailability);
-  }, [dataEstablishment]);
+    setAvailabilityEdit(mappedAvailability);
+  }, [dataEstablishment, setAvailability]);
 
   const [expandedService, setExpandedService] = useState(null);
 
@@ -114,7 +108,8 @@ const EstablishmentServices = ({
         ? String(service.concurrentServiceValue)
         : ""
     );
-    setAvailability(service.availability);
+
+    setAvailabilityEdit(service.availability);
     setExpandedService(service._id);
     setOpenDialogEdit(true);
   };
@@ -188,7 +183,7 @@ const EstablishmentServices = ({
     setDuration("");
     setDescription("");
     setDailyLimit("");
-    setAvailability(
+    setAvailabilityEdit(
       availability.map((day) => ({
         ...day,
         availableHours: [{ start: "", end: "" }],
@@ -321,18 +316,21 @@ const EstablishmentServices = ({
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
     setAvailability(newAvailability);
+    setAvailabilityEdit(newAvailability);
   };
 
   const removeAvailableHour = (dayIndex, hourIndex) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
     setAvailability(newAvailability);
+    setAvailabilityEdit(newAvailability);
   };
 
   const handleHourChange = (dayIndex, hourIndex, field, value) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours[hourIndex][field] = value;
     setAvailability(newAvailability);
+    setAvailabilityEdit(newAvailability);
   };
 
   const renderSkeleton = () => (
@@ -366,7 +364,6 @@ const EstablishmentServices = ({
 
   // eslint-disable-next-line react/prop-types
   if (!dataEstablishment.length) return null;
-
   return (
     <Box sx={{ width: "95%", mt: 5, mb: 3 }}>
       <Snackbar
@@ -1073,7 +1070,7 @@ const EstablishmentServices = ({
               size={{ xs: 12 }}
               sx={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {availability.map((day, dayIndex) => (
+              {availabilityEdit.map((day, dayIndex) => (
                 <Grid2 size={{ xs: 12 }} key={day.day}>
                   <Typography
                     variant="body2"

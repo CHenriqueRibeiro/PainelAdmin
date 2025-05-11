@@ -25,26 +25,39 @@ import {
   Menu,
   Snackbar,
   Alert,
+  Popper,
+  Paper,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import InputMask from "react-input-mask";
-
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 ///import Alert from "@mui/material/Alert";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router";
 
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
+import {
+  DateCalendar,
+  DatePicker,
+  LocalizationProvider,
+} from "@mui/x-date-pickers-pro";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ptBR } from "@mui/x-date-pickers/locales";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 
 // eslint-disable-next-line react/prop-types
-const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
+const ScheduledServices = ({
+  services,
+  onUpdateService,
+  loading,
+  owner,
+  setDaySelect = () => {},
+  daySelect,
+}) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -82,7 +95,10 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [anchorElDate, setAnchorElDate] = useState(null);
   const servicesEstablishment = owner?.establishments[0]?.services.length;
+  const open = Boolean(anchorElDate);
+  const dateServices = dayjs();
   const handleMenuOpen = (event, item) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
@@ -403,6 +419,19 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
       setSelectedDate(dayjs(selectedAppointment.date));
     }
   }, [openDialog, selectedAppointment]);
+
+  const handleIconClick = (e) => {
+    setAnchorElDate(open ? null : e.currentTarget);
+  };
+
+  const handleDateChange = (newDate) => {
+    if (newDate && newDate.isValid()) {
+      const str = newDate.format("YYYY-MM-DD");
+      setDaySelect(str);
+    }
+    setAnchorElDate(null);
+  };
+
   return (
     <Box
       sx={{
@@ -443,9 +472,81 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           mb: 1.5,
         }}
       >
-        <Typography variant="h6" fontWeight={600} color="#AC42F7">
-          Agendamentos
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "row",
+            borderRadius: 2,
+            gap: 3,
+          }}
+        >
+          <Typography variant="h6" fontWeight={600} color="#AC42F7">
+            Agendamentos
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              background: "#AC42F7",
+              borderRadius: 2,
+              width: "10rem",
+              height: "1.8rem",
+              gap: 1,
+            }}
+          >
+            <Tooltip title="Selecionar data" arrow>
+              <IconButton onClick={handleIconClick}>
+                <CalendarMonthRoundedIcon sx={{ color: "#FFFFFF" }} />
+              </IconButton>
+            </Tooltip>
+            <Divider orientation="vertical" flexItem />
+            <Typography
+              variant="body2"
+              fontWeight={500}
+              color="#FFFFFF"
+              sx={{ p: 1 }}
+            >
+              {dayjs(daySelect).format("DD/MM/YYYY")}
+            </Typography>
+          </Box>
+
+          <Popper
+            open={open}
+            anchorEl={anchorElDate}
+            placement="bottom-start"
+            sx={{ zIndex: 1300 }}
+          >
+            <Paper sx={{ mt: 1, borderRadius: 2, boxShadow: 3 }}>
+              <LocalizationProvider
+                adapterLocale="pt-br"
+                localeText={
+                  ptBR.components.MuiLocalizationProvider.defaultProps
+                    .localeText
+                }
+                dateAdapter={AdapterDayjs}
+              >
+                <DateCalendar
+                  value={dateServices}
+                  onChange={handleDateChange}
+                  sx={{
+                    "& .MuiPickersDay-root": {
+                      "&.Mui-selected": {
+                        backgroundColor: "#6B21A8",
+                        color: "#fff",
+                      },
+                      "&:hover": {
+                        backgroundColor: "#6B21A8",
+                        color: "#fff",
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+            </Paper>
+          </Popper>
+        </Box>
+
         {servicesEstablishment === 0 || servicesEstablishment === undefined ? (
           <Tooltip
             title="Para realizar agendamentos e necessário cadastrar serviços"
@@ -600,7 +701,7 @@ const ScheduledServices = ({ services, onUpdateService, loading, owner }) => {
           </Box>
         ) : sortedAppointments.length === 0 ? (
           <Typography variant="body2" textAlign="center" p={2} color="#6a1b9a">
-            Nenhum agendamento para hoje
+            Nenhum agendamento para esse dia
           </Typography>
         ) : (
           sortedAppointments.map((item) => (
