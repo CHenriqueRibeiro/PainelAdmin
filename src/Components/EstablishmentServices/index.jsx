@@ -43,7 +43,7 @@ const EstablishmentServices = ({
   const [openDialog, setOpenDialog] = useState(false);
   const [openDialogEdit, setOpenDialogEdit] = useState(false);
   const [concurrentService, setConcurrentService] = useState(false);
-  const [concurrentServiceValue, setConcurrentServiceValue] = useState(false);
+  const [concurrentServiceValue, setConcurrentServiceValue] = useState(0);
   const [serviceName, setServiceName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
@@ -105,7 +105,7 @@ const EstablishmentServices = ({
     setConcurrentService(service.concurrentService);
     setConcurrentServiceValue(
       service.concurrentServiceValue
-        ? String(service.concurrentServiceValue)
+        ? Number(service.concurrentServiceValue)
         : ""
     );
 
@@ -115,7 +115,7 @@ const EstablishmentServices = ({
   };
 
   const handleUpdateService = async () => {
-    if (!serviceName || !price || !duration || !description || !dailyLimit) {
+    if (!serviceName || !price || !duration || !description) {
       setSnackbarSeverity("error");
       setSnackbarMessage("Preencha todos os campos");
       setOpenSnackbar(true);
@@ -125,7 +125,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
         {
           method: "PUT",
           headers: {
@@ -137,7 +137,7 @@ const EstablishmentServices = ({
             price: Number(price),
             duration: Number(duration),
             description,
-            dailyLimit: Number(dailyLimit),
+            //dailyLimit: Number(dailyLimit),
             availability,
             concurrentService,
             concurrentServiceValue: Number(concurrentServiceValue),
@@ -214,7 +214,12 @@ const EstablishmentServices = ({
   };
 
   const handleCreateService = async () => {
-    if (!serviceName || !price || !duration || !description || !dailyLimit) {
+    if (
+      !serviceName ||
+      !price ||
+      !duration ||
+      !description /*|| !dailyLimit*/
+    ) {
       setSnackbarSeverity("error");
       setSnackbarMessage("Preencha todos os campos");
       setOpenSnackbar(true);
@@ -236,7 +241,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -248,7 +253,7 @@ const EstablishmentServices = ({
             price: Number(price),
             duration: Number(duration),
             description,
-            dailyLimit: Number(dailyLimit),
+            //dailyLimit: Number(dailyLimit),
             availability: filteredAvailability,
             establishment_id: dataEstablishment[0]._id,
             concurrentService,
@@ -281,7 +286,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButton(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
         {
           method: "DELETE",
           headers: {
@@ -512,8 +517,20 @@ const EstablishmentServices = ({
                               {service.duration} minutos
                             </Typography>
                           </Grid2>
-
                           <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                            <Typography
+                              variant="caption"
+                              color={"#AC42F7"}
+                              fontWeight={600}
+                            >
+                              Serviço simultâneo?
+                            </Typography>
+                            <Typography variant="body2">
+                              {/*{service.dailyLimit}*/}
+                              Sim
+                            </Typography>
+                          </Grid2>
+                          {/*<Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
                             <Typography
                               variant="caption"
                               color={"#AC42F7"}
@@ -524,7 +541,7 @@ const EstablishmentServices = ({
                             <Typography variant="body2">
                               {service.dailyLimit}
                             </Typography>
-                          </Grid2>
+                          </Grid2>*/}
                           {service.concurrentService && (
                             <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
                               <Typography
@@ -707,7 +724,7 @@ const EstablishmentServices = ({
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 12 }}>
+            {/*<Grid2 size={{ xs: 12 }}>
               <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
                 Quantidade de serviço por dia
               </InputLabel>
@@ -723,7 +740,7 @@ const EstablishmentServices = ({
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
               />
-            </Grid2>
+            </Grid2>*/}
             <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
               <FormControlLabel
                 control={

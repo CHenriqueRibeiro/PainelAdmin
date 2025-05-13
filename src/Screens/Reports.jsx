@@ -77,7 +77,6 @@ const ReportPage = () => {
         container
         spacing={1}
         sx={{
-          height: "7rem",
           background: "#FFFFFF",
           boxShadow: 3,
           backdropFilter: "blur(10px)",
@@ -109,7 +108,7 @@ const ReportPage = () => {
               >
                 Filtrar por período
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mt: 0.4 }}>
+              <Box sx={{ display: "flex", gap: 1, mt: 1.4 }}>
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
@@ -415,7 +414,7 @@ const ReportPage = () => {
       </Grid2>
 
       <Grid2 container spacing={3} sx={{ mb: 3 }}>
-        <Grid2 size={{ xs: 12, md: 6 }}>
+        <Grid2 size={{ xs: 12, md: 12 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -459,7 +458,7 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6 }}>
+        {/*<Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -476,7 +475,7 @@ const ReportPage = () => {
               />
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid2>*/}
       </Grid2>
 
       <Grid2 container spacing={3} sx={{ mb: 3 }}>
@@ -518,7 +517,7 @@ const ReportPage = () => {
         </Grid2>
       </Grid2>
       <Grid2 container spacing={3} sx={{ mb: 3 }}>
-        <Grid2 size={{ xs: 12, md: 6 }}>
+        <Grid2 size={{ xs: 12, md: 12 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -551,7 +550,7 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6 }}>
+        {/*<Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -572,7 +571,7 @@ const ReportPage = () => {
               />
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid2>*/}
       </Grid2>
     </Box>
   );

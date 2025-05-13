@@ -87,6 +87,7 @@ const ScheduledData = ({
     setLunchStart(establishment.openingHours?.intervalOpen || "");
     setLunchEnd(establishment.openingHours?.intervalClose || "");
     setPaymentMethods(establishment.paymentMethods || []);
+    setWorkingDays(establishment.workingDays || []);
 
     setOpenDialog(true);
   };
@@ -113,6 +114,7 @@ const ScheduledData = ({
     setLunchStart("");
     setLunchEnd("");
     setPaymentMethods([]);
+    setWorkingDays([]);
   };
 
   const renderSkeleton = () => (
@@ -214,8 +216,8 @@ const ScheduledData = ({
       setIsLoadingButtonSave(true);
 
       const url = isEditing
-        ? `https://lavaja.up.railway.app/api/establishment/establishment/${editEstablishmentId}`
-        : "https://lavaja.up.railway.app/api/establishment/create";
+        ? `http://localhost:3000/api/establishment/establishment/${editEstablishmentId}`
+        : "http://localhost:3000/api/establishment/create";
 
       const method = isEditing ? "PUT" : "POST";
 
@@ -256,7 +258,7 @@ const ScheduledData = ({
   const handleDeleteEstablishment = async () => {
     try {
       setIsLoadingButton(true);
-      const url = `https://lavaja.up.railway.app/api/establishment/establishment/${editEstablishmentId}`;
+      const url = `http://localhost:3000/api/establishment/establishment/${editEstablishmentId}`;
 
       const response = await fetch(url, {
         method: "DELETE",

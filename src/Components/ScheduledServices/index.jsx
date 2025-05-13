@@ -153,15 +153,12 @@ const ScheduledServices = ({
     setOpenDialogData(false);
   };
   useEffect(() => {
-    const selected = date || selectedDate;
-
-    if (selected && /^\d{4}-\d{2}-\d{2}$/.test(selected)) {
+    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
-
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selected}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
-        .then((response) => response.json())
+        .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
           setLoadingServices(false);
@@ -171,21 +168,20 @@ const ScheduledServices = ({
           alert("Erro ao buscar serviços.");
         });
     }
-  }, [date, selectedDate]);
-
+  }, [date]);
   useEffect(() => {
-    if ((service && date) || (selectedDate && selectedDate)) {
+    if (service && date) {
       setLoadingSlots(true);
+
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date || selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
-        .then((response) => response.json())
+        .then((res) => res.json())
         .then((data) => {
           const serviceData = data.services.find(
-            (s) => s.serviceId === service || s.serviceId === selectedService
+            (s) => s.serviceId === service
           );
           setAvailableSlots(serviceData?.availableSlots || []);
-          setAvailableServices(data.services);
           setAvailableHours(serviceData?.availableSlots || []);
           setLoadingSlots(false);
         })
@@ -194,7 +190,50 @@ const ScheduledServices = ({
           alert("Erro ao buscar horários.");
         });
     }
-  }, [service, date, selectedService, selectedDate]);
+  }, [service, date]);
+  useEffect(() => {
+    if (selectedDate) {
+      setLoadingServices(true);
+
+      fetch(
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setAvailableServices(data.services);
+          setSelectedService("");
+          setAvailableSlots([]);
+          setAvailableHours([]);
+          setLoadingServices(false);
+        })
+        .catch(() => {
+          setLoadingServices(false);
+          alert("Erro ao buscar serviços.");
+        });
+    }
+  }, [selectedDate]);
+  useEffect(() => {
+    if (selectedDate && selectedService) {
+      setLoadingSlots(true);
+
+      fetch(
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const serviceData = data.services.find(
+            (s) => s.serviceId === selectedService
+          );
+          setAvailableSlots(serviceData?.availableSlots || []);
+          setAvailableHours(serviceData?.availableSlots || []);
+          setLoadingSlots(false);
+        })
+        .catch(() => {
+          setLoadingSlots(false);
+          alert("Erro ao buscar horários.");
+        });
+    }
+  }, [selectedDate, selectedService]);
 
   const handleSave = async () => {
     if (!selectedAppointment) return;
@@ -203,7 +242,7 @@ const ScheduledServices = ({
       setIsLoadingButtonSave(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: {
@@ -249,7 +288,7 @@ const ScheduledServices = ({
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -305,7 +344,7 @@ const ScheduledServices = ({
       );
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments`,
+        `http://localhost:3000/api/appointments/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -339,6 +378,7 @@ const ScheduledServices = ({
       setClientPhone("");
       setVeiculo("");
       setDate("");
+      setSelectedDate("");
       setService("");
     } catch (error) {
       console.error("Erro:", error);
@@ -416,7 +456,7 @@ const ScheduledServices = ({
   }, [sortKey, sortOrder, services]);
   useEffect(() => {
     if (openDialog && selectedAppointment) {
-      setSelectedDate(dayjs(selectedAppointment.date));
+      setSelectedDate(selectedAppointment.date);
     }
   }, [openDialog, selectedAppointment]);
 
@@ -570,7 +610,7 @@ const ScheduledServices = ({
           sx={{
             display: "grid",
             gridTemplateColumns:
-              "0.4fr 0.7fr 0.4fr 0.65fr 0.9fr 0.45fr 0.35fr 0.12fr",
+              "0.4fr 0.7fr 0.4fr 0.65fr 0.9fr 0.45fr  0.12fr",
             alignItems: "center",
             pb: 1,
             borderBottom: "1px solid #ddd",
@@ -637,14 +677,14 @@ const ScheduledServices = ({
                 <ArrowDropDownIcon />
               ))}
           </Box>
-          <Box
+          {/*<Box
             display="flex"
             alignItems="center"
             gap={0.5}
             justifyContent="start"
           >
             <Typography variant="body2">Responsável</Typography>
-          </Box>
+          </Box>*/}
           <Box
             display="flex"
             alignItems="center"
@@ -684,7 +724,7 @@ const ScheduledServices = ({
               display: "grid",
               gridTemplateColumns: isMobile
                 ? "1fr"
-                : "0.4fr 0.8fr 0.4fr 0.8fr 0.8fr 0.5fr 0.46fr 0fr",
+                : "0.4fr 0.7fr 0.4fr 0.65fr 0.9fr 0.45fr  0.12fr",
               alignItems: "center",
               py: 1,
               borderBottom: "1px solid #f0f0f0",
@@ -711,7 +751,7 @@ const ScheduledServices = ({
                 display: "grid",
                 gridTemplateColumns: isMobile
                   ? "1fr"
-                  : "0.4fr 0.8fr 0.4fr 0.8fr 0.8fr 0.5fr 0.46fr 0fr",
+                  : "0.4fr 0.7fr 0.4fr 0.65fr 0.9fr 0.45fr  0.12fr",
                 alignItems: "center",
                 py: 1,
                 borderBottom: isMobile
@@ -762,9 +802,9 @@ const ScheduledServices = ({
                           }
                         />
                       </Typography>
-                      <Typography variant="body2">
+                      {/*<Typography variant="body2">
                         Responsável: Luizinho
-                      </Typography>
+                      </Typography>*/}
                       <Typography variant="body2">
                         Valor: R$ {item?.price}
                       </Typography>
@@ -838,9 +878,9 @@ const ScheduledServices = ({
                       handleOpenDialogStatus(item.status, item._id)
                     }
                   />
-                  <Typography variant="body2" fontWeight={500}>
+                  {/*<Typography variant="body2" fontWeight={500}>
                     Luizinho
-                  </Typography>
+                  </Typography>*/}
                   <Typography variant="body2" fontWeight={500}>
                     R$ {item?.price}
                   </Typography>
@@ -1046,7 +1086,7 @@ const ScheduledServices = ({
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
+                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -1127,15 +1167,15 @@ const ScheduledServices = ({
               >
                 <DatePicker
                   label="Data"
-                  value={selectedDate || dayjs(selectedAppointment.date)}
+                  value={selectedDate ? dayjs(selectedDate) : null}
                   format="DD/MM/YYYY"
                   onChange={(newDate) => {
-                    const parsedDate = dayjs(newDate, "DD/MM/YYYY", true);
+                    const parsedDate = dayjs(newDate);
+
                     if (parsedDate.isValid()) {
-                      setSelectedDate(parsedDate);
+                      const formatted = parsedDate.format("YYYY-MM-DD");
+                      setSelectedDate(formatted);
                       setSelectedService("");
-                    } else {
-                      setSelectedDate(newDate);
                     }
                   }}
                   slotProps={{
@@ -1428,7 +1468,7 @@ const ScheduledServices = ({
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
               />
-              <TextField
+              {/*<TextField
                 size="small"
                 fullWidth
                 label="Responsável"
@@ -1446,7 +1486,7 @@ const ScheduledServices = ({
                   borderRadius: 2,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
-              />
+              />*/}
               <TextField
                 size="small"
                 fullWidth

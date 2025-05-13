@@ -13,11 +13,10 @@ export default function Home() {
   const [services, setServices] = useState([]);
   const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
+        `http://localhost:3000/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
         {
           method: "GET",
           headers: {
@@ -38,7 +37,7 @@ export default function Home() {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
