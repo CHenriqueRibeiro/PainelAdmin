@@ -27,6 +27,8 @@ import {
   Alert,
   Popper,
   Paper,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
@@ -63,6 +65,8 @@ const ScheduledServices = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [sortKey, setSortKey] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
+  const [reminderWhatsapp, setReminderWhatsapp] = useState(false);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [openDialogData, setOpenDialogData] = useState(false);
   const [openDialogScheduling, setOpenDialogScheduling] = useState(false);
@@ -148,6 +152,7 @@ const ScheduledServices = ({
     setDate("");
     setService("");
     setDate("");
+    setReminderWhatsapp(false);
   };
   const handleCloseData = () => {
     setOpenDialogData(false);
@@ -156,7 +161,7 @@ const ScheduledServices = ({
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -174,7 +179,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -196,7 +201,7 @@ const ScheduledServices = ({
       setLoadingServices(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -217,7 +222,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -242,7 +247,7 @@ const ScheduledServices = ({
       setIsLoadingButtonSave(true);
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: {
@@ -253,6 +258,7 @@ const ScheduledServices = ({
             veiculo: selectedAppointment.veiculo,
             serviceName: selectedAppointment.serviceName,
             price: selectedAppointment.price,
+            reminderWhatsapp,
           }),
         }
       );
@@ -288,7 +294,7 @@ const ScheduledServices = ({
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -344,7 +350,7 @@ const ScheduledServices = ({
       );
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments`,
+        `https://lavaja.up.railway.app/api/appointments/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -360,6 +366,7 @@ const ScheduledServices = ({
             endTime: endTime,
             price: selectedService?.price,
             status: statusCreateNew,
+            reminderWhatsapp,
           }),
         }
       );
@@ -1086,7 +1093,7 @@ const ScheduledServices = ({
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
+                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -1767,6 +1774,7 @@ const ScheduledServices = ({
                             ))}
                           </Select>
                         </FormControl>
+
                         {loadingSlots ? (
                           <CircularProgress
                             sx={{ display: "block", margin: "auto" }}
@@ -1813,6 +1821,7 @@ const ScheduledServices = ({
                             </>
                           )
                         )}
+
                         <InputLabel
                           sx={{
                             color: "#FFFFFF",
@@ -1875,6 +1884,32 @@ const ScheduledServices = ({
                             ))}
                           </Select>
                         </FormControl>
+                        {statusCreateNew === "Agendado" && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mt: 2,
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={reminderWhatsapp}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setReminderWhatsapp(checked);
+                                  }}
+                                />
+                              }
+                              label="Enviar lembrete por WhatsApp?"
+                              sx={{
+                                color: "#FFFFFF",
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Box>
+                        )}
                       </>
                     ) : (
                       <Typography

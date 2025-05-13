@@ -48,7 +48,7 @@ const EstablishmentServices = ({
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
-  const [dailyLimit, setDailyLimit] = useState("");
+  //const [dailyLimit, setDailyLimit] = useState("");
   const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
   const [isLoadingButton, setIsLoadingButton] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -101,7 +101,7 @@ const EstablishmentServices = ({
     setPrice(String(service.price));
     setDuration(String(service.duration));
     setDescription(service.description);
-    setDailyLimit(String(service.dailyLimit));
+    //setDailyLimit(String(service.dailyLimit));
     setConcurrentService(service.concurrentService);
     setConcurrentServiceValue(
       service.concurrentServiceValue
@@ -109,9 +109,40 @@ const EstablishmentServices = ({
         : ""
     );
 
-    setAvailabilityEdit(service.availability);
+    const allDays = [
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+      "Domingo",
+    ];
+
+    const workingDays = dataEstablishment[0]?.workingDays || allDays;
+
+    const mappedAvailability = workingDays.map((day) => {
+      const existing = service.availability.find((d) => d.day === day);
+      return {
+        day,
+        availableHours: existing?.availableHours?.length
+          ? existing.availableHours
+          : [],
+      };
+    });
+
+    setAvailabilityEdit(mappedAvailability);
     setExpandedService(service._id);
     setOpenDialogEdit(true);
+  };
+
+  const sanitizeAvailability = (availability) => {
+    return availability
+      .map((day) => ({
+        day: day.day,
+        availableHours: day.availableHours.filter((h) => h.start && h.end),
+      }))
+      .filter((day) => day.availableHours.length > 0);
   };
 
   const handleUpdateService = async () => {
@@ -122,10 +153,12 @@ const EstablishmentServices = ({
       return;
     }
 
+    const filteredAvailability = sanitizeAvailability(availabilityEdit);
+
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
         {
           method: "PUT",
           headers: {
@@ -137,8 +170,7 @@ const EstablishmentServices = ({
             price: Number(price),
             duration: Number(duration),
             description,
-            //dailyLimit: Number(dailyLimit),
-            availability,
+            availability: filteredAvailability,
             concurrentService,
             concurrentServiceValue: Number(concurrentServiceValue),
           }),
@@ -167,7 +199,7 @@ const EstablishmentServices = ({
     setPrice("");
     setDuration("");
     setDescription("");
-    setDailyLimit("");
+    //setDailyLimit("");
     setAvailability(
       availability.map((day) => ({
         ...day,
@@ -176,13 +208,14 @@ const EstablishmentServices = ({
     );
   };
   const handleCloseDialogEdit = () => {
+    setOpenDialogEdit(false);
     setConcurrentService(false);
     setConcurrentServiceValue("");
     setServiceName("");
     setPrice("");
     setDuration("");
     setDescription("");
-    setDailyLimit("");
+    //setDailyLimit("");
     setAvailabilityEdit(
       availability.map((day) => ({
         ...day,
@@ -241,7 +274,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service`,
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -286,7 +319,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButton(true);
       const response = await fetch(
-        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
+        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
         {
           method: "DELETE",
           headers: {
@@ -321,23 +354,42 @@ const EstablishmentServices = ({
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
     setAvailability(newAvailability);
-    setAvailabilityEdit(newAvailability);
   };
 
   const removeAvailableHour = (dayIndex, hourIndex) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
     setAvailability(newAvailability);
-    setAvailabilityEdit(newAvailability);
   };
 
   const handleHourChange = (dayIndex, hourIndex, field, value) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours[hourIndex][field] = value;
     setAvailability(newAvailability);
-    setAvailabilityEdit(newAvailability);
+  };
+  const addAvailableHourEdit = (dayIndex) => {
+    setAvailabilityEdit((prev) => {
+      const updated = [...prev];
+      updated[dayIndex].availableHours.push({ start: "", end: "" });
+      return updated;
+    });
   };
 
+  const removeAvailableHourEdit = (dayIndex, hourIndex) => {
+    setAvailabilityEdit((prev) => {
+      const updated = [...prev];
+      updated[dayIndex].availableHours.splice(hourIndex, 1);
+      return updated;
+    });
+  };
+
+  const handleHourChangeEdit = (dayIndex, hourIndex, field, value) => {
+    setAvailabilityEdit((prev) => {
+      const updated = [...prev];
+      updated[dayIndex].availableHours[hourIndex][field] = value;
+      return updated;
+    });
+  };
   const renderSkeleton = () => (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
       <Box
@@ -525,10 +577,7 @@ const EstablishmentServices = ({
                             >
                               Serviço simultâneo?
                             </Typography>
-                            <Typography variant="body2">
-                              {/*{service.dailyLimit}*/}
-                              Sim
-                            </Typography>
+                            <Typography variant="body2">-</Typography>
                           </Grid2>
                           {/*<Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
                             <Typography
@@ -1024,7 +1073,7 @@ const EstablishmentServices = ({
               />
             </Grid2>
 
-            <Grid2 size={{ xs: 12 }}>
+            {/*<Grid2 size={{ xs: 12 }}>
               <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
                 Quantidade de serviço por dia
               </InputLabel>
@@ -1040,7 +1089,7 @@ const EstablishmentServices = ({
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
               />
-            </Grid2>
+            </Grid2>*/}
             <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
               <FormControlLabel
                 control={
@@ -1087,7 +1136,7 @@ const EstablishmentServices = ({
               size={{ xs: 12 }}
               sx={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {availabilityEdit.map((day, dayIndex) => (
+              {availabilityEdit?.map((day, dayIndex) => (
                 <Grid2 size={{ xs: 12 }} key={day.day}>
                   <Typography
                     variant="body2"
@@ -1097,14 +1146,16 @@ const EstablishmentServices = ({
                     {day.day}
                   </Typography>
 
-                  {day.availableHours.length === 0 ? (
+                  {day.availableHours?.length === 0 ? (
                     <Tooltip title="Adicionar horário">
-                      <IconButton onClick={() => addAvailableHour(dayIndex)}>
+                      <IconButton
+                        onClick={() => addAvailableHourEdit(dayIndex)}
+                      >
                         <AddRoundedIcon sx={{ color: "#AC42F7" }} />
                       </IconButton>
                     </Tooltip>
                   ) : (
-                    day.availableHours.map((hour, hourIndex) => (
+                    day.availableHours?.map((hour, hourIndex) => (
                       <Grid2
                         key={hourIndex}
                         sx={{
@@ -1128,7 +1179,7 @@ const EstablishmentServices = ({
                             type="time"
                             value={hour.start}
                             onChange={(e) =>
-                              handleHourChange(
+                              handleHourChangeEdit(
                                 dayIndex,
                                 hourIndex,
                                 "start",
@@ -1154,7 +1205,7 @@ const EstablishmentServices = ({
                             type="time"
                             value={hour.end}
                             onChange={(e) =>
-                              handleHourChange(
+                              handleHourChangeEdit(
                                 dayIndex,
                                 hourIndex,
                                 "end",
@@ -1171,7 +1222,7 @@ const EstablishmentServices = ({
                         >
                           <Tooltip title="Adicionar horário">
                             <IconButton
-                              onClick={() => addAvailableHour(dayIndex)}
+                              onClick={() => addAvailableHourEdit(dayIndex)}
                             >
                               <AddRoundedIcon sx={{ color: "#AC42F7" }} />
                             </IconButton>
@@ -1180,7 +1231,7 @@ const EstablishmentServices = ({
                           <Tooltip title="Remover horário">
                             <IconButton
                               onClick={() =>
-                                removeAvailableHour(dayIndex, hourIndex)
+                                removeAvailableHourEdit(dayIndex, hourIndex)
                               }
                             >
                               <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />

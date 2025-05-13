@@ -16,13 +16,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/owner/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        "https://lavaja.up.railway.app/api/owner/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
       const result = await response.json();
 
@@ -47,11 +50,14 @@ export const AuthProvider = ({ children }) => {
     const userData = { email, password: senha };
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        "https://lavaja.up.railway.app/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        }
+      );
       const result = await response.json();
 
       if (!response.ok) {
