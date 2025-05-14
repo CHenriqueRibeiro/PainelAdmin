@@ -1,11 +1,10 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Grid2, Typography, Card, CardContent } from "@mui/material";
 import Chart from "react-apexcharts";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import updateLocale from "dayjs/plugin/updateLocale";
-import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import NoCrashIcon from "@mui/icons-material/NoCrash";
 import PaidIcon from "@mui/icons-material/Paid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
@@ -18,57 +17,90 @@ const ReportPage = () => {
   dayjs.updateLocale("pt-br", {
     weekdaysMin: ["D", "S", "T", "Q", "Q", "S", "S"],
   });
-  const [startDate, setStartDate] = useState(
-    dayjs().startOf("week").format("YYYY-MM-DD")
-  );
-  const [endDate, setEndDate] = useState(
-    dayjs().endOf("week").format("YYYY-MM-DD")
-  );
 
+  const [startDate, setStartDate] = useState(dayjs().startOf("week"));
+  const [endDate, setEndDate] = useState(dayjs().endOf("week"));
+  const [reportData, setReportData] = useState(null);
+  const ownerUser = JSON.parse(localStorage.getItem("user"));
+  const ownerId = ownerUser.id;
+  const token = localStorage.getItem("authToken");
+  const [owner, setOwner] = useState(null);
+  const establishmentSearch = async () => {
+    try {
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setOwner(data);
+    } catch (err) {
+      console.error("Erro ao buscar estabelecimentos:", err);
+    }
+  };
+
+  useEffect(() => {
+    establishmentSearch();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!owner?.establishments?.[0]?._id) return;
+      try {
+        const res = await fetch(
+          `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${startDate.format(
+            "YYYY-MM-DD"
+          )}&endDate=${endDate.format(
+            "YYYY-MM-DD"
+          )}&establishmentId=${owner.establishments[0]._id}`
+        );
+        const data = await res.json();
+        setReportData(data);
+      } catch (error) {
+        console.error("Erro ao buscar relatório:", error);
+      }
+    };
+
+    fetchData();
+  }, [startDate, endDate, owner]);
+
+  const weeklyRevenueData = reportData
+    ? [
+        reportData.weeklyRevenueByDay.Dom,
+        reportData.weeklyRevenueByDay.Seg,
+        reportData.weeklyRevenueByDay.Ter,
+        reportData.weeklyRevenueByDay.Qua,
+        reportData.weeklyRevenueByDay.Qui,
+        reportData.weeklyRevenueByDay.Sex,
+        reportData.weeklyRevenueByDay.Sáb,
+      ]
+    : [];
+
+  const serviceTypeLabels = reportData
+    ? Object.keys(reportData.serviceTypes)
+    : [];
+  const serviceTypeValues = reportData
+    ? Object.values(reportData.serviceTypes)
+    : [];
+
+  const reservedHoursLabels = reportData
+    ? Object.keys(reportData.reservedHours)
+    : [];
+  const reservedHoursValues = reportData
+    ? Object.values(reportData.reservedHours)
+    : [];
+  const totalRevenue = reportData?.totalRevenue ?? 0;
+  const totalWashes = reservedHoursValues.reduce((a, b) => a + b, 0);
   const commonCardStyles = {
     background: "rgba(255, 255, 255, 0.5)",
     boxShadow: 3,
     backdropFilter: "blur(10px)",
     borderRadius: 6,
-  };
-
-  const barChartOptions = {
-    chart: {
-      type: "bar",
-      toolbar: { show: false },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "50%",
-        borderRadius: 6,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: ["João", "Maria", "Lucas", "Ana"],
-    },
-    colors: ["#9333ea"],
-  };
-
-  const serviceChartOptions = {
-    ...barChartOptions,
-    xaxis: {
-      categories: ["Simples", "Completa", "Premium"],
-    },
-  };
-
-  const pieChartOptions = {
-    chart: {
-      type: "pie",
-    },
-    labels: ["Cartão", "Dinheiro", "Pix"],
-    colors: ["#9333ea", "#c084fc", "#e9d5ff"],
-    legend: {
-      position: "bottom",
-    },
   };
 
   return (
@@ -121,9 +153,7 @@ const ReportPage = () => {
                     label="Início"
                     format="DD/MM/YYYY"
                     value={startDate ? dayjs(startDate) : null}
-                    onChange={(newValue) => {
-                      if (newValue) setStartDate(newValue.format("YYYY-MM-DD"));
-                    }}
+                    onChange={(newValue) => newValue && setStartDate(newValue)}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -191,9 +221,7 @@ const ReportPage = () => {
                     label="Fim"
                     format="DD/MM/YYYY"
                     value={endDate ? dayjs(endDate) : null}
-                    onChange={(newValue) => {
-                      if (newValue) setEndDate(newValue.format("YYYY-MM-DD"));
-                    }}
+                    onChange={(newValue) => newValue && setEndDate(newValue)}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -261,7 +289,7 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 12, lg: 2.66 }} sx={{ height: "100%" }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 4 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
@@ -295,7 +323,7 @@ const ReportPage = () => {
                 variant="subtitle2"
                 sx={{ color: "#FFFFFF", fontWeight: 600 }}
               >
-                Receita
+                Receita total
               </Typography>
               <Typography
                 variant="h5"
@@ -306,12 +334,12 @@ const ReportPage = () => {
                   lineHeight: 1.8,
                 }}
               >
-                R$ 1.541,12
+                R$ {totalRevenue.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }} sx={{ height: "100%" }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 4 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
@@ -356,12 +384,12 @@ const ReportPage = () => {
                   lineHeight: 1.8,
                 }}
               >
-                126
+                {totalWashes}
               </Typography>
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 2.66 }} sx={{ height: "100%" }}>
+        {/*<Grid2 size={{ xs: 12, md: 6, lg: 2.66 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
@@ -410,11 +438,11 @@ const ReportPage = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid2>*/}
       </Grid2>
 
       <Grid2 container spacing={3} sx={{ mb: 3 }}>
-        <Grid2 size={{ xs: 12, md: 12 }}>
+        <Grid2 size={{ xs: 12, md: 12, lg: 12 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -423,59 +451,54 @@ const ReportPage = () => {
               >
                 Receita Semanal
               </Typography>
-              <Chart
-                options={{
-                  ...barChartOptions,
-                  chart: { id: "area", toolbar: { show: false } },
-                  xaxis: {
-                    categories: [
-                      "Dom",
-                      "Seg",
-                      "Ter",
-                      "Qua",
-                      "Qui",
-                      "Sex",
-                      "Sáb",
-                    ],
-                  },
-                  stroke: { curve: "smooth" },
-                  fill: {
-                    type: "gradient",
-                    gradient: {
-                      shadeIntensity: 1,
-                      opacityFrom: 0.5,
-                      opacityTo: 0,
-                      stops: [0, 90, 100],
+              {weeklyRevenueData.every((val) => val === 0) ? (
+                <Box
+                  sx={{
+                    height: 265,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography sx={{ mt: 2 }} color="text.secondary">
+                    Não há dados para mostrar no período selecionado.
+                  </Typography>
+                </Box>
+              ) : (
+                <Chart
+                  options={{
+                    chart: { id: "area", toolbar: { show: false } },
+                    xaxis: {
+                      categories: [
+                        "Dom",
+                        "Seg",
+                        "Ter",
+                        "Qua",
+                        "Qui",
+                        "Sex",
+                        "Sáb",
+                      ],
                     },
-                  },
-                }}
-                series={[
-                  { name: "Receita", data: [12, 15, 11, 18, 14, 20, 25] },
-                ]}
-                type="area"
-                height={250}
-              />
+                    stroke: { curve: "smooth" },
+                    fill: {
+                      type: "gradient",
+                      gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.5,
+                        opacityTo: 0,
+                        stops: [0, 90, 100],
+                      },
+                    },
+                    colors: ["#9333ea"],
+                  }}
+                  series={[{ name: "Receita", data: weeklyRevenueData }]}
+                  type="area"
+                  height={250}
+                />
+              )}
             </CardContent>
           </Card>
         </Grid2>
-        {/*<Grid2 size={{ xs: 12, md: 6 }}>
-          <Card sx={commonCardStyles}>
-            <CardContent>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "#6b21a8", fontWeight: 600 }}
-              >
-                Funcionários que Mais Lavaram
-              </Typography>
-              <Chart
-                options={barChartOptions}
-                series={[{ name: "Lavagens", data: [30, 25, 20, 18] }]}
-                type="bar"
-                height={250}
-              />
-            </CardContent>
-          </Card>
-        </Grid2>*/}
       </Grid2>
 
       <Grid2 container spacing={3} sx={{ mb: 3 }}>
@@ -488,36 +511,40 @@ const ReportPage = () => {
               >
                 Tipos de Serviço
               </Typography>
-              <Chart
-                options={serviceChartOptions}
-                series={[{ name: "Quantidade", data: [50, 30, 20] }]}
-                type="bar"
-                height={250}
-              />
+              {serviceTypeValues.every((val) => val === 0) ? (
+                <Box
+                  sx={{
+                    height: 265,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography sx={{ mt: 2 }} color="text.secondary">
+                    Não há dados para mostrar no período selecionado.
+                  </Typography>
+                </Box>
+              ) : (
+                <Chart
+                  options={{
+                    chart: { type: "bar", toolbar: { show: true } },
+                    xaxis: { categories: serviceTypeLabels },
+                    colors: ["#9333ea"],
+                    plotOptions: {
+                      bar: { borderRadius: 6, columnWidth: "50%" },
+                    },
+                    dataLabels: { enabled: false },
+                  }}
+                  series={[{ name: "Quantidade", data: serviceTypeValues }]}
+                  type="bar"
+                  height={250}
+                />
+              )}
             </CardContent>
           </Card>
         </Grid2>
+
         <Grid2 size={{ xs: 12, md: 6 }}>
-          <Card sx={commonCardStyles}>
-            <CardContent>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "#6b21a8", fontWeight: 600 }}
-              >
-                Formas de Pagamento
-              </Typography>
-              <Chart
-                options={pieChartOptions}
-                series={[40, 35, 25]}
-                type="pie"
-                height={265}
-              />
-            </CardContent>
-          </Card>
-        </Grid2>
-      </Grid2>
-      <Grid2 container spacing={3} sx={{ mb: 3 }}>
-        <Grid2 size={{ xs: 12, md: 12 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
               <Typography
@@ -526,52 +553,38 @@ const ReportPage = () => {
               >
                 Horários Mais Reservados
               </Typography>
-              <Chart
-                options={{
-                  chart: { id: "horarios", toolbar: { show: false } },
-                  xaxis: {
-                    categories: [
-                      "08h",
-                      "09h",
-                      "10h",
-                      "11h",
-                      "12h",
-                      "13h",
-                      "14h",
-                    ],
-                  },
-                  colors: ["#7e22ce"],
-                  dataLabels: { enabled: false },
-                }}
-                series={[{ name: "Reservas", data: [5, 8, 15, 12, 7, 9, 4] }]}
-                type="bar"
-                height={250}
-              />
+              {reservedHoursValues.every((val) => val === 0) ? (
+                <Box
+                  sx={{
+                    height: 265,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography sx={{ mt: 2 }} color="text.secondary">
+                    Não há dados para mostrar no período selecionado.
+                  </Typography>
+                </Box>
+              ) : (
+                <Chart
+                  options={{
+                    chart: { id: "horarios", toolbar: { show: true } },
+                    xaxis: { categories: reservedHoursLabels },
+                    colors: ["#7e22ce"],
+                    plotOptions: {
+                      bar: { borderRadius: 6, columnWidth: "50%" },
+                    },
+                    dataLabels: { enabled: false },
+                  }}
+                  series={[{ name: "Reservas", data: reservedHoursValues }]}
+                  type="bar"
+                  height={250}
+                />
+              )}
             </CardContent>
           </Card>
         </Grid2>
-        {/*<Grid2 size={{ xs: 12, md: 6 }}>
-          <Card sx={commonCardStyles}>
-            <CardContent>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "#6b21a8", fontWeight: 600 }}
-              >
-                Origem do Agendamento
-              </Typography>
-              <Chart
-                options={{
-                  labels: ["Aplicativo", "Sistema"],
-                  legend: { position: "bottom" },
-                  colors: ["#6b21a8", "#c084fc"],
-                }}
-                series={[60, 40]}
-                type="donut"
-                height={265}
-              />
-            </CardContent>
-          </Card>
-        </Grid2>*/}
       </Grid2>
     </Box>
   );
