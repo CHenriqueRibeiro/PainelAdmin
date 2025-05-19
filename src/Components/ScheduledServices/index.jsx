@@ -29,6 +29,7 @@ import {
   Paper,
   Switch,
   FormControlLabel,
+  ClickAwayListener,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
@@ -559,38 +560,40 @@ const ScheduledServices = ({
           </Box>
 
           <Popper
-            open={open}
+            open={Boolean(anchorElDate)}
             anchorEl={anchorElDate}
             placement="bottom-start"
             sx={{ zIndex: 1300 }}
           >
-            <Paper sx={{ mt: 1, borderRadius: 2, boxShadow: 3 }}>
-              <LocalizationProvider
-                adapterLocale="pt-br"
-                localeText={
-                  ptBR.components.MuiLocalizationProvider.defaultProps
-                    .localeText
-                }
-                dateAdapter={AdapterDayjs}
-              >
-                <DateCalendar
-                  value={dateServices}
-                  onChange={handleDateChange}
-                  sx={{
-                    "& .MuiPickersDay-root": {
-                      "&.Mui-selected": {
-                        backgroundColor: "#6B21A8",
-                        color: "#fff",
+            <ClickAwayListener onClickAway={() => setAnchorElDate(null)}>
+              <Paper sx={{ mt: 1, borderRadius: 2, boxShadow: 3 }}>
+                <LocalizationProvider
+                  adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
+                  dateAdapter={AdapterDayjs}
+                >
+                  <DateCalendar
+                    value={dateServices}
+                    onChange={handleDateChange}
+                    sx={{
+                      "& .MuiPickersDay-root": {
+                        "&.Mui-selected": {
+                          backgroundColor: "#6B21A8",
+                          color: "#fff",
+                        },
+                        "&:hover": {
+                          backgroundColor: "#6B21A8",
+                          color: "#fff",
+                        },
                       },
-                      "&:hover": {
-                        backgroundColor: "#6B21A8",
-                        color: "#fff",
-                      },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-            </Paper>
+                    }}
+                  />
+                </LocalizationProvider>
+              </Paper>
+            </ClickAwayListener>
           </Popper>
         </Box>
 
