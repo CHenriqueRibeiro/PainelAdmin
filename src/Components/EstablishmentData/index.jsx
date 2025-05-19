@@ -494,9 +494,9 @@ const ScheduledData = ({
               </InputLabel>
               <TextField
                 fullWidth
-                size="small"
                 value={nameEstablishment}
                 onChange={(e) => setNameEstablishment(e.target.value)}
+                size="small"
                 sx={{
                   bgcolor: "#fff",
                   borderRadius: 2,

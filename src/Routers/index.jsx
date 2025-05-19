@@ -15,6 +15,8 @@ import Establishment from "../Screens/Establishment";
 import { useAuth } from "../Context/AuthContext";
 
 import DashboardLayoutBasic from "../Components/DashboardSidebar";
+import Costs from "../Screens/Costs";
+import Budgets from "../Screens/Budgets";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
@@ -62,6 +64,18 @@ const Rotas = () => {
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Establishment />} />
+        </Route>
+        <Route
+          path="gestão/custos"
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Costs />} />
+        </Route>
+        <Route
+          path="gestão/orcamentos"
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Budgets />} />
         </Route>
       </Routes>
     </Router>

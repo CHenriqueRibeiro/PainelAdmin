@@ -132,11 +132,11 @@ const ScheduledServices = ({
     setAnchorEl(null);
     setOpenDialog(true);
   };
-  const handleEditClickData = (appointment) => {
+  /*const handleEditClickData = (appointment) => {
     setSelectedAppointment(appointment);
     setAnchorEl(null);
     setOpenDialogData(true);
-  };
+  };*/
   const handleCloseDialog = () => {
     setOpenDialog(false);
     //setSelectedAppointment(null);
@@ -523,9 +523,9 @@ const ScheduledServices = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            flexDirection: "row",
+            flexDirection: isMobile ? "column" : "row",
             borderRadius: 2,
-            gap: 3,
+            gap: isMobile ? 1 : 3,
           }}
         >
           <Typography variant="h6" fontWeight={600} color="#AC42F7">
@@ -846,7 +846,7 @@ const ScheduledServices = ({
                         },
                       }}
                     >
-                      <MenuItem
+                      {/*<MenuItem
                         sx={{
                           fontSize: "10px",
                           padding: "8px 16px",
@@ -854,7 +854,7 @@ const ScheduledServices = ({
                         onClick={() => handleEditClickData(item)}
                       >
                         Alterar dados
-                      </MenuItem>
+                      </MenuItem>*/}
                       <MenuItem
                         sx={{ fontSize: "10px", padding: "8px 16px" }}
                         onClick={() => handleEditClick(item)}
@@ -922,7 +922,7 @@ const ScheduledServices = ({
                       },
                     }}
                   >
-                    <MenuItem
+                    {/*<MenuItem
                       sx={{ fontSize: "10px", padding: "8px 16px" }}
                       onClick={() => {
                         handleEditClickData(selectedItem);
@@ -930,7 +930,7 @@ const ScheduledServices = ({
                       }}
                     >
                       Alterar dados
-                    </MenuItem>
+                    </MenuItem>*/}
                     <MenuItem
                       sx={{ fontSize: "10px", padding: "8px 16px" }}
                       onClick={() => {
