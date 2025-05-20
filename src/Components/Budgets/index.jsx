@@ -108,16 +108,15 @@ const Budgets = ({
           ).map(([date, groupedBudgets]) => (
             <Box key={date} sx={{ mb: 2 }}>
               <Box
-                 sx={{
-                      mt: 1,
-                      p: 2,
-                      borderRadius: 2,
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#f1eeff",
+                  p: 1.5,
+                  borderRadius: 2,
+                  cursor: "pointer",
+                }}
                 onClick={() =>
                   setExpandedType((prev) => (prev === date ? null : date))
                 }
@@ -143,8 +142,11 @@ const Budgets = ({
                       mt: 1,
                       p: 2,
                       borderRadius: 2,
-                      background: "#fff",
-                      boxShadow: 1,
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
                     }}
                   >
                     <Grid2 container spacing={2} width={"90%"}>
