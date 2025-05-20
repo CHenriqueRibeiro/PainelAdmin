@@ -108,15 +108,16 @@ const Budgets = ({
           ).map(([date, groupedBudgets]) => (
             <Box key={date} sx={{ mb: 2 }}>
               <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  background: "#f1eeff",
-                  p: 1.5,
-                  borderRadius: 2,
-                  cursor: "pointer",
-                }}
+                 sx={{
+                      mt: 1,
+                      p: 2,
+                      borderRadius: 2,
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
+                    }}
                 onClick={() =>
                   setExpandedType((prev) => (prev === date ? null : date))
                 }
