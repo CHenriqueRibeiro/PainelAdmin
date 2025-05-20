@@ -147,21 +147,37 @@ const Budgets = ({
                     }}
                   >
                     <Grid2 container spacing={2}>
-                      <Grid2 xs={12} sm={6}>
-                        <Typography fontWeight={600}>Cliente</Typography>
-                        <Typography>{budget.clientName}</Typography>
+                      <Grid2 size={{xs:12, sm:6}}>
+                        <Typography
+                          variant="caption"
+                          color="#AC42F7"
+                          fontWeight={600}
+                        >Cliente</Typography>
+                        <Typography variant="subtitle2">{budget.clientName}</Typography>
                       </Grid2>
-                      <Grid2 xs={12} sm={6}>
-                        <Typography fontWeight={600}>Telefone</Typography>
-                        <Typography>{budget.phone}</Typography>
+                      <Grid2 size={{xs:12, sm:6}}>
+                        <Typography
+                          variant="caption"
+                          color="#AC42F7"
+                          fontWeight={600}
+                        >Telefone</Typography>
+                        <Typography variant="subtitle2">{budget.phone}</Typography>
                       </Grid2>
-                      <Grid2 xs={12} sm={6}>
-                        <Typography fontWeight={600}>Título</Typography>
-                        <Typography>{budget.title}</Typography>
+                      <Grid2 size={{xs:12, sm:6}}>
+                        <Typography
+                          variant="caption"
+                          color="#AC42F7"
+                          fontWeight={600}
+                        >Título</Typography>
+                        <Typography variant="subtitle2">{budget.title}</Typography>
                       </Grid2>
-                      <Grid2 xs={12} sm={6}>
-                        <Typography fontWeight={600}>Valor</Typography>
-                        <Typography>
+                      <Grid2 size={{xs:12, sm:6}}>
+                        <Typography
+                          variant="caption"
+                          color="#AC42F7"
+                          fontWeight={600}
+                        >Valor</Typography>
+                        <Typography variant="subtitle2">
                           R$ {parseFloat(budget.value).toFixed(2)}
                         </Typography>
                       </Grid2>
