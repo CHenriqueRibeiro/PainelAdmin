@@ -146,7 +146,7 @@ const Budgets = ({
                       boxShadow: 1,
                     }}
                   >
-                    <Grid2 container spacing={2}>
+                    <Grid2 container spacing={2} width={"90%"}>
                       <Grid2 size={{xs:12, sm:6}}>
                         <Typography
                           variant="caption"
@@ -183,7 +183,12 @@ const Budgets = ({
                       </Grid2>
                     </Grid2>
 
-                    <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                    <Box sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 1,
+                        width: "10%",
+                      }}>
                       <Tooltip title="Visualizar orçamento">
                         <IconButton
                           color="primary"
@@ -194,6 +199,7 @@ const Budgets = ({
                           <PictureAsPdfRoundedIcon />
                         </IconButton>
                       </Tooltip>
+                      <Divider orientation="vertical" flexItem />
                       <Tooltip title="Excluir orçamento">
                         <IconButton
                           color="error"
