@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-// Componente Products ajustado para exibir os produtos com colapsos por nome do produto e ações de editar/excluir com edição de serviços vinculados
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -200,29 +199,6 @@ const Products = ({
                   {product.name} | {product.quantidadeAtual} {product.unidade}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Tooltip title="Editar">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedProduct(product);
-                        setVincularServicos(product.servicos?.length > 0);
-                        setEditDialogOpen(true);
-                      }}
-                    >
-                      <EditRoundedIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Excluir">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(product._id);
-                      }}
-                      color="error"
-                    >
-                      <DeleteRoundedIcon />
-                    </IconButton>
-                  </Tooltip>
                   {expandedProductId === product._id ? (
                     <ArrowDropUpRoundedIcon
                       sx={{ color: "#AC42F7" }}
@@ -245,23 +221,101 @@ const Products = ({
                 </Box>
               </Box>
               <Collapse in={expandedProductId === product._id}>
-                <Box sx={{ mt: 1, p: 2, borderRadius: 2 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
                   {product.servicos && product.servicos.length > 0 ? (
                     <>
-                      <Typography fontWeight={600} color="#AC42F7">
-                        Serviços vinculados:
-                      </Typography>
-                      {product.servicos.map((s, idx) => (
-                        <Typography key={idx} variant="body2">
-                          - {s.service?.name || s.service} | Consumo:{" "}
-                          {s.consumoPorServico} {product.unidade}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "90%",
+                        }}
+                      >
+                        <Typography fontWeight={600} color="#AC42F7">
+                          Serviços vinculados:
                         </Typography>
-                      ))}
+                        {product.servicos.map((s, idx) => (
+                          <Typography key={idx} variant="body2">
+                            - {s.service?.name || s.service} | Consumo:{" "}
+                            {s.consumoPorServico} {product.unidade}
+                          </Typography>
+                        ))}
+                      </Box>
+                      <Tooltip title="Editar">
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProduct(product);
+                            setVincularServicos(product.servicos?.length > 0);
+                            setEditDialogOpen(true);
+                          }}
+                        >
+                          <EditRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Divider orientation="vertical" flexItem />
+                      <Tooltip title="Excluir">
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(product._id);
+                          }}
+                          color="error"
+                        >
+                          <DeleteRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
                     </>
                   ) : (
-                    <Typography variant="body2" color="textSecondary">
-                      Nenhum serviço vinculado.
-                    </Typography>
+                    <>
+                      <Typography variant="body2" color="textSecondary">
+                        Nenhum serviço vinculado.
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          width: "10%",
+                          justifyContent: "flex-end",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Tooltip title="Editar">
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProduct(product);
+                              setVincularServicos(product.servicos?.length > 0);
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            <EditRoundedIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Divider orientation="vertical" flexItem />
+                        <Tooltip title="Excluir">
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(product._id);
+                            }}
+                            color="error"
+                          >
+                            <DeleteRoundedIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </>
                   )}
                 </Box>
               </Collapse>
