@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../Context/AuthContext";
 import NewProducts from "../Components/NewProducts";
-import ChatPopUpIA from "../Components/ChatPopUpIA";
 export default function Products() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +71,6 @@ export default function Products() {
           isLoading={isLoading}
           setEstablishment={setEstablishment}
         />
-        <ChatPopUpIA token={token} />
       </Box>
     </>
   );

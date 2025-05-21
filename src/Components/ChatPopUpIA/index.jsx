@@ -10,14 +10,16 @@ import {
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useAuth } from "../../Context/AuthContext";
 
 // eslint-disable-next-line react/prop-types
 export default function ChatPopUpIA({ open, onClose, token }) {
+  const { establishments } = useAuth();
   const [mensagem, setMensagem] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [progress, setProgress] = useState(0);
   const [buffer, setBuffer] = useState(10);
-
+  const idEstabelecimento = establishments[0]?._id;
   useEffect(() => {
     if (open) {
       buscarMensagem();
@@ -29,7 +31,7 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     setCarregando(true);
     try {
       const response = await fetch(
-        "https://lavaja.up.railway.app/api/ia/prever-consumo",
+        `https://lavaja.up.railway.app/api/ia/prever-consumo/${idEstabelecimento}`,
         {
           method: "GET",
           headers: {
