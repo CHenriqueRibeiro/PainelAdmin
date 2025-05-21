@@ -1,11 +1,29 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
-import React, { useState } from "react";
+// eslint-disable-next-line no-unused-vars
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Typography,
+  LinearProgress,
+  Box,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
-function ChatPopUpIA({ token }) {
+// eslint-disable-next-line react/prop-types
+export default function ChatPopUpIA({ open, onClose, token }) {
   const [mensagem, setMensagem] = useState("");
-  const [aberto, setAberto] = useState(false);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [buffer, setBuffer] = useState(10);
+
+  useEffect(() => {
+    if (open) {
+      buscarMensagem();
+      simularProgresso();
+    }
+  }, [open]);
 
   const buscarMensagem = async () => {
     setCarregando(true);
@@ -19,77 +37,102 @@ function ChatPopUpIA({ token }) {
           },
         }
       );
-
       const data = await response.json();
       setMensagem(
         data.resposta || "Não foi possível obter a resposta da JáIA."
       );
     } catch (err) {
-      console.error("Erro ao consultar a IA:", err);
       setMensagem("Erro ao consultar a JáIA.");
     } finally {
       setCarregando(false);
     }
   };
 
-  const togglePopup = () => {
-    if (!aberto) buscarMensagem();
-    setAberto(!aberto);
+  // Simula uma progressão animada (opcional)
+  const simularProgresso = () => {
+    let prog = 0;
+    let buff = 10;
+    const interval = setInterval(() => {
+      if (prog >= 100) {
+        clearInterval(interval);
+      } else {
+        prog += Math.random() * 10;
+        buff = prog + Math.random() * 10;
+        setProgress(Math.min(prog, 100));
+        setBuffer(Math.min(buff, 100));
+      }
+    }, 300);
   };
 
   return (
-    <>
-      <div
-        onClick={togglePopup}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          backgroundColor: "#AC42F7",
-          color: "white",
-          padding: "12px 16px",
-          borderRadius: "20px",
-          cursor: "pointer",
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          backgroundColor: "#F9F8FF",
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          color: "#6A1B9A",
           fontWeight: "bold",
-          zIndex: 9999,
         }}
       >
-        {aberto ? "Fechar JáIA" : "Abrir JáIA"}
-      </div>
-
-      {aberto && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "70px",
-            right: "20px",
-            width: "300px",
-            maxHeight: "400px",
-            backgroundColor: "#fff",
-            borderRadius: "16px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            padding: "16px",
-            overflowY: "auto",
-            whiteSpace: "pre-line",
-            zIndex: 9998,
-            fontFamily: "sans-serif",
-            fontSize: "14px",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: "bold",
-              marginBottom: "8px",
-              color: "#AC42F7",
+        JáIA 💡
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        {carregando ? (
+          <Box sx={{ my: 4 }}>
+            <Typography
+              align="center"
+              fontWeight="bold"
+              sx={{ color: "#AC42F7", mb: 1 }}
+            >
+              Analisando...
+            </Typography>
+            <LinearProgress
+              variant="buffer"
+              value={progress}
+              valueBuffer={buffer}
+              sx={{
+                height: 8,
+                borderRadius: 5,
+                backgroundColor: "#E1D3F9",
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: "#AC42F7",
+                },
+                "& .MuiLinearProgress-barBuffer": {
+                  backgroundColor: "#D1A4F7",
+                },
+              }}
+            />
+          </Box>
+        ) : (
+          <Typography
+            component="div"
+            sx={{ whiteSpace: "pre-line", fontSize: 14 }}
+            dangerouslySetInnerHTML={{
+              __html: mensagem
+                .replace(
+                  /\*\*(.*?)\*\*/g,
+                  "<strong style='color:#AC42F7'>$1</strong>"
+                )
+                .replace(/\n/g, "<br>"),
             }}
-          >
-            💡 JáIA Analisou:
-          </div>
-          {carregando ? "Analisando consumo..." : mensagem}
-        </div>
-      )}
-    </>
+          />
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
-
-export default ChatPopUpIA;

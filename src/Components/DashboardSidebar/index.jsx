@@ -1,20 +1,19 @@
-// eslint-disable-next-line no-unused-vars
 import * as React from "react";
 import { createTheme } from "@mui/material/styles";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Box, IconButton, Tooltip } from "@mui/material";
+
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-//import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicRounded";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { Box, IconButton, Stack, Tooltip } from "@mui/material";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
-//import SwitchAccountRoundedIcon from "@mui/icons-material/SwitchAccountRounded";
+import ChatPopUpIA from "../ChatPopUpIA";
 
 const NAVIGATION = [
   {
@@ -22,23 +21,16 @@ const NAVIGATION = [
     icon: (
       <AutoAwesomeMosaicRoundedIcon sx={{ color: "#009688", fontSize: 28 }} />
     ),
-    onClick: () => Navigate("/home"),
   },
   {
     segment: "Estabelecimento",
     icon: <StorefrontIcon sx={{ color: "#009688", fontSize: 28 }} />,
-    onClick: () => Navigate("/estabelecimento"),
   },
   {
     segment: "Relatorios",
     icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
     onClick: () => Navigate("/relatorios"),
   },
-  /*{
-    segment: "Colaboradores",
-    icon: <SwitchAccountRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
-    onClick: () => Navigate("/colaboradores"),
-  },*/
   {
     segment: "Gestão",
     icon: <DonutSmallRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
@@ -72,6 +64,7 @@ const demoTheme = createTheme({
     },
   },
 });
+
 function SidebarFooter() {
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -80,70 +73,74 @@ function SidebarFooter() {
     localStorage.removeItem("user");
     navigate("/");
   };
+
   return (
-    <>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "flex-start",
-        }}
-      >
-        {/*<Box>
-          <Tooltip title="Suporte">
-            <a
-              href="https://wa.me/5585991673309"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <IconButton
-                sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}
-              >
-                <WhatsAppIcon sx={{ fontSize: 29 }} />
-              </IconButton>
-            </a>
-          </Tooltip>
-        </Box>*/}
-        <Box>
-          <Tooltip title="Sair">
-            <IconButton
-              onClick={handleLogout}
-              sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}
-            >
-              <LogoutRoundedIcon sx={{ fontSize: 29 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-    </>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
+      <Tooltip title="Sair">
+        <IconButton
+          onClick={handleLogout}
+          sx={{ color: "#6A1B9A", minWidth: "auto", px: 2, py: 2 }}
+        >
+          <LogoutRoundedIcon sx={{ fontSize: 29 }} />
+        </IconButton>
+      </Tooltip>
+    </Box>
   );
 }
 
-function CustomAppTitle() {
+// eslint-disable-next-line react/prop-types
+function ToolbarActionsIA({ onToggleIA }) {
   return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      spacing={2}
-      color={"#6A1B9A"}
-    ></Stack>
+    <Box sx={{ pr: 2 }}>
+      <Box
+        onClick={onToggleIA}
+        sx={{
+          background: "#6A1B9A",
+          color: "#fff",
+          px: 2,
+          py: 1,
+          borderRadius: 4,
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "0.9rem",
+          transition: "all 0.2s",
+          "&:hover": {
+            background: "#AC42F7",
+          },
+        }}
+      >
+        JáIA 💡
+      </Box>
+    </Box>
   );
 }
 
 export default function DashboardLayoutBasic(props) {
   // eslint-disable-next-line react/prop-types
   const { window } = props;
-
   const demoWindow = window ? window() : undefined;
+
+  const [showIA, setShowIA] = React.useState(false);
+  const token = localStorage.getItem("authToken");
 
   return (
     <AppProvider navigation={NAVIGATION} theme={demoTheme} window={demoWindow}>
       <DashboardLayout
         sidebarExpandedWidth={230}
         slots={{
-          appTitle: CustomAppTitle,
+          appTitle: () => (
+            <Box sx={{ pl: 2, fontWeight: "bold", color: "#6A1B9A" }}></Box>
+          ),
+          toolbarActions: () => (
+            <ToolbarActionsIA onToggleIA={() => setShowIA((prev) => !prev)} />
+          ),
           sidebarFooter: SidebarFooter,
         }}
         sx={{
@@ -172,6 +169,11 @@ export default function DashboardLayoutBasic(props) {
         }}
       >
         <Outlet />
+        <ChatPopUpIA
+          open={showIA}
+          onClose={() => setShowIA(false)}
+          token={token}
+        />
       </DashboardLayout>
     </AppProvider>
   );

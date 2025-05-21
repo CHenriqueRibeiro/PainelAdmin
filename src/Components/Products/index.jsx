@@ -184,7 +184,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  cursor: "pointer",
                   background: "#f1eeff",
                   p: 1.5,
                   borderRadius: 2,
@@ -196,7 +195,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   {expandedProductId === product._id ? (
                     <ArrowDropUpRoundedIcon
-                      sx={{ color: "#AC42F7" }}
+                      sx={{ color: "#AC42F7", cursor: "pointer" }}
                       onClick={() =>
                         setExpandedProductId((prev) =>
                           prev === product._id ? null : product._id
@@ -205,7 +204,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
                     />
                   ) : (
                     <ArrowDropDownRoundedIcon
-                      sx={{ color: "#AC42F7" }}
+                      sx={{ color: "#AC42F7", cursor: "pointer" }}
                       onClick={() =>
                         setExpandedProductId((prev) =>
                           prev === product._id ? null : product._id
