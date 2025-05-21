@@ -5,7 +5,7 @@ import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+//import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicRounded";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Box, IconButton, Stack, Tooltip } from "@mui/material";
@@ -13,6 +13,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
 //import SwitchAccountRoundedIcon from "@mui/icons-material/SwitchAccountRounded";
 
 const NAVIGATION = [
@@ -52,6 +53,10 @@ const NAVIGATION = [
           <DescriptionRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />
         ),
       },
+      {
+        segment: "Produtos",
+        icon: <InventoryRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
+      },
     ],
   },
 ];
@@ -85,7 +90,7 @@ function SidebarFooter() {
           alignItems: "flex-start",
         }}
       >
-        <Box>
+        {/*<Box>
           <Tooltip title="Suporte">
             <a
               href="https://wa.me/5585991673309"
@@ -100,7 +105,7 @@ function SidebarFooter() {
               </IconButton>
             </a>
           </Tooltip>
-        </Box>
+        </Box>*/}
         <Box>
           <Tooltip title="Sair">
             <IconButton

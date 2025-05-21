@@ -121,13 +121,7 @@ const ScheduledServices = ({
   const handleCloseMenu = () => {
     setAnchorElStatus(null);
   };
-  const statusCreate = [
-    "Agendado",
-    "Entregue",
-    "Aguardando cliente",
-    "Cancelado",
-    "Iniciado",
-  ];
+  const statusCreate = ["Agendado", "Iniciado"];
   const handleEditClick = (appointment) => {
     setSelectedAppointment(appointment);
     setAnchorEl(null);
