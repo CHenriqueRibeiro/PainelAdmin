@@ -106,6 +106,7 @@ function ToolbarActionsIA({ onToggleIA }) {
           color: "#fff",
           px: 2,
           py: 1,
+          mr: 0.6,
           borderRadius: 4,
           cursor: "pointer",
           fontWeight: "bold",

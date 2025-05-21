@@ -29,7 +29,7 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     setCarregando(true);
     try {
       const response = await fetch(
-        "http://localhost:3000/api/ia/prever-consumo",
+        "https://lavaja.up.railway.app/api/ia/prever-consumo",
         {
           method: "GET",
           headers: {
@@ -48,7 +48,6 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     }
   };
 
-  // Simula uma progressão animada (opcional)
   const simularProgresso = () => {
     let prog = 0;
     let buff = 10;
