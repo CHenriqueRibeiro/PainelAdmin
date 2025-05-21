@@ -305,6 +305,21 @@ const Products = ({ dataEstablishment, isLoading }) => {
                       <Box
                         sx={{
                           display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          height: "100%",
+                        }}
+                      >
+                        <Typography fontWeight={600} color="#AC42F7">
+                          Valor do produto
+                        </Typography>
+                        <Typography variant="body2">
+                          R$ {product.preco}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
                           flexDirection: "row",
                           width: "10%",
                           justifyContent: "flex-end",
