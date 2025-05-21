@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import "react-perfect-scrollbar/dist/css/styles.css";
-//import RegisteredProducts from "../Components/Products";
+import RegisteredProducts from "../Components/Products";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../Context/AuthContext";
@@ -66,11 +66,11 @@ export default function Products() {
           isLoading={isLoading}
           setEstablishment={setEstablishment}
         />
-        {/*<RegisteredProducts
+        <RegisteredProducts
           dataEstablishment={dataEstablishment}
           isLoading={isLoading}
           setEstablishment={setEstablishment}
-        />*/}
+        />
       </Box>
     </>
   );

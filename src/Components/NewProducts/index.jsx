@@ -204,7 +204,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
             />
           }
           label="Atribuir este produto a um ou mais serviços"
-          sx={{ mt: 1 }}
+          sx={{ mt: 1, color: "#ac42f7" }}
         />
 
         {vincularServicos && (
