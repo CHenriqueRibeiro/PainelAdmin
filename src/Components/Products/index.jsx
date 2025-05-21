@@ -26,15 +26,10 @@ import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 const unidadeOptions = ["mL", "L", "g", "unidade"];
 
-const Products = ({
-  dataEstablishment,
-  isLoading,
-  setEstablishment = () => {},
-}) => {
+const Products = ({ dataEstablishment, isLoading }) => {
   const token = localStorage.getItem("authToken");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -224,7 +219,6 @@ const Products = ({
                 <Box
                   sx={{
                     p: 2,
-                    borderRadius: 2,
                     display: "flex",
                     flexDirection: "row",
                     justifyContent: "space-between",
@@ -237,19 +231,46 @@ const Products = ({
                       <Box
                         sx={{
                           display: "flex",
-                          flexDirection: "column",
+                          flexDirection: "row",
                           width: "90%",
+                          gap: 1,
                         }}
                       >
-                        <Typography fontWeight={600} color="#AC42F7">
-                          Serviços vinculados:
-                        </Typography>
-                        {product.servicos.map((s, idx) => (
-                          <Typography key={idx} variant="body2">
-                            - {s.service?.name || s.service} | Consumo:{" "}
-                            {s.consumoPorServico} {product.unidade}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "90%",
+                            gap: 1,
+                            height: "100%",
+                          }}
+                        >
+                          <Typography fontWeight={600} color="#AC42F7">
+                            Serviços vinculados
                           </Typography>
-                        ))}
+                          {product.servicos.map((s, idx) => (
+                            <Typography key={idx} variant="body2">
+                              - {s.service?.name || s.service} | Consumo:{" "}
+                              {s.consumoPorServico} {product.unidade}/serviço
+                            </Typography>
+                          ))}
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "90%",
+                            gap: 1,
+                            height: "100%",
+                          }}
+                        >
+                          <Typography fontWeight={600} color="#AC42F7">
+                            Valor do produto
+                          </Typography>
+                          <Typography variant="body2">
+                            R$ {product.preco}
+                          </Typography>
+                        </Box>
                       </Box>
                       <Tooltip title="Editar">
                         <IconButton
@@ -378,6 +399,33 @@ const Products = ({
               fontWeight: 600,
             }}
           >
+            Valor
+          </InputLabel>
+          <TextField
+            fullWidth
+            type="number"
+            value={selectedProduct?.preco || ""}
+            onChange={(e) =>
+              setSelectedProduct((prev) => ({
+                ...prev,
+                preco: Number(e.target.value),
+              }))
+            }
+            size="small"
+            sx={{
+              bgcolor: "#fff",
+              borderRadius: 2,
+              "& .MuiOutlinedInput-root": { borderRadius: 2 },
+            }}
+          />
+          <InputLabel
+            sx={{
+              color: "#FFFFFF",
+              pl: 0.3,
+              mt: 1,
+              fontWeight: 600,
+            }}
+          >
             Quantidade
           </InputLabel>
           <TextField
@@ -397,6 +445,7 @@ const Products = ({
               "& .MuiOutlinedInput-root": { borderRadius: 2 },
             }}
           />
+
           <InputLabel
             sx={{
               color: "#FFFFFF",

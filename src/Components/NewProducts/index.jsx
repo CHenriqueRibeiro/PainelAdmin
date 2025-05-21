@@ -29,6 +29,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const token = localStorage.getItem("authToken");
   const [name, setName] = useState("");
+  const [preco, setPreco] = useState("");
   const [quantidadeAtual, setQuantidadeAtual] = useState("");
   const [unidade, setUnidade] = useState("mL");
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -66,6 +67,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
           },
           body: JSON.stringify({
             name,
+            preco: Number(preco),
             unidade,
             quantidadeAtual: parseFloat(quantidadeAtual),
             servicos: vincularServicos
@@ -82,6 +84,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setSnackbarMessage("Produto criado com sucesso");
       setOpenSnackbar(true);
       setName("");
+      setPreco("");
       setQuantidadeAtual("");
       setUnidade("mL");
       setServicosVinculados([{ service: "", consumoPorServico: "" }]);
@@ -150,52 +153,103 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
           size="small"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          margin="normal"
           sx={{
             bgcolor: "#fff",
             borderRadius: 2,
+            mt: 1,
             "& .MuiOutlinedInput-root": { borderRadius: 2 },
           }}
         />
-        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
-          Quantidade
-        </InputLabel>
-        <TextField
-          fullWidth
-          type="number"
-          size="small"
-          value={quantidadeAtual}
-          onChange={(e) => setQuantidadeAtual(e.target.value)}
-          margin="normal"
+        <Box
           sx={{
-            bgcolor: "#fff",
-            borderRadius: 2,
-            "& .MuiOutlinedInput-root": { borderRadius: 2 },
-          }}
-        />
-        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
-          Unidade
-        </InputLabel>
-        <TextField
-          fullWidth
-          select
-          size="small"
-          value={unidade}
-          onChange={(e) => setUnidade(e.target.value)}
-          margin="normal"
-          sx={{
-            bgcolor: "#fff",
-            borderRadius: 2,
-            "& .MuiOutlinedInput-root": { borderRadius: 2 },
+            width: "100%",
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            gap: 2,
           }}
         >
-          {unidadeOptions.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-
+          <Box
+            sx={{
+              width: isMobile ? "100%" : "30%",
+              display: "flex",
+              flexDirection: "column",
+              mt: 1,
+            }}
+          >
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+              Valor
+            </InputLabel>
+            <TextField
+              fullWidth
+              type="number"
+              size="small"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+              sx={{
+                bgcolor: "#fff",
+                borderRadius: 2,
+                mt: 1,
+                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+              }}
+            />
+          </Box>
+          <Box
+            sx={{
+              width: isMobile ? "100%" : "45%",
+              display: "flex",
+              flexDirection: "column",
+              mt: 1,
+            }}
+          >
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+              Quantidade
+            </InputLabel>
+            <TextField
+              fullWidth
+              type="number"
+              size="small"
+              value={quantidadeAtual}
+              onChange={(e) => setQuantidadeAtual(e.target.value)}
+              sx={{
+                bgcolor: "#fff",
+                borderRadius: 2,
+                mt: 1,
+                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+              }}
+            />
+          </Box>
+          <Box
+            sx={{
+              width: isMobile ? "100%" : "25%",
+              display: "flex",
+              flexDirection: "column",
+              mt: 1,
+            }}
+          >
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+              Unidade
+            </InputLabel>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              value={unidade}
+              onChange={(e) => setUnidade(e.target.value)}
+              sx={{
+                bgcolor: "#fff",
+                borderRadius: 2,
+                mt: 1,
+                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+              }}
+            >
+              {unidadeOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+        </Box>
         <FormControlLabel
           control={
             <Switch
@@ -242,6 +296,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     sx={{
                       bgcolor: "#fff",
                       borderRadius: 2,
+                      mt: 1,
                       "& .MuiOutlinedInput-root": { borderRadius: 2 },
                     }}
                   >
@@ -267,6 +322,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     sx={{
                       bgcolor: "#fff",
                       borderRadius: 2,
+                      mt: 1,
                       "& .MuiOutlinedInput-root": { borderRadius: 2 },
                     }}
                   />
