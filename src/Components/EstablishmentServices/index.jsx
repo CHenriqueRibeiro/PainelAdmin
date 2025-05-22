@@ -158,7 +158,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
         {
           method: "PUT",
           headers: {
@@ -274,7 +274,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -319,7 +319,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButton(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
         {
           method: "DELETE",
           headers: {

@@ -31,7 +31,7 @@ const Budgets = ({
   const handleDelete = async (index) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
+        `http://localhost:3000/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
         {
           method: "DELETE",
           headers: {
@@ -150,48 +150,64 @@ const Budgets = ({
                     }}
                   >
                     <Grid2 container spacing={2} width={"90%"}>
-                      <Grid2 size={{xs:12, sm:6}}>
+                      <Grid2 size={{ xs: 12, sm: 6 }}>
                         <Typography
                           variant="caption"
                           color="#AC42F7"
                           fontWeight={600}
-                        >Cliente</Typography>
-                        <Typography variant="subtitle2">{budget.clientName}</Typography>
+                        >
+                          Cliente
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          {budget.clientName}
+                        </Typography>
                       </Grid2>
-                      <Grid2 size={{xs:12, sm:6}}>
+                      <Grid2 size={{ xs: 12, sm: 6 }}>
                         <Typography
                           variant="caption"
                           color="#AC42F7"
                           fontWeight={600}
-                        >Telefone</Typography>
-                        <Typography variant="subtitle2">{budget.phone}</Typography>
+                        >
+                          Telefone
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          {budget.phone}
+                        </Typography>
                       </Grid2>
-                      <Grid2 size={{xs:12, sm:6}}>
+                      <Grid2 size={{ xs: 12, sm: 6 }}>
                         <Typography
                           variant="caption"
                           color="#AC42F7"
                           fontWeight={600}
-                        >Título</Typography>
-                        <Typography variant="subtitle2">{budget.title}</Typography>
+                        >
+                          Título
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          {budget.title}
+                        </Typography>
                       </Grid2>
-                      <Grid2 size={{xs:12, sm:6}}>
+                      <Grid2 size={{ xs: 12, sm: 6 }}>
                         <Typography
                           variant="caption"
                           color="#AC42F7"
                           fontWeight={600}
-                        >Valor</Typography>
+                        >
+                          Valor
+                        </Typography>
                         <Typography variant="subtitle2">
                           R$ {parseFloat(budget.value).toFixed(2)}
                         </Typography>
                       </Grid2>
                     </Grid2>
 
-                    <Box sx={{
+                    <Box
+                      sx={{
                         display: "flex",
                         justifyContent: "flex-end",
                         gap: 1,
                         width: "10%",
-                      }}>
+                      }}
+                    >
                       <Tooltip title="Visualizar orçamento">
                         <IconButton
                           color="primary"

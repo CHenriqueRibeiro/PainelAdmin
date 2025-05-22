@@ -32,13 +32,14 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const [preco, setPreco] = useState("");
   const [quantidadeAtual, setQuantidadeAtual] = useState("");
   const [unidade, setUnidade] = useState("mL");
+  const [unidadeService, setUnidadeService] = useState("mL");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [isLoading, setIsLoading] = useState(false);
   const [vincularServicos, setVincularServicos] = useState(false);
   const [servicosVinculados, setServicosVinculados] = useState([
-    { service: "", consumoPorServico: "" },
+    { service: "", consumoPorServico: "", unidadeConsumo: unidade },
   ]);
   const [servicesList, setServicesList] = useState([]);
 
@@ -58,7 +59,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/establishments/${dataEstablishment[0]._id}/products`,
+        `http://localhost:3000/api/products/establishments/${dataEstablishment[0]._id}/products`,
         {
           method: "POST",
           headers: {
@@ -87,6 +88,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setPreco("");
       setQuantidadeAtual("");
       setUnidade("mL");
+      setUnidadeService("mL");
       setServicosVinculados([{ service: "", consumoPorServico: "" }]);
       setVincularServicos(false);
       setEstablishment((prev) => !prev);
@@ -108,7 +110,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const addNovoServico = () => {
     setServicosVinculados((prev) => [
       ...prev,
-      { service: "", consumoPorServico: "" },
+      { service: "", consumoPorServico: "", unidadeConsumo: unidade },
     ]);
   };
 
@@ -326,7 +328,49 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                       "& .MuiOutlinedInput-root": { borderRadius: 2 },
                     }}
                   />
-
+                  <Box
+                    sx={{
+                      width: isMobile ? "100%" : "25%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      select
+                      size="small"
+                      value={item.unidadeConsumo || unidade}
+                      onChange={(e) =>
+                        handleServicoChange(
+                          index,
+                          "unidadeConsumo",
+                          e.target.value
+                        )
+                      }
+                      sx={{
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                        mt: 1,
+                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                      }}
+                    >
+                      {unidadeOptions
+                        .filter((option) => {
+                          if (unidade === "L")
+                            return option === "L" || option === "mL";
+                          if (unidade === "mL") return option === "mL";
+                          if (unidade === "g") return option === "g";
+                          if (unidade === "unidade")
+                            return option === "unidade";
+                          return false;
+                        })
+                        .map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                    </TextField>
+                  </Box>
                   {servicosVinculados.length > 1 && (
                     <IconButton onClick={() => removerServico(index)}>
                       <DeleteIcon color="error" />

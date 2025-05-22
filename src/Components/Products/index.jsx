@@ -43,7 +43,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/establishments/${dataEstablishment[0]._id}/products`,
+        `http://localhost:3000/api/products/establishments/${dataEstablishment[0]._id}/products`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await response.json();
@@ -62,13 +62,10 @@ const Products = ({ dataEstablishment, isLoading }) => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) throw new Error("Erro ao deletar produto");
       setSnackbarMessage("Produto deletado com sucesso");
       setSnackbarSeverity("success");
@@ -111,7 +108,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
       };
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/${selectedProduct._id}`,
+        `http://localhost:3000/api/products/${selectedProduct._id}`,
         {
           method: "PUT",
           headers: {
@@ -250,7 +247,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
                           {product.servicos.map((s, idx) => (
                             <Typography key={idx} variant="body2">
                               - {s.service?.name || s.service} | Consumo:{" "}
-                              {s.consumoPorServico} {product.unidade}/serviço
+                              {s.consumoPorServico} {s.unidadeConsumo}/serviço
                             </Typography>
                           ))}
                         </Box>

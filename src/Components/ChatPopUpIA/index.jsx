@@ -31,7 +31,7 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     setCarregando(true);
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/ia/prever-consumo/${idEstabelecimento}`,
+        `http://localhost:3000/api/ia/prever-consumo/${idEstabelecimento}`,
         {
           method: "GET",
           headers: {

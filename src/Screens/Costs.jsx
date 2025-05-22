@@ -25,7 +25,7 @@ export default function Costs() {
 
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
