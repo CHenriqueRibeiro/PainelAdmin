@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   const buscarEstabelecimentos = async (ownerId) => {
     try {
       setLoadingEstablishments(true);
+      const token = localStorage.getItem("authToken"); // ← token atualizado aqui
       const response = await fetch(
         `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
@@ -76,16 +77,16 @@ export const AuthProvider = ({ children }) => {
       });
 
       const result = await response.json();
-
+      console.log(result.owner.id);
       if (!response.ok)
         throw new Error(result.message || "Erro ao fazer login");
 
       setUser(result.owner);
+      console.log(user);
       localStorage.setItem("authToken", result.token);
       localStorage.setItem("tokenExpiration", Date.now() + 60 * 60 * 1000);
+      await buscarEstabelecimentos(result.owner?.id);
       localStorage.setItem("user", JSON.stringify(result.owner));
-
-      await buscarEstabelecimentos(result.owner._id);
     } catch (error) {
       console.error("Erro ao logar:", error);
       throw error;
