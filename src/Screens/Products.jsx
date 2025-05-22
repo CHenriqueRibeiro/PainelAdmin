@@ -25,7 +25,7 @@ export default function Products() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/establishment/owner/${ownerId}`,
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {

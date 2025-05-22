@@ -28,7 +28,7 @@ const ReportPage = () => {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/establishment/owner/${ownerId}`,
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -53,7 +53,7 @@ const ReportPage = () => {
       if (!owner?.establishments?.[0]?._id) return;
       try {
         const res = await fetch(
-          `http://localhost:3000/api/appointments/appointments/report/dashboard?startDate=${startDate.format(
+          `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${startDate.format(
             "YYYY-MM-DD"
           )}&endDate=${endDate.format(
             "YYYY-MM-DD"

@@ -227,11 +227,14 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:3000/api/budget/budget", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+      const response = await fetch(
+        "https://lavaja.up.railway.app/api/budget/budget",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
 
       if (!response.ok) throw new Error("Erro ao criar orçamento");
 

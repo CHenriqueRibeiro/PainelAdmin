@@ -43,7 +43,7 @@ const Costs = ({
   const handleDelete = async (costId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/cost/cost/${costId}/${dataEstablishment[0]._id}`,
+        `https://lavaja.up.railway.app/api/cost/cost/${costId}/${dataEstablishment[0]._id}`,
         {
           method: "DELETE",
           headers: {
@@ -70,7 +70,7 @@ const Costs = ({
   const handleUpdate = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/cost/cost/${selectedCost._id}`,
+        `https://lavaja.up.railway.app/api/cost/cost/${selectedCost._id}`,
         {
           method: "PUT",
           headers: {

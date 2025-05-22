@@ -156,7 +156,7 @@ const ScheduledServices = ({
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -174,7 +174,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -196,7 +196,7 @@ const ScheduledServices = ({
       setLoadingServices(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -217,7 +217,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -242,7 +242,7 @@ const ScheduledServices = ({
       setIsLoadingButtonSave(true);
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: {
@@ -289,7 +289,7 @@ const ScheduledServices = ({
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -345,7 +345,7 @@ const ScheduledServices = ({
       );
 
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments`,
+        `https://lavaja.up.railway.app/api/appointments/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1090,7 +1090,7 @@ const ScheduledServices = ({
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
+                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },

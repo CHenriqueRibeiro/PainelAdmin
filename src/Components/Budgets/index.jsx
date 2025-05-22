@@ -31,7 +31,7 @@ const Budgets = ({
   const handleDelete = async (index) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
+        `https://lavaja.up.railway.app/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
         {
           method: "DELETE",
           headers: {
