@@ -80,7 +80,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const handleReporEstoque = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/products/products/${selectedProduct._id}/repor`,
+        `https://lavaja.up.railway.app/api/products/products/${selectedProduct._id}/repor`,
         {
           method: "PATCH",
           headers: {

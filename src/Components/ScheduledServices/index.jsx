@@ -1090,7 +1090,7 @@ const ScheduledServices = ({
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
+                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },

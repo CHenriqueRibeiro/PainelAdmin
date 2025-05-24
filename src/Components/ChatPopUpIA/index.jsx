@@ -33,6 +33,10 @@ export default function ChatPopUpIA({ open, onClose, token }) {
       titulo: "Análise Financeira com Serviços",
       rota: `/api/ia/analise-com-servicos/${idEstabelecimento}`,
     },
+    {
+      titulo: "Clientes Mais Frequentes",
+      rota: `/api/ia/mais-frequentes/${idEstabelecimento}`,
+    },
   ];
 
   const simularProgresso = () => {
@@ -57,7 +61,7 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     setMensagem("");
     simularProgresso();
     try {
-      const response = await fetch(`http://localhost:3000${rota}`, {
+      const response = await fetch(`https://lavaja.up.railway.app${rota}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
