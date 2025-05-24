@@ -541,24 +541,66 @@ const Products = ({ dataEstablishment, isLoading }) => {
                       ))}
                     </TextField>
 
-                    <TextField
-                      label="Consumo por Serviço"
-                      type="number"
-                      value={item.consumoPorServico || ""}
-                      onChange={(e) =>
-                        handleServicoChange(
-                          index,
-                          "consumoPorServico",
-                          e.target.value
-                        )
-                      }
-                      size="small"
-                      sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                    />
+                    <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+                      <TextField
+                        label="Consumo por Serviço"
+                        type="number"
+                        value={item.consumoPorServico || ""}
+                        onChange={(e) =>
+                          handleServicoChange(
+                            index,
+                            "consumoPorServico",
+                            e.target.value
+                          )
+                        }
+                        size="small"
+                        sx={{
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                          "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                          width: "70%",
+                        }}
+                      />
+
+                      <TextField
+                        select
+                        size="small"
+                        value={
+                          item.unidadeConsumo ||
+                          selectedProduct?.unidade ||
+                          "mL"
+                        }
+                        onChange={(e) =>
+                          handleServicoChange(
+                            index,
+                            "unidadeConsumo",
+                            e.target.value
+                          )
+                        }
+                        sx={{
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                          "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                          width: "30%",
+                        }}
+                      >
+                        {unidadeOptions
+                          .filter((option) => {
+                            const base = selectedProduct?.unidade;
+                            if (base === "L")
+                              return option === "L" || option === "mL";
+                            if (base === "mL") return option === "mL";
+                            if (base === "g") return option === "g";
+                            if (base === "unidade") return option === "unidade";
+                            return false;
+                          })
+                          .map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                      </TextField>
+                    </Box>
 
                     {selectedProduct.servicos.length > 1 && (
                       <IconButton
