@@ -21,11 +21,13 @@ import {
   FormControlLabel,
   Switch,
   InputLabel,
+  Menu,
 } from "@mui/material";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 
 const unidadeOptions = ["mL", "L", "g", "unidade"];
 
@@ -39,7 +41,23 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [vincularServicos, setVincularServicos] = useState(false);
+  const [reporDialogOpen, setReporDialogOpen] = useState(false);
+  const [quantidadeReposicao, setQuantidadeReposicao] = useState(0);
+  const [precoReposicao, setPrecoReposicao] = useState(0);
+  const [observacaoReposicao, setObservacaoReposicao] = useState("");
+  const [unidadeReposicao, setUnidadeReposicao] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [menuProduct, setMenuProduct] = useState(null);
 
+  const handleMenuClick = (event, product) => {
+    setAnchorEl(event.currentTarget);
+    setMenuProduct(product);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setMenuProduct(null);
+  };
   const fetchProducts = async () => {
     try {
       const response = await fetch(
@@ -59,6 +77,39 @@ const Products = ({ dataEstablishment, isLoading }) => {
   useEffect(() => {
     if (dataEstablishment.length > 0) fetchProducts();
   }, [dataEstablishment]);
+  const handleReporEstoque = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/products/products/${selectedProduct._id}/repor`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            quantidade: quantidadeReposicao,
+            precoUnitario: precoReposicao,
+            observacao: observacaoReposicao,
+            unidade: unidadeReposicao,
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Erro ao repor estoque");
+
+      const data = await response.json();
+      setSnackbarMessage("Reposição realizada com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      setReporDialogOpen(false);
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      setSnackbarMessage("Erro ao repor estoque");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -271,30 +322,54 @@ const Products = ({ dataEstablishment, isLoading }) => {
                           </Typography>
                         </Box>
                       </Box>
-                      <Tooltip title="Editar">
+                      <Tooltip title="Mais ações">
                         <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedProduct(product);
-                            setVincularServicos(product.servicos?.length > 0);
+                          onClick={(e) => handleMenuClick(e, product)}
+                          color="inherit"
+                        >
+                          <MoreVertRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleMenuClose}
+                      >
+                        <MenuItem
+                          onClick={() => {
+                            setSelectedProduct(menuProduct);
+                            setQuantidadeReposicao(0);
+                            setPrecoReposicao(0);
+                            setObservacaoReposicao("");
+                            setReporDialogOpen(true);
+                            handleMenuClose();
+                          }}
+                        >
+                          Repor Estoque
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            setSelectedProduct(menuProduct);
+                            setVincularServicos(
+                              menuProduct.servicos?.length > 0
+                            );
                             setEditDialogOpen(true);
+                            handleMenuClose();
                           }}
                         >
-                          <EditRoundedIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Divider orientation="vertical" flexItem />
-                      <Tooltip title="Excluir">
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(product._id);
+                          Editar
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleDelete(menuProduct._id);
+                            handleMenuClose();
                           }}
-                          color="error"
+                          sx={{ color: "red" }}
                         >
-                          <DeleteRoundedIcon />
-                        </IconButton>
-                      </Tooltip>
+                          Excluir
+                        </MenuItem>
+                      </Menu>
                     </>
                   ) : (
                     <>
@@ -405,7 +480,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
               "& .MuiOutlinedInput-root": { borderRadius: 2 },
             }}
           />
-          <InputLabel
+          {/*<InputLabel
             sx={{
               color: "#FFFFFF",
               pl: 0.3,
@@ -458,7 +533,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
               borderRadius: 2,
               "& .MuiOutlinedInput-root": { borderRadius: 2 },
             }}
-          />
+          />*/}
 
           <InputLabel
             sx={{
@@ -669,6 +744,126 @@ const Products = ({ dataEstablishment, isLoading }) => {
             }}
           >
             Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={reporDialogOpen}
+        onClose={() => setReporDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "center" }}
+        >
+          Repor Estoque
+        </DialogTitle>
+        <DialogContent>
+          <InputLabel sx={{ mt: 1, color: "#FFFFFF", fontWeight: 600 }}>
+            Quantidade a adicionar
+          </InputLabel>
+          <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+            <TextField
+              type="number"
+              value={quantidadeReposicao}
+              onChange={(e) => setQuantidadeReposicao(Number(e.target.value))}
+              size="small"
+              sx={{ bgcolor: "#fff", borderRadius: 2, flex: 1 }}
+            />
+            <TextField
+              select
+              value={unidadeReposicao || selectedProduct?.unidade || "mL"}
+              onChange={(e) => setUnidadeReposicao(e.target.value)}
+              size="small"
+              sx={{ bgcolor: "#fff", borderRadius: 2, width: "35%" }}
+            >
+              {unidadeOptions
+                .filter((option) => {
+                  const base = selectedProduct?.unidade;
+                  if (base === "L") return option === "L" || option === "mL";
+                  if (base === "mL") return option === "mL";
+                  if (base === "g") return option === "g";
+                  if (base === "unidade") return option === "unidade";
+                  return false;
+                })
+                .map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+            </TextField>
+          </Box>
+
+          <InputLabel sx={{ mt: 2, color: "#FFFFFF", fontWeight: 600 }}>
+            Preço pago por unidade
+          </InputLabel>
+          <TextField
+            fullWidth
+            type="number"
+            value={precoReposicao}
+            onChange={(e) => setPrecoReposicao(Number(e.target.value))}
+            size="small"
+            sx={{
+              bgcolor: "#fff",
+              borderRadius: 2,
+              mt: 1,
+              "& .MuiOutlinedInput-root": { borderRadius: 2 },
+            }}
+          />
+
+          <InputLabel sx={{ mt: 2, color: "#FFFFFF", fontWeight: 600 }}>
+            Observação (opcional)
+          </InputLabel>
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            value={observacaoReposicao}
+            onChange={(e) => setObservacaoReposicao(e.target.value)}
+            size="small"
+            sx={{
+              bgcolor: "#fff",
+              borderRadius: 2,
+              mt: 1,
+              "& .MuiOutlinedInput-root": { borderRadius: 2 },
+            }}
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ mb: 2, px: 3 }}>
+          <Button
+            onClick={() => setReporDialogOpen(false)}
+            sx={{
+              background: "#fff",
+              color: "#AC42F7",
+              fontWeight: "bold",
+              borderRadius: 3,
+              padding: "8px 24px",
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleReporEstoque}
+            sx={{
+              background: "#AC42F7",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: 3,
+              padding: "8px 24px",
+            }}
+          >
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,5 +1,6 @@
+/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -8,51 +9,37 @@ import {
   Typography,
   LinearProgress,
   Box,
+  Button,
+  Stack,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "../../Context/AuthContext";
 
-// eslint-disable-next-line react/prop-types
 export default function ChatPopUpIA({ open, onClose, token }) {
   const { establishments } = useAuth();
+  const idEstabelecimento = establishments[0]?._id;
+
   const [mensagem, setMensagem] = useState("");
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(false);
   const [progress, setProgress] = useState(0);
   const [buffer, setBuffer] = useState(10);
-  const idEstabelecimento = establishments[0]?._id;
-  useEffect(() => {
-    if (open) {
-      buscarMensagem();
-      simularProgresso();
-    }
-  }, [open]);
 
-  const buscarMensagem = async () => {
-    setCarregando(true);
-    try {
-      const response = await fetch(
-        `https://lavaja.up.railway.app/api/ia/prever-consumo/${idEstabelecimento}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      setMensagem(
-        data.resposta || "Não foi possível obter a resposta da JáIA."
-      );
-    } catch (err) {
-      setMensagem("Erro ao consultar a JáIA.");
-    } finally {
-      setCarregando(false);
-    }
-  };
+  const rotas = [
+    {
+      titulo: "Análise de Consumo de Produtos",
+      rota: `/api/ia/prever-consumo/${idEstabelecimento}`,
+    },
+    {
+      titulo: "Análise Financeira com Serviços",
+      rota: `/api/ia/analise-com-servicos/${idEstabelecimento}`,
+    },
+  ];
 
   const simularProgresso = () => {
     let prog = 0;
     let buff = 10;
+    setProgress(0);
+    setBuffer(10);
     const interval = setInterval(() => {
       if (prog >= 100) {
         clearInterval(interval);
@@ -63,6 +50,27 @@ export default function ChatPopUpIA({ open, onClose, token }) {
         setBuffer(Math.min(buff, 100));
       }
     }, 300);
+  };
+
+  const buscarMensagem = async (rota) => {
+    setCarregando(true);
+    setMensagem("");
+    simularProgresso();
+    try {
+      const response = await fetch(`http://localhost:3000${rota}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setMensagem(
+        data.resposta || "Não foi possível obter a resposta da JáIA."
+      );
+    } catch (err) {
+      setMensagem("Erro ao consultar a JáIA.");
+    } finally {
+      setCarregando(false);
+    }
   };
 
   return (
@@ -93,6 +101,25 @@ export default function ChatPopUpIA({ open, onClose, token }) {
         </IconButton>
       </DialogTitle>
       <DialogContent>
+        <Stack spacing={2} mb={2}>
+          {rotas.map((topico, index) => (
+            <Button
+              key={index}
+              variant="outlined"
+              onClick={() => buscarMensagem(topico.rota)}
+              sx={{
+                color: "#AC42F7",
+                borderColor: "#AC42F7",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: 3,
+              }}
+            >
+              {topico.titulo}
+            </Button>
+          ))}
+        </Stack>
+
         {carregando ? (
           <Box sx={{ my: 4 }}>
             <Typography
@@ -120,18 +147,20 @@ export default function ChatPopUpIA({ open, onClose, token }) {
             />
           </Box>
         ) : (
-          <Typography
-            component="div"
-            sx={{ whiteSpace: "pre-line", fontSize: 14 }}
-            dangerouslySetInnerHTML={{
-              __html: mensagem
-                .replace(
-                  /\*\*(.*?)\*\*/g,
-                  "<strong style='color:#AC42F7'>$1</strong>"
-                )
-                .replace(/\n/g, "<br>"),
-            }}
-          />
+          mensagem && (
+            <Typography
+              component="div"
+              sx={{ whiteSpace: "pre-line", fontSize: 14 }}
+              dangerouslySetInnerHTML={{
+                __html: mensagem
+                  .replace(
+                    /\*\*(.*?)\*\*/g,
+                    "<strong style='color:#AC42F7'>$1</strong>"
+                  )
+                  .replace(/\n/g, "<br>"),
+              }}
+            />
+          )
         )}
       </DialogContent>
     </Dialog>
