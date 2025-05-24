@@ -79,7 +79,7 @@ const Rotas = () => {
           <Route index element={<Budgets />} />
         </Route>
         <Route
-          path="gestão/produtos"
+          path="gestão/estoque"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Products />} />

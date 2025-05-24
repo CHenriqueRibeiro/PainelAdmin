@@ -46,7 +46,7 @@ const NAVIGATION = [
         ),
       },
       {
-        segment: "Produtos",
+        segment: "Estoque",
         icon: <InventoryRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
       },
     ],
