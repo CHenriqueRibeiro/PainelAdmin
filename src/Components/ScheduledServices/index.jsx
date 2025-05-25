@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useMemo, useEffect } from "react";
@@ -68,7 +69,12 @@ const schema = yup.object().shape({
   selectedSlot: yup.string().required("Horário é obrigatório"),
   statusCreateNew: yup.string().required("Status é obrigatório"),
 });
-
+const editSchema = yup.object().shape({
+  veiculo: yup.string().required("Veículo é obrigatório"),
+  selectedDate: yup.string().required("Data é obrigatória"),
+  selectedService: yup.string().required("Serviço é obrigatório"),
+  selectedSlot: yup.string().required("Horário é obrigatório"),
+});
 // eslint-disable-next-line react/prop-types
 const ScheduledServices = ({
   services,
@@ -119,13 +125,14 @@ const ScheduledServices = ({
   const servicesEstablishment = owner?.establishments[0]?.services.length;
   const open = Boolean(anchorElDate);
   const dateServices = dayjs();
+  const isEditing = !!selectedAppointment;
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(isEditing ? editSchema : schema),
   });
 
   const handleMenuOpen = (event, item) => {
@@ -164,6 +171,7 @@ const ScheduledServices = ({
   };
 
   const handleCloseDialogScheduling = () => {
+    reset();
     setOpenDialogScheduling(false);
   };
   const handleOpenDialogScheduling = () => {
@@ -193,6 +201,18 @@ const ScheduledServices = ({
         });
     }
   }, [date]);
+  useEffect(() => {
+    if (selectedAppointment) {
+      reset({
+        veiculo: selectedAppointment.veiculo || "",
+        selectedDate: selectedAppointment.date || "",
+        selectedService: selectedAppointment.serviceId || "",
+        selectedSlot:
+          `${selectedAppointment.startTime} - ${selectedAppointment.endTime}` ||
+          "",
+      });
+    }
+  }, [selectedAppointment, reset]);
   useEffect(() => {
     if (service && date) {
       setLoadingSlots(true);
@@ -258,6 +278,56 @@ const ScheduledServices = ({
         });
     }
   }, [selectedDate, selectedService]);
+
+  const onEditSubmit = async (formData) => {
+    try {
+      setIsLoadingButtonSave(true);
+
+      if (!formData.selectedSlot || !formData.selectedSlot.includes(" - ")) {
+        throw new Error("Horário inválido selecionado");
+      }
+
+      const [startHourRaw, endHourRaw] = formData.selectedSlot.split(" - ");
+
+      const startTime = startHourRaw;
+      const endTime = endHourRaw;
+
+      const selectedServiceObj = availableServices.find(
+        (s) => s.serviceId === formData.selectedService
+      );
+
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startTime,
+            endTime,
+            veiculo: formData.veiculo,
+            serviceName: selectedServiceObj?.serviceName,
+            price: selectedServiceObj?.price,
+            reminderWhatsapp,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Erro ao salvar agendamento");
+
+      setSnackbarMessage("Agendamento atualizado!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      setOpenDialog(false);
+      onUpdateService();
+    } catch (err) {
+      console.error(err);
+      setSnackbarMessage("Erro ao salvar");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButtonSave(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!selectedAppointment) return;
@@ -497,6 +567,21 @@ const ScheduledServices = ({
     }
     setAnchorElDate(null);
   };
+  useEffect(() => {
+    if (selectedAppointment) {
+      reset({
+        veiculo: selectedAppointment.veiculo || "",
+        selectedDate: selectedAppointment.date || "",
+        selectedService: selectedAppointment.serviceId || "",
+        selectedSlot:
+          `${selectedAppointment.startTime} - ${selectedAppointment.endTime}` ||
+          "",
+      });
+
+      setSelectedDate(selectedAppointment.date || "");
+      setSelectedService(selectedAppointment.serviceId || "");
+    }
+  }, [selectedAppointment]);
 
   return (
     <Box
@@ -527,7 +612,6 @@ const ScheduledServices = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
       <Box
         sx={{
           display: "flex",
@@ -632,7 +716,6 @@ const ScheduledServices = ({
           </Tooltip>
         )}
       </Box>
-
       {!isMobile && (
         <Box
           sx={{
@@ -839,7 +922,7 @@ const ScheduledServices = ({
                     </Box>
                     <IconButton
                       size="small"
-                      onClick={handleMenuOpen}
+                      onClick={(event) => handleMenuOpen(event, item)}
                       sx={{ color: "#AC42F7" }}
                     >
                       <Tooltip title="Opções" arrow>
@@ -878,7 +961,10 @@ const ScheduledServices = ({
                       </MenuItem>*/}
                       <MenuItem
                         sx={{ fontSize: "10px", padding: "8px 16px" }}
-                        onClick={() => handleEditClick(item)}
+                        onClick={() => {
+                          handleEditClick(selectedItem);
+                          handleMenuClose();
+                        }}
                       >
                         Alterar agendamento
                       </MenuItem>
@@ -968,7 +1054,6 @@ const ScheduledServices = ({
           ))
         )}
       </Box>
-
       <Dialog
         open={openDialogStatus}
         onClose={handleCloseDialogStatus}
@@ -1169,7 +1254,7 @@ const ScheduledServices = ({
 
         <DialogContent>
           {selectedAppointment && (
-            <>
+            <form onSubmit={handleSubmit(onEditSubmit)}>
               <TextField
                 size="small"
                 fullWidth
@@ -1185,139 +1270,167 @@ const ScheduledServices = ({
                 }}
               />
 
-              <LocalizationProvider
-                adapterLocale="pt-br"
-                localeText={
-                  ptBR.components.MuiLocalizationProvider.defaultProps
-                    .localeText
-                }
-                dateAdapter={AdapterDayjs}
-              >
-                <DatePicker
-                  label="Data"
-                  value={selectedDate ? dayjs(selectedDate) : null}
-                  format="DD/MM/YYYY"
-                  onChange={(newDate) => {
-                    const parsedDate = dayjs(newDate);
-
-                    if (parsedDate.isValid()) {
-                      const formatted = parsedDate.format("YYYY-MM-DD");
-                      setSelectedDate(formatted);
-                      setSelectedService("");
+              <Controller
+                name="selectedDate"
+                control={control}
+                render={({ field }) => (
+                  <LocalizationProvider
+                    adapterLocale="pt-br"
+                    localeText={
+                      ptBR.components.MuiLocalizationProvider.defaultProps
+                        .localeText
                     }
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      sx: {
-                        mb: 2,
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+                    dateAdapter={AdapterDayjs}
+                  >
+                    <DatePicker
+                      label="Data"
+                      value={field.value ? dayjs(field.value) : null}
+                      format="DD/MM/YYYY"
+                      onChange={(newDate) => {
+                        const val = newDate?.format("YYYY-MM-DD") || "";
+                        field.onChange(val);
+                        setSelectedDate(val);
+                        setSelectedService("");
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small",
+                          error: !!errors.date,
+                          helperText: errors.date?.message,
+                          InputProps: {
+                            sx: {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                          },
+                          sx: {
+                            mb: 2,
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                              {
+                                borderColor: "#ff8ba7",
+                              },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </LocalizationProvider>
+                )}
+              />
 
               {selectedDate && (
-                <TextField
-                  label="Serviço"
-                  select
-                  fullWidth
-                  size="small"
-                  value={selectedService || selectedAppointment.serviceId}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedService(value);
-                  }}
-                  sx={{
-                    mb: 2,
-                    bgcolor: "#fff",
-                    borderRadius: 2,
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
-                >
-                  {availableServices?.map((service) => (
-                    <MenuItem key={service.serviceId} value={service.serviceId}>
-                      {service.serviceName}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                <Controller
+                  name="selectedService"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Serviço"
+                      select
+                      fullWidth
+                      size="small"
+                      error={!!errors.selectedService}
+                      helperText={errors.selectedService?.message}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setSelectedService(e.target.value);
+                      }}
+                      sx={{
+                        mb: 2,
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                      }}
+                    >
+                      {availableServices?.map((service) => (
+                        <MenuItem
+                          key={service.serviceId}
+                          value={service.serviceId}
+                        >
+                          {service.serviceName}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
               )}
 
               {selectedService && (
-                <TextField
-                  label="Horário"
-                  select
-                  fullWidth
-                  size="small"
-                  value={
-                    availableHours.find((slot) =>
-                      slot.startsWith(selectedAppointment.startTime)
-                    ) || ""
-                  }
-                  onChange={(e) =>
-                    setSelectedAppointment({
-                      ...selectedAppointment,
-                      startTime: e.target.value,
-                    })
-                  }
-                  sx={{
-                    mb: 2,
-                    bgcolor: "#fff",
-                    borderRadius: 2,
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
-                >
-                  {availableHours?.map((slot, index) => (
-                    <MenuItem key={index} value={slot}>
-                      {slot}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                <Controller
+                  name="selectedSlot"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Horário"
+                      select
+                      fullWidth
+                      size="small"
+                      error={!!errors.selectedSlot}
+                      helperText={errors.selectedSlot?.message}
+                      sx={{
+                        mb: 2,
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                      }}
+                    >
+                      {availableHours?.map((slot, index) => (
+                        <MenuItem key={index} value={slot}>
+                          {slot}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
               )}
 
-              <TextField
-                size="small"
-                fullWidth
-                label="Veículo"
-                value={selectedAppointment.veiculo}
-                onChange={(e) =>
-                  setSelectedAppointment({
-                    ...selectedAppointment,
-                    veiculo: e.target.value,
-                  })
-                }
-                sx={{
-                  mb: 2,
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+              <Controller
+                name="veiculo"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    size="small"
+                    fullWidth
+                    label="Veículo"
+                    error={!!errors.veiculo}
+                    helperText={errors.veiculo?.message}
+                    sx={{
+                      mb: 2,
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                )}
               />
 
               <TextField
                 size="small"
                 fullWidth
                 label="Valor"
-                disabled="true"
+                disabled
                 value={selectedAppointment.price}
-                onChange={(e) =>
-                  setSelectedAppointment({
-                    ...selectedAppointment,
-                    price: e.target.value,
-                  })
-                }
                 sx={{
                   mb: 2,
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
                 }}
               />
-            </>
+            </form>
           )}
         </DialogContent>
 
@@ -1356,8 +1469,10 @@ const ScheduledServices = ({
             Excluir
           </Button>
           <Button
+            type="submit"
+            form="editForm"
+            onClick={handleSubmit(onEditSubmit)}
             loading={isLoadingButtonSave}
-            onClick={handleSave}
             variant="contained"
             sx={{
               background: "#ac42f7",
@@ -1870,6 +1985,7 @@ const ScheduledServices = ({
                                   pb: 0.5,
                                   pl: 0.3,
                                   fontWeight: 600,
+                                  mt: 2,
                                 }}
                               >
                                 Horário
@@ -1929,6 +2045,7 @@ const ScheduledServices = ({
                             pb: 0.5,
                             pl: 0.3,
                             fontWeight: 600,
+                            mt: 2,
                           }}
                         >
                           Preço
@@ -1959,7 +2076,7 @@ const ScheduledServices = ({
                         <InputLabel
                           sx={{
                             color: "#FFFFFF",
-                            mt: 1,
+                            mt: 2,
                             pb: 0.5,
                             pl: 0.3,
                             fontWeight: 600,
