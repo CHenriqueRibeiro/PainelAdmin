@@ -14,6 +14,7 @@ import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
 import ChatPopUpIA from "../ChatPopUpIA";
+import { useAuth } from "../../Context/AuthContext";
 
 const NAVIGATION = [
   {
@@ -67,10 +68,9 @@ const demoTheme = createTheme({
 
 function SidebarFooter() {
   const navigate = useNavigate();
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("tokenExpiration");
-    localStorage.removeItem("user");
+  const { logout } = useAuth();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 

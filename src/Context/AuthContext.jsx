@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }) => {
 
       setUser(result.owner);
       localStorage.setItem("authToken", result.token);
-      localStorage.setItem("tokenExpiration", Date.now() + 60 * 60 * 1000);
       localStorage.setItem("user", JSON.stringify(result.owner));
 
       await buscarEstabelecimentos(result.owner.id);
@@ -95,14 +94,30 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        await fetch("http://localhost:3000/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.warn("Erro ao chamar logout no backend:", error);
+    } finally {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      setUser(null);
+      setEstablishments([]);
+    }
+  };
 
   const isTokenValid = () => {
-    const tokenExpiration = localStorage.getItem("tokenExpiration");
-    const currentTime = Date.now();
-    if (tokenExpiration && currentTime < parseInt(tokenExpiration)) return true;
-
-    localStorage.clear();
-    return false;
+    return !!localStorage.getItem("authToken");
   };
 
   useEffect(() => {
@@ -120,6 +135,7 @@ export const AuthProvider = ({ children }) => {
     login,
     isTokenValid,
     establishments,
+    logout,
     loadingEstablishments,
     buscarEstabelecimentos,
   };
