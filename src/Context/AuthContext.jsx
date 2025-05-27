@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("authToken");
       if (token) {
-        await fetch("http://localhost:3000/api/auth/logout", {
+        await fetch("https://lavaja.up.railway.app/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

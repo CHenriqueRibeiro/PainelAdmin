@@ -1,5 +1,8 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import {
   Box,
   Button,
@@ -29,6 +32,9 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 const styles = StyleSheet.create({
   page: {
@@ -98,67 +104,195 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
-
+const schema = yup.object().shape({
+  clientName: yup.string().required("Campo obrigatório"),
+  phone: yup.string().required("Campo obrigatório"),
+  plate: yup.string().required("Campo obrigatório"),
+  brand: yup.string().required("Campo obrigatório"),
+  model: yup.string().required("Campo obrigatório"),
+  year: yup.string().required("Campo obrigatório"),
+  date: yup.string().required("Campo obrigatório"),
+  dateValidate: yup.string().required("Campo obrigatório"),
+  deliveryDate: yup.string().required("Campo obrigatório"),
+  referencePoint: yup.string().required("Campo obrigatório"),
+  observation: yup.string(),
+  address: yup.string().required("Campo obrigatório"),
+  serviceDescription: yup.string(),
+  services: yup
+    .array()
+    .of(
+      yup.object().shape({
+        name: yup.string().required("Campo obrigatório"),
+        value: yup
+          .number()
+          .typeError("Valor inválido")
+          .required("Campo obrigatório"),
+        observation: yup.string(),
+      })
+    )
+    .min(1, "Adicione pelo menos um serviço"),
+});
 const BudgetDocument = ({
   establishmentName,
-  title,
   clientName,
   phone,
+  plate,
+  brand,
+  model,
+  year,
+  referencePoint,
+  address,
+  observation,
+  serviceDescription,
   date,
   dateValidate,
   deliveryDate,
-  description,
   services,
   total,
 }) => (
   <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>{establishmentName}</Text>
-        <Text style={styles.titleRight}>Orçamento {title}</Text>
-      </View>
-
-      <View style={styles.infoBlock}>
-        <Text style={styles.section}>Cliente: {clientName}</Text>
-        <Text style={styles.section}>Telefone: {phone}</Text>
-        <Text style={styles.section}>
-          Data: {dayjs(date).format("DD/MM/YYYY")}
-        </Text>
-        <Text style={styles.section}>
-          Validade do orçamento: {dayjs(dateValidate).format("DD/MM/YYYY")}
-        </Text>
-        <Text style={styles.section}>
-          Entrega prevista: {dayjs(deliveryDate).format("DD/MM/YYYY")}
-        </Text>
-        <Text style={styles.section}>Observações gerais: {description}</Text>
-      </View>
-
-      <View style={styles.table}>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableColDesc}>Descrição</Text>
-          <Text style={styles.tableColValue}>Valor</Text>
+    <Page size="A4" style={{ padding: 40, fontFamily: "Helvetica" }}>
+      {/* Topo */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        <View>
+          <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+            {establishmentName}
+          </Text>
         </View>
+        <View style={{ textAlign: "right" }}>
+          <Text style={{ fontSize: 10 }}>
+            {dayjs(date).format("MMMM, YYYY")}
+          </Text>
+        </View>
+      </View>
+
+      {/* Cliente */}
+      <View style={{ marginBottom: 10 }}>
+        <Text style={{ fontSize: 10, fontWeight: "bold" }}>Cliente:</Text>
+        <Text style={{ fontSize: 10 }}>{clientName}</Text>
+        <Text style={{ fontSize: 10 }}>Telefone: {phone}</Text>
+        <Text style={{ fontSize: 10 }}>{address}</Text>
+        <Text style={{ fontSize: 10 }}>
+          Ponto de referência: {referencePoint}
+        </Text>
+        <Text style={{ fontSize: 10 }}>
+          Veículo: {plate} | {brand} {model} ({year})
+        </Text>
+        <Text style={{ fontSize: 10 }}>
+          Entrega: {dayjs(deliveryDate).format("DD/MM/YYYY")}
+        </Text>
+        <Text style={{ fontSize: 10 }}>
+          Validade: {dayjs(dateValidate).format("DD/MM/YYYY")}
+        </Text>
+      </View>
+
+      {/* Tabela */}
+      <View
+        style={{
+          marginTop: 10,
+          borderTop: 1,
+          borderBottom: 1,
+          borderColor: "#ccc",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#f5f5f5",
+            paddingVertical: 5,
+            paddingHorizontal: 8,
+            borderBottom: 1,
+            borderColor: "#ccc",
+          }}
+        >
+          <Text style={{ width: "10%", fontSize: 9, fontWeight: "bold" }}>
+            Nº
+          </Text>
+          <Text style={{ width: "55%", fontSize: 9, fontWeight: "bold" }}>
+            Descrição
+          </Text>
+          <Text
+            style={{
+              width: "35%",
+              fontSize: 9,
+              fontWeight: "bold",
+              textAlign: "right",
+            }}
+          >
+            Valor
+          </Text>
+        </View>
+
         {services.map((s, i) => (
-          <View key={i} style={styles.tableRow}>
-            <Text style={styles.tableColDesc}>
+          <View
+            key={i}
+            style={{
+              flexDirection: "row",
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+              borderBottom: 1,
+              borderColor: "#eee",
+            }}
+          >
+            <Text style={{ width: "10%", fontSize: 9 }}>{i + 1}</Text>
+            <Text style={{ width: "55%", fontSize: 9 }}>
               {s.name}
               {s.observation ? ` - ${s.observation}` : ""}
             </Text>
-            <Text style={styles.tableColValue}>
+            <Text style={{ width: "35%", fontSize: 9, textAlign: "right" }}>
               R$ {Number(s.value).toFixed(2)}
             </Text>
           </View>
         ))}
       </View>
 
-      <Text style={styles.totalBlock}>
-        Total: R$ {Number(total).toFixed(2)}
-      </Text>
+      {/* Observações */}
+      {(observation || serviceDescription) && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ fontSize: 10, fontWeight: "bold" }}>Observações:</Text>
+          {serviceDescription && (
+            <Text style={{ fontSize: 10 }}>{serviceDescription}</Text>
+          )}
+          {observation && <Text style={{ fontSize: 10 }}>{observation}</Text>}
+        </View>
+      )}
 
-      <Text style={styles.footer}>
-        * Este orçamento possui uma validade descrita acima. Em caso de
-        alterações poderá haver custos adicionais.
-      </Text>
+      {/* Total */}
+      <View style={{ marginTop: 10, alignItems: "flex-end" }}>
+        <View
+          style={{
+            backgroundColor: "#000",
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderRadius: 4,
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 10 }}>
+            Total: R$ {Number(total).toFixed(2)}
+          </Text>
+        </View>
+      </View>
+
+      {/* Assinatura */}
+      <View style={{ marginTop: 40 }}>
+        <Text style={{ fontSize: 10 }}>
+          ___________________________________________
+        </Text>
+        <Text style={{ fontSize: 10, ml: 5 }}>Assinatura do Cliente</Text>
+      </View>
+
+      {/* Rodapé */}
+      <View style={{ position: "absolute", bottom: 40, left: 40, right: 40 }}>
+        <Text style={{ fontSize: 9, textAlign: "center" }}>
+          Rua Exemplo, 123 – Cidade Brasileira
+        </Text>
+      </View>
     </Page>
   </Document>
 );
@@ -167,7 +301,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const token = localStorage.getItem("authToken");
-  const [title, setTitle] = useState("");
   const [phone, setPhone] = useState("");
   const [clientName, setClientName] = useState("");
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
@@ -179,7 +312,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   );
   const [serviceDescription, setServiceDescription] = useState("");
   const [services, setServices] = useState([
-    { name: "", value: "", observation: "" },
+    { id: uuidv4(), name: "", value: "", observation: "" },
   ]);
   const [value, setValue] = useState(0);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -194,30 +327,55 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     const total = updated.reduce((sum, s) => sum + Number(s.value || 0), 0);
     setValue(total);
   };
-
+  const {
+    control,
+    handleSubmit,
+    setValue: setFormValue,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      clientName: "",
+      phone: "",
+      plate: "",
+      brand: "",
+      model: "",
+      year: "",
+      observation: "",
+      referencePoint: "",
+      address: "",
+      serviceDescription: "",
+      services: [{ name: "", value: "", observation: "" }],
+    },
+    resolver: yupResolver(schema),
+  });
   const handleAddService = () => {
-    setServices([...services, { name: "", value: "", observation: "" }]);
-  };
-
-  const handleRemoveService = (index) => {
-    const updated = [...services];
-    updated.splice(index, 1);
+    const updated = [
+      ...services,
+      { id: uuidv4(), name: "", value: "", observation: "" },
+    ];
     setServices(updated);
-    const total = updated.reduce((sum, s) => sum + Number(s.value || 0), 0);
-    setValue(total);
+    setFormValue("services", updated, { shouldValidate: true });
+    console.log("Serviços após adicionar:", updated);
   };
 
-  const handleSubmit = async (blob) => {
+  const handleRemoveService = (id) => {
+    const updated = services.filter((s) => s.id !== id);
+    setServices(updated);
+    setFormValue("services", updated, { shouldValidate: true });
+    console.log("Serviços após remover:", updated);
+  };
+  useEffect(() => {
+    console.log("Erros do formulário:", errors);
+  }, [errors]);
+  const onSubmit = async (data, blob) => {
+    console.log("Dados enviados no submit:", data);
     const payload = {
-      phone,
-      title,
-      clientName,
+      ...data,
       date,
       dateValidate,
       deliveryDate,
       value,
-      services,
-      serviceDescription,
       establishmentId: dataEstablishment[0]._id,
     };
 
@@ -243,15 +401,13 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setOpenSnackbar(true);
       setEstablishment((prev) => !prev);
 
-      setTitle("");
-      setPhone("");
-      setClientName("");
+      // Resetar tudo
       setDate(dayjs().format("YYYY-MM-DD"));
       setDeliveryDate(dayjs().format("YYYY-MM-DD"));
       setDateValidate(dayjs().format("YYYY-MM-DD"));
-      setServiceDescription("");
-      setServices([{ name: "", value: "", observation: "" }]);
       setValue(0);
+      reset();
+      setServices([{ id: uuidv4(), name: "", value: "", observation: "" }]);
     } catch (err) {
       console.error("Erro ao criar orçamento:", err);
       setSnackbarSeverity("error");
@@ -261,7 +417,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setIsLoading(false);
     }
   };
-
   return (
     <Box sx={{ width: "95%", mt: 5, mb: 3 }}>
       <Snackbar
@@ -284,7 +439,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
           p: 3,
           borderRadius: 4,
           background: "#f9f5ff",
-          maxHeight: isMobile ? "80rem" : "45rem",
+          maxHeight: isMobile ? "80rem" : "60rem",
         }}
       >
         <Typography variant="h6" fontWeight={700} color="#AC42F7">
@@ -299,134 +454,424 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             >
               Data do orçamento
             </InputLabel>
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-              localeText={
-                ptBR.components.MuiLocalizationProvider.defaultProps.localeText
-              }
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                value={dayjs(date)}
-                onChange={(newValue) =>
-                  newValue && setDate(newValue.format("YYYY-MM-DD"))
-                }
-                sx={{ background: "#FFFFFF" }}
-                slotProps={{ textField: { fullWidth: true, size: "small" } }}
-              />
-            </LocalizationProvider>
+            <Controller
+              name="date"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    value={field.value ? dayjs(field.value) : null}
+                    onChange={(newValue) => {
+                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      field.onChange(formatted);
+                      setDate(formatted);
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        error: !!errors.date,
+                        helperText: errors.date?.message,
+                        InputProps: {
+                          sx: {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                        },
+                        sx: {
+                          mt: 1,
+                          mb: 2,
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                          "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                            {
+                              borderColor: "#ff8ba7",
+                            },
+                          "& .MuiInputBase-root.Mui-error": {
+                            bgcolor: "#fff",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              )}
+            />
           </Grid2>
+
           <Grid2 size={{ xs: 12, sm: 4 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
             >
               Validade do orçamento
             </InputLabel>
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-              localeText={
-                ptBR.components.MuiLocalizationProvider.defaultProps.localeText
-              }
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                value={dayjs(dateValidate)}
-                onChange={(newValue) =>
-                  newValue && setDateValidate(newValue.format("YYYY-MM-DD"))
-                }
-                sx={{ background: "#FFFFFF" }}
-                slotProps={{ textField: { fullWidth: true, size: "small" } }}
-              />
-            </LocalizationProvider>
+            <Controller
+              name="dateValidate"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    value={field.value ? dayjs(field.value) : null}
+                    onChange={(newValue) => {
+                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      field.onChange(formatted);
+                      setDateValidate(formatted);
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        error: !!errors.dateValidate,
+                        helperText: errors.dateValidate?.message,
+                        InputProps: {
+                          sx: {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                        },
+                        sx: {
+                          mt: 1,
+                          mb: 2,
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                          "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                            {
+                              borderColor: "#ff8ba7",
+                            },
+                          "& .MuiInputBase-root.Mui-error": {
+                            bgcolor: "#fff",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              )}
+            />
           </Grid2>
+
           <Grid2 size={{ xs: 12, sm: 4 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
             >
               Entrega do serviço
             </InputLabel>
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-              localeText={
-                ptBR.components.MuiLocalizationProvider.defaultProps.localeText
-              }
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                value={dayjs(deliveryDate)}
-                onChange={(newValue) =>
-                  newValue && setDeliveryDate(newValue.format("YYYY-MM-DD"))
-                }
-                sx={{ background: "#FFFFFF" }}
-                slotProps={{ textField: { fullWidth: true, size: "small" } }}
-              />
-            </LocalizationProvider>
+            <Controller
+              name="deliveryDate"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  adapterLocale="pt-br"
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    value={field.value ? dayjs(field.value) : null}
+                    onChange={(newValue) => {
+                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      field.onChange(formatted);
+                      setDeliveryDate(formatted);
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        error: !!errors.deliveryDate,
+                        helperText: errors.deliveryDate?.message,
+                        InputProps: {
+                          sx: {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                        },
+                        sx: {
+                          mt: 1,
+                          mb: 2,
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                          "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                            {
+                              borderColor: "#ff8ba7",
+                            },
+                          "& .MuiInputBase-root.Mui-error": {
+                            bgcolor: "#fff",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              )}
+            />
           </Grid2>
-          <Grid2 size={{ xs: 12, sm: 4 }}>
+
+          <Grid2 size={{ xs: 12, sm: 3 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
             >
-              Cliente
+              Placa
             </InputLabel>
-            <TextField
-              fullWidth
-              size="small"
-              sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
+            <Controller
+              name="plate"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.plate}
+                  helperText={errors.plate?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
             />
           </Grid2>
-          <Grid2 size={{ xs: 12, sm: 4 }}>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <InputLabel
+              sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+            >
+              Marca
+            </InputLabel>
+            <Controller
+              name="brand"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.brand}
+                  helperText={errors.brand?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Grid2>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <InputLabel
+              sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+            >
+              Modelo
+            </InputLabel>
+            <Controller
+              name="model"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.model}
+                  helperText={errors.model?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Grid2>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <InputLabel
+              sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+            >
+              Ano
+            </InputLabel>
+            <Controller
+              name="year"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.year}
+                  helperText={errors.year?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Grid2>
+
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <InputLabel
+              sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+            >
+              Nome do cliente
+            </InputLabel>
+            <Controller
+              name="clientName"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.clientName}
+                  helperText={errors.clientName?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Grid2>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
             >
               Tefefone
             </InputLabel>
 
-            <InputMask
-              mask="(99) 99999-9999"
-              value={phone}
-              maskChar={null}
-              onChange={(e) => setPhone(e.target.value)}
-            >
-              {(inputProps) => (
-                <TextField
-                  {...inputProps}
-                  fullWidth
-                  size="small"
-                  sx={{
-                    bgcolor: "#fff",
-                    borderRadius: 2,
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
-                />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <InputMask
+                  {...field}
+                  mask="(99) 99999-9999"
+                  maskChar={null}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  value={field.value}
+                >
+                  {(inputProps) => (
+                    <TextField
+                      {...inputProps}
+                      fullWidth
+                      size="small"
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message}
+                      sx={{
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                      }}
+                    />
+                  )}
+                </InputMask>
               )}
-            </InputMask>
+            />
           </Grid2>
-
-          <Grid2 size={{ xs: 12, sm: 4 }}>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
             >
-              Título
+              Endereço
             </InputLabel>
-            <TextField
-              fullWidth
-              size="small"
-              sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.address}
+                  helperText={errors.address?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Grid2>
+          <Grid2 size={{ xs: 12, sm: 3 }}>
+            <InputLabel
+              sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+            >
+              Ponto de referência
+            </InputLabel>
+            <Controller
+              name="referencePoint"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.referencePoint}
+                  helperText={errors.referencePoint?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
             />
           </Grid2>
 
@@ -436,16 +881,27 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             >
               Observação Geral
             </InputLabel>
-            <TextField
-              fullWidth
-              size="small"
-              sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
-              value={serviceDescription}
-              onChange={(e) => setServiceDescription(e.target.value)}
+            <Controller
+              name="observation"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  error={!!errors.observation}
+                  helperText={errors.observation?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              )}
             />
           </Grid2>
           <Box
@@ -457,7 +913,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             }}
           >
             {services.map((service, index) => (
-              <React.Fragment key={index}>
+              <React.Fragment key={service.id}>
                 <Grid2 container spacing={2} sx={{ mb: 2 }}>
                   <Grid2 size={{ xs: 12, sm: 4 }}>
                     <InputLabel
@@ -470,21 +926,35 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     >
                       Valor
                     </InputLabel>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      size="small"
-                      sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                      value={service.value}
-                      onChange={(e) =>
-                        handleServiceChange(index, "value", e.target.value)
-                      }
+                    <Controller
+                      name={`services[${index}].value`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          type="number"
+                          size="small"
+                          error={!!errors?.services?.[index]?.value}
+                          helperText={errors?.services?.[index]?.value?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          }}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleServiceChange(index, "value", e.target.value);
+                          }}
+                        />
+                      )}
                     />
                   </Grid2>
+
                   <Grid2 size={{ xs: 12, sm: 8 }}>
                     <InputLabel
                       sx={{
@@ -496,38 +966,51 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     >
                       Serviço
                     </InputLabel>
-                    <TextField
-                      select
-                      fullWidth
-                      size="small"
-                      sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                      value={service.name}
-                      onChange={(e) => {
-                        const selected = dataEstablishment[0].services.find(
-                          (s) => s.name === e.target.value
-                        );
-                        handleServiceChange(
-                          index,
-                          "name",
-                          selected?.name || ""
-                        );
-                        handleServiceChange(
-                          index,
-                          "value",
-                          selected?.price || ""
-                        );
-                      }}
-                    >
-                      {dataEstablishment[0]?.services?.map((srv) => (
-                        <MenuItem key={srv._id} value={srv.name}>
-                          {srv.name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                    <Controller
+                      name={`services.${index}.name`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          fullWidth
+                          size="small"
+                          value={service.name}
+                          error={!!errors?.services?.[index]?.name}
+                          helperText={errors?.services?.[index]?.name?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          }}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            const selected = dataEstablishment[0].services.find(
+                              (s) => s.name === e.target.value
+                            );
+                            handleServiceChange(
+                              index,
+                              "name",
+                              selected?.name || ""
+                            );
+                            handleServiceChange(
+                              index,
+                              "value",
+                              selected?.price || ""
+                            );
+                          }}
+                        >
+                          {dataEstablishment[0]?.services?.map((srv) => (
+                            <MenuItem key={srv._id} value={srv.name}>
+                              {srv.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
                   </Grid2>
 
                   <Grid2 size={{ xs: 12, sm: services.length > 1 ? 8 : 12 }}>
@@ -541,31 +1024,43 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     >
                       Observação
                     </InputLabel>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                      value={service.observation}
-                      onChange={(e) =>
-                        handleServiceChange(
-                          index,
-                          "observation",
-                          e.target.value
-                        )
-                      }
+                    <Controller
+                      name={`services[${index}].observation`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          size="small"
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          }}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleServiceChange(
+                              index,
+                              "observation",
+                              e.target.value
+                            );
+                          }}
+                        />
+                      )}
                     />
                   </Grid2>
+
                   {services.length > 1 && (
                     <Grid2 sx={{ pt: 4 }} size={{ xs: 12, sm: 4 }}>
                       <Button
                         color="error"
                         size="small"
                         variant="outlined"
-                        onClick={() => handleRemoveService(index)}
+                        onClick={() => handleRemoveService(service.id)}
                         sx={{
                           background: "#D32F2F",
                           color: "#FFF",
@@ -622,7 +1117,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
               <BudgetDocument
                 establishmentName={establishmentName}
                 phone={phone}
-                title={title}
                 clientName={clientName}
                 date={date}
                 dateValidate={dateValidate}
@@ -656,7 +1150,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                 <Button
                   variant="contained"
                   isLoading={isLoading}
-                  onClick={() => handleSubmit(blob)}
+                  onClick={handleSubmit((data) => onSubmit(data, blob))}
                   sx={{
                     background: "#ac42f7",
                     color: "#FFF",

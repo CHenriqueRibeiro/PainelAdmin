@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-// Componente NewProducts ajustado para opcionalmente atrelar produtos a serviços, lendo serviços do dataEstablishment
 import React, { useState, useEffect } from "react";
 import {
   Box,
