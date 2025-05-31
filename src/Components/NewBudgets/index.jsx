@@ -806,9 +806,13 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                       error={!!errors.phone}
                       helperText={errors.phone?.message}
                       sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
                       }}
                     />
                   )}
@@ -915,7 +919,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             {services.map((service, index) => (
               <React.Fragment key={service.id}>
                 <Grid2 container spacing={2} sx={{ mb: 2 }}>
-                  <Grid2 size={{ xs: 12, sm: 4 }}>
+                  <Grid2 size={{ xs: 12, sm: 1.5 }}>
                     <InputLabel
                       sx={{
                         color: "#AC42F7",
@@ -955,7 +959,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     />
                   </Grid2>
 
-                  <Grid2 size={{ xs: 12, sm: 8 }}>
+                  <Grid2 size={{ xs: 12, sm: 3 }}>
                     <InputLabel
                       sx={{
                         color: "#AC42F7",
@@ -1013,7 +1017,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     />
                   </Grid2>
 
-                  <Grid2 size={{ xs: 12, sm: services.length > 1 ? 8 : 12 }}>
+                  <Grid2 size={{ xs: 12, sm: services.length > 1 ? 5 : 7.5 }}>
                     <InputLabel
                       sx={{
                         color: "#AC42F7",
@@ -1055,7 +1059,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                   </Grid2>
 
                   {services.length > 1 && (
-                    <Grid2 sx={{ pt: 4 }} size={{ xs: 12, sm: 4 }}>
+                    <Grid2 sx={{ pt: 4 }} size={{ xs: 12, sm: 2 }}>
                       <Button
                         color="error"
                         size="small"

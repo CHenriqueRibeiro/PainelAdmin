@@ -1,22 +1,19 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from "react";
+// eslint-disable-next-line no-unused-vars
+import React, { useState } from "react";
 import {
   Box,
   Divider,
   Typography,
   Paper,
-  Grid2,
   Snackbar,
   Alert,
   IconButton,
   Tooltip,
-  Collapse,
 } from "@mui/material";
 import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
-import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
+import AssignmentTurnedInRoundedIcon from "@mui/icons-material/AssignmentTurnedInRounded";
 
 const Budgets = ({
   dataEstablishment,
@@ -27,7 +24,7 @@ const Budgets = ({
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const [expandedType, setExpandedType] = useState(null);
+
   const handleDelete = async (index) => {
     try {
       const response = await fetch(
@@ -98,15 +95,8 @@ const Budgets = ({
         <Divider sx={{ mb: 2 }} />
 
         {budgets.length > 0 ? (
-          Object.entries(
-            budgets.reduce((acc, budget) => {
-              const date = new Date(budget.date).toLocaleDateString();
-              if (!acc[date]) acc[date] = [];
-              acc[date].push(budget);
-              return acc;
-            }, {})
-          ).map(([date, groupedBudgets]) => (
-            <Box key={date} sx={{ mb: 2 }}>
+          budgets.map((budget) => (
+            <Box key={budget._id} sx={{ mb: 2 }}>
               <Box
                 sx={{
                   display: "flex",
@@ -115,122 +105,52 @@ const Budgets = ({
                   background: "#f1eeff",
                   p: 1.5,
                   borderRadius: 2,
-                  cursor: "pointer",
                 }}
-                onClick={() =>
-                  setExpandedType((prev) => (prev === date ? null : date))
-                }
               >
                 <Typography fontWeight={700} color="#AC42F7">
-                  {date} | Total: R${" "}
-                  {groupedBudgets
-                    .reduce((sum, b) => sum + Number(b.value), 0)
-                    .toFixed(2)}
+                  {new Date(budget.date).toLocaleDateString()} |{" "}
+                  {budget.clientName} | R$ {Number(budget.value).toFixed(2)}
                 </Typography>
-                {expandedType === date ? (
-                  <ArrowDropUpRoundedIcon sx={{ color: "#AC42F7" }} />
-                ) : (
-                  <ArrowDropDownRoundedIcon sx={{ color: "#AC42F7" }} />
-                )}
-              </Box>
-
-              <Collapse in={expandedType === date}>
-                {groupedBudgets.map((budget, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      mt: 1,
-                      p: 2,
-                      borderRadius: 2,
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
-                  >
-                    <Grid2 container spacing={2} width={"90%"}>
-                      <Grid2 size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="caption"
-                          color="#AC42F7"
-                          fontWeight={600}
-                        >
-                          Cliente
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          {budget.clientName}
-                        </Typography>
-                      </Grid2>
-                      <Grid2 size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="caption"
-                          color="#AC42F7"
-                          fontWeight={600}
-                        >
-                          Telefone
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          {budget.phone}
-                        </Typography>
-                      </Grid2>
-                      <Grid2 size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="caption"
-                          color="#AC42F7"
-                          fontWeight={600}
-                        >
-                          Título
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          {budget.title}
-                        </Typography>
-                      </Grid2>
-                      <Grid2 size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="caption"
-                          color="#AC42F7"
-                          fontWeight={600}
-                        >
-                          Valor
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          R$ {parseFloat(budget.value).toFixed(2)}
-                        </Typography>
-                      </Grid2>
-                    </Grid2>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        gap: 1,
-                        width: "10%",
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Tooltip title="Visualizar orçamento">
+                    <IconButton
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(budget.documentUrl, "_blank");
                       }}
                     >
-                      <Tooltip title="Visualizar orçamento">
-                        <IconButton
-                          color="primary"
-                          onClick={() =>
-                            window.open(budget.documentUrl, "_blank")
-                          }
-                        >
-                          <PictureAsPdfRoundedIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Divider orientation="vertical" flexItem />
-                      <Tooltip title="Excluir orçamento">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(budget._id)}
-                        >
-                          <DeleteRoundedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Box>
-                ))}
-              </Collapse>
+                      <PictureAsPdfRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  {budget.signedDocumentUrl && (
+                    <Tooltip title="Visualizar assinatura">
+                      <IconButton
+                        color="success"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(budget.signedDocumentUrl, "_blank");
+                        }}
+                      >
+                        <AssignmentTurnedInRoundedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+
+                  <Tooltip title="Excluir orçamento">
+                    <IconButton
+                      color="error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(budget._id);
+                      }}
+                    >
+                      <DeleteRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
             </Box>
           ))
         ) : (
