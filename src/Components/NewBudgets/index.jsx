@@ -18,6 +18,7 @@ import {
   useTheme,
   MenuItem,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ptBR } from "@mui/x-date-pickers/locales";
@@ -329,7 +330,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingButton, setIsLoadingButton] = useState(false);
   const establishmentName = dataEstablishment[0]?.nameEstablishment;
   const handleServiceChange = (index, field, fieldValue) => {
     const updated = [...services];
@@ -377,6 +378,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     setFormValue("services", updated, { shouldValidate: true });
   };
   const onSubmit = async (data, blob) => {
+    setIsLoadingButton(true);
     const payload = {
       ...data,
       date,
@@ -391,7 +393,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     formData.append("data", JSON.stringify(payload));
 
     try {
-      setIsLoading(true);
       const response = await fetch(
         "https://lavaja.up.railway.app/api/budget/budget",
         {
@@ -402,7 +403,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
       );
 
       if (!response.ok) throw new Error("Erro ao criar orçamento");
-      setIsLoading(false);
+
       setSnackbarSeverity("success");
       setSnackbarMessage("Orçamento criado com sucesso");
       setOpenSnackbar(true);
@@ -420,7 +421,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setSnackbarMessage("Erro ao criar orçamento");
       setOpenSnackbar(true);
     } finally {
-      setIsLoading(false);
+      setIsLoadingButton(false);
     }
   };
   return (
@@ -1173,9 +1174,9 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                 >
                   Visualizar orçamento
                 </Button>
-                <Button
+                <LoadingButton
+                  loading={isLoadingButton}
                   variant="contained"
-                  isLoading={isLoading}
                   onClick={handleSubmit((data) => onSubmit(data, blob))}
                   sx={{
                     background: "#ac42f7",
@@ -1188,10 +1189,11 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     "& .MuiCircularProgress-root": {
                       color: "#ffffff",
                     },
+                    "&:hover": { background: "#9a2dcf" },
                   }}
                 >
                   Salvar
-                </Button>
+                </LoadingButton>
               </>
             )}
           </BlobProvider>

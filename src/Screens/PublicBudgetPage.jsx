@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -8,6 +8,8 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
+
 import SignatureCanvas from "react-signature-canvas";
 
 const PublicBudgetPage = () => {
@@ -18,6 +20,7 @@ const PublicBudgetPage = () => {
     message: "",
     severity: "success",
   });
+  const [isLoadingSignature, setIsLoadingSignature] = useState(false);
   const signaturePadRef = useRef(null);
 
   const budgetId = new URLSearchParams(window.location.search).get("id");
@@ -60,6 +63,7 @@ const PublicBudgetPage = () => {
     formData.append("file", blob, "assinatura.png");
 
     try {
+      setIsLoadingSignature(true);
       const response = await fetch(
         `https://lavaja.up.railway.app/api/budget/budget/sign/${budgetId}`,
         {
@@ -71,7 +75,11 @@ const PublicBudgetPage = () => {
       if (!response.ok) throw new Error("Erro ao enviar assinatura");
 
       const data = await response.json();
-      setBudget((prev) => ({ ...prev, signatureUrl: data.signatureUrl }));
+      setBudget((prev) => ({
+        ...prev,
+        signatureUrl: data.signatureUrl,
+        signedDocumentUrl: data.signedDocumentUrl,
+      }));
       setSnackbar({
         open: true,
         message: "Assinatura enviada com sucesso.",
@@ -85,6 +93,8 @@ const PublicBudgetPage = () => {
         message: "Erro ao enviar assinatura.",
         severity: "error",
       });
+    } finally {
+      setIsLoadingSignature(false);
     }
   };
 
@@ -111,77 +121,189 @@ const PublicBudgetPage = () => {
 
   return (
     <Box sx={{ maxWidth: 600, mx: "auto", p: 4 }}>
-      <Typography variant="h5" fontWeight={600} color="#AC42F7" gutterBottom>
+      <Typography
+        variant="h5"
+        fontWeight={700}
+        color="#AC42F7"
+        textAlign="center"
+        gutterBottom
+      >
+        Assinatura de Orçamento
+      </Typography>
+
+      <Typography
+        variant="h6"
+        fontWeight={600}
+        color="#AC42F7"
+        gutterBottom
+        sx={{ textAlign: "center" }}
+      >
         Orçamento de {budget.clientName}
       </Typography>
-      <Typography>
-        <strong>Telefone:</strong> {budget.phone}
-      </Typography>
-      <Typography>
-        <strong>Valor:</strong> R$ {Number(budget.value).toFixed(2)}
-      </Typography>
-      <Typography mt={2}>
-        <strong>Serviços:</strong>
-      </Typography>
-      {budget.services && budget.services.length > 0 ? (
-        <ul>
-          {budget.services.map((service, index) => (
-            <li key={index}>
-              {service.name} — R$ {Number(service.value).toFixed(2)}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Typography color="textSecondary">Nenhum serviço listado.</Typography>
-      )}
+
+      {/* Telefone e Valor */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          mt: 1,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            background: "#f9f5ff",
+            borderRadius: 2,
+            border: "1px solid #AC42F7",
+            p: 1.5,
+          }}
+        >
+          <Typography sx={{ fontWeight: 600, color: "#AC42F7" }}>
+            Telefone:
+          </Typography>
+          <Typography fontWeight={600}>{budget.phone}</Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            background: "#f9f5ff",
+            borderRadius: 2,
+            border: "1px solid #AC42F7",
+            p: 1.5,
+          }}
+        >
+          <Typography sx={{ fontWeight: 600, color: "#AC42F7" }}>
+            Valor Total:
+          </Typography>
+          <Typography fontWeight={600}>
+            R$ {Number(budget.value).toFixed(2)}
+          </Typography>
+        </Box>
+      </Box>
 
       <Box mt={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          href={budget.documentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Visualizar PDF do Orçamento
-        </Button>
+        <Typography variant="h6" fontWeight={600} color="#AC42F7">
+          Serviços:
+        </Typography>
+        {budget.services && budget.services.length > 0 ? (
+          <Box
+            sx={{
+              mt: 1,
+              p: 2,
+              background: "#f9f5ff",
+              borderRadius: 2,
+              border: "1px solid #AC42F7",
+              boxShadow: "0 2px 4px rgba(172, 66, 247, 0.1)",
+            }}
+          >
+            {budget.services.map((service, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: index !== budget.services.length - 1 ? 1 : 0,
+                  borderBottom:
+                    index !== budget.services.length - 1
+                      ? "1px solid #ddd"
+                      : "none",
+                  pb: index !== budget.services.length - 1 ? 1 : 0,
+                }}
+              >
+                <Typography>{service.name}</Typography>
+                <Typography fontWeight={600}>
+                  R$ {Number(service.value).toFixed(2)}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography color="textSecondary">Nenhum serviço listado.</Typography>
+        )}
       </Box>
+      {!budget.signatureUrl && (
+        <Box mt={3} mb={4} sx={{ textAlign: "center" }}>
+          <Button
+            variant="contained"
+            href={budget.documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              background: "#ac42f7",
+              color: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "0.9rem",
+              fontWeight: "bold",
+              textTransform: "none",
+              boxShadow: "0 2px 6px rgba(172, 66, 247, 0.3)",
+              "&:hover": { background: "#9a2dcf" },
+            }}
+          >
+            Visualizar PDF do Orçamento
+          </Button>
+        </Box>
+      )}
 
       {budget.signatureUrl ? (
         <Box mt={4}>
-          <Typography variant="h6" color="#4caf50">
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            color="green"
+            gutterBottom
+            sx={{ textAlign: "center" }}
+          >
             Este orçamento já foi assinado!
           </Typography>
-          <Typography>
-            Você pode visualizar o documento assinado abaixo:
-          </Typography>
-          <Box mt={2}>
+
+          <Box mt={2} sx={{ textAlign: "center" }}>
             <Button
               variant="contained"
-              color="primary"
               href={budget.signedDocumentUrl}
               target="_blank"
               rel="noopener noreferrer"
+              sx={{
+                background: "#ac42f7",
+                color: "#FFF",
+                borderRadius: 3,
+                padding: "8px 24px",
+                fontSize: "0.9rem",
+                fontWeight: "bold",
+                textTransform: "none",
+                boxShadow: "0 2px 6px rgba(172, 66, 247, 0.3)",
+                "&:hover": { background: "#9a2dcf" },
+              }}
             >
               Visualizar Documento Assinado
             </Button>
           </Box>
-          <Box
-            component="img"
-            src={budget.signatureUrl}
-            alt="Assinatura do Cliente"
-            sx={{
-              width: "100%",
-              maxWidth: 400,
-              border: "1px solid #ddd",
-              borderRadius: 2,
-              mt: 2,
-            }}
-          />
         </Box>
       ) : (
         <Box mt={4}>
-          <Typography variant="h6">Assine abaixo:</Typography>
+          <Typography variant="h6" fontWeight={600}>
+            Assine abaixo:
+          </Typography>
+          <Box
+            sx={{
+              mt: 1,
+              p: 2,
+              background: "#f9f5ff",
+              borderRadius: 2,
+              border: "1px solid #AC42F7",
+            }}
+          >
+            <Typography variant="body2" color="#AC42F7" fontWeight={500}>
+              <strong>Importante:</strong> Ao assinar este orçamento, você
+              autoriza a execução dos serviços descritos acima. Se tiver alguma
+              dúvida, entre em contato com nossa equipe.
+            </Typography>
+          </Box>
+
           <Box
             sx={{
               border: "1px solid #ccc",
@@ -201,21 +323,53 @@ const PublicBudgetPage = () => {
               }}
             />
           </Box>
-          <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+          <Box
+            sx={{
+              mt: 2,
+              display: "flex",
+              gap: 2,
+              justifyContent: "center",
+            }}
+          >
             <Button
               variant="outlined"
               color="secondary"
               onClick={() => signaturePadRef.current.clear()}
+              sx={{
+                background: "#fff",
+                color: "#AC42F7",
+                borderColor: "#AC42F7",
+                borderRadius: 3,
+                padding: "8px 24px",
+                fontSize: "0.9rem",
+                fontWeight: "bold",
+                textTransform: "none",
+                "&:hover": {
+                  background: "#f5f5f5",
+                },
+              }}
             >
               Limpar
             </Button>
-            <Button
+            <LoadingButton
               variant="contained"
               color="secondary"
               onClick={handleSignatureUpload}
+              loading={isLoadingSignature}
+              sx={{
+                background: "#ac42f7",
+                color: "#FFF",
+                borderRadius: 3,
+                padding: "8px 24px",
+                fontSize: "0.9rem",
+                fontWeight: "bold",
+                textTransform: "none",
+                boxShadow: "0 2px 6px rgba(172, 66, 247, 0.3)",
+                "&:hover": { background: "#9a2dcf" },
+              }}
             >
               Enviar Assinatura
-            </Button>
+            </LoadingButton>
           </Box>
         </Box>
       )}
