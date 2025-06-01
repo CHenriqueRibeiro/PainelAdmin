@@ -150,8 +150,22 @@ const PublicBudgetPage = () => {
       {budget.signatureUrl ? (
         <Box mt={4}>
           <Typography variant="h6" color="#4caf50">
-            Assinatura do Cliente:
+            Este orçamento já foi assinado!
           </Typography>
+          <Typography>
+            Você pode visualizar o documento assinado abaixo:
+          </Typography>
+          <Box mt={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              href={budget.signedDocumentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Visualizar Documento Assinado
+            </Button>
+          </Box>
           <Box
             component="img"
             src={budget.signatureUrl}
@@ -161,7 +175,7 @@ const PublicBudgetPage = () => {
               maxWidth: 400,
               border: "1px solid #ddd",
               borderRadius: 2,
-              mt: 1,
+              mt: 2,
             }}
           />
         </Box>

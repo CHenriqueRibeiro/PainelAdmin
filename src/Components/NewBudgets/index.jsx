@@ -114,7 +114,6 @@ const schema = yup.object().shape({
   date: yup.string().required("Campo obrigatório"),
   dateValidate: yup.string().required("Campo obrigatório"),
   deliveryDate: yup.string().required("Campo obrigatório"),
-  referencePoint: yup.string().required("Campo obrigatório"),
   observation: yup.string(),
   address: yup.string().required("Campo obrigatório"),
   serviceDescription: yup.string(),
@@ -132,6 +131,7 @@ const schema = yup.object().shape({
     )
     .min(1, "Adicione pelo menos um serviço"),
 });
+
 const BudgetDocument = ({
   establishmentName,
   clientName,
@@ -148,161 +148,173 @@ const BudgetDocument = ({
   dateValidate,
   deliveryDate,
   services,
-  total,
-}) => (
-  <Document>
-    <Page size="A4" style={{ padding: 40, fontFamily: "Helvetica" }}>
-      {/* Topo */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: 20,
-        }}
-      >
-        <View>
-          <Text style={{ fontSize: 14, fontWeight: "bold" }}>
-            {establishmentName}
-          </Text>
-        </View>
-        <View style={{ textAlign: "right" }}>
-          <Text style={{ fontSize: 10 }}>
-            {dayjs(date).format("MMMM, YYYY")}
-          </Text>
-        </View>
-      </View>
+}) => {
+  const totalAmount = services.reduce(
+    (acc, item) => acc + parseFloat(item.value || 0),
+    0
+  );
 
-      {/* Cliente */}
-      <View style={{ marginBottom: 10 }}>
-        <Text style={{ fontSize: 10, fontWeight: "bold" }}>Cliente:</Text>
-        <Text style={{ fontSize: 10 }}>{clientName}</Text>
-        <Text style={{ fontSize: 10 }}>Telefone: {phone}</Text>
-        <Text style={{ fontSize: 10 }}>{address}</Text>
-        <Text style={{ fontSize: 10 }}>
-          Ponto de referência: {referencePoint}
-        </Text>
-        <Text style={{ fontSize: 10 }}>
-          Veículo: {plate} | {brand} {model} ({year})
-        </Text>
-        <Text style={{ fontSize: 10 }}>
-          Entrega: {dayjs(deliveryDate).format("DD/MM/YYYY")}
-        </Text>
-        <Text style={{ fontSize: 10 }}>
-          Validade: {dayjs(dateValidate).format("DD/MM/YYYY")}
-        </Text>
-      </View>
-
-      {/* Tabela */}
-      <View
+  return (
+    <Document>
+      <Page
+        size="A4"
         style={{
-          marginTop: 10,
-          borderTop: 1,
-          borderBottom: 1,
-          borderColor: "#ccc",
+          padding: 40,
+          fontFamily: "Helvetica",
+          fontSize: 10,
+          lineHeight: 1.4,
+          position: "relative",
         }}
       >
         <View
           style={{
             flexDirection: "row",
-            backgroundColor: "#f5f5f5",
-            paddingVertical: 5,
-            paddingHorizontal: 8,
-            borderBottom: 1,
-            borderColor: "#ccc",
+            justifyContent: "space-between",
+            marginBottom: 20,
           }}
         >
-          <Text style={{ width: "10%", fontSize: 9, fontWeight: "bold" }}>
-            Nº
-          </Text>
-          <Text style={{ width: "55%", fontSize: 9, fontWeight: "bold" }}>
-            Descrição
-          </Text>
-          <Text
-            style={{
-              width: "35%",
-              fontSize: 9,
-              fontWeight: "bold",
-              textAlign: "right",
-            }}
-          >
-            Valor
+          <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+            {establishmentName}
           </Text>
         </View>
 
-        {services.map((s, i) => (
+        <View style={{ marginBottom: 15 }}>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Cliente: </Text>
+            {clientName}
+          </Text>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Telefone: </Text>
+            {phone}
+          </Text>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Endereço: </Text>
+            {address}
+          </Text>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Ponto de referência: </Text>
+            {referencePoint ? referencePoint : "Não informado"}
+          </Text>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Veículo: </Text>
+            {plate} | {brand} | {model} | {year}
+          </Text>
+          <Text>
+            <Text style={{ fontWeight: "bold" }}>Entrega do serviço: </Text>
+            {dayjs(deliveryDate).format("DD/MM/YYYY")}
+          </Text>
+        </View>
+
+        <View style={{ marginTop: 10, borderWidth: 1, borderColor: "#ccc" }}>
           <View
-            key={i}
             style={{
               flexDirection: "row",
-              paddingVertical: 4,
-              paddingHorizontal: 8,
-              borderBottom: 1,
-              borderColor: "#eee",
+              backgroundColor: "#f5f5f5",
+              padding: 5,
+              borderBottomWidth: 1,
+              borderColor: "#ccc",
             }}
           >
-            <Text style={{ width: "10%", fontSize: 9 }}>{i + 1}</Text>
-            <Text style={{ width: "55%", fontSize: 9 }}>
-              {s.name}
-              {s.observation ? ` - ${s.observation}` : ""}
-            </Text>
-            <Text style={{ width: "35%", fontSize: 9, textAlign: "right" }}>
-              R$ {Number(s.value).toFixed(2)}
+            <Text style={{ width: "10%", fontWeight: "bold" }}>Nº</Text>
+            <Text style={{ width: "55%", fontWeight: "bold" }}>Descrição</Text>
+            <Text
+              style={{ width: "35%", fontWeight: "bold", textAlign: "right" }}
+            >
+              Valor
             </Text>
           </View>
-        ))}
-      </View>
 
-      {/* Observações */}
-      {(observation || serviceDescription) && (
-        <View style={{ marginTop: 10 }}>
-          <Text style={{ fontSize: 10, fontWeight: "bold" }}>Observações:</Text>
-          {serviceDescription && (
-            <Text style={{ fontSize: 10 }}>{serviceDescription}</Text>
-          )}
-          {observation && <Text style={{ fontSize: 10 }}>{observation}</Text>}
+          {services.map((s, i) => (
+            <View
+              key={i}
+              style={{
+                flexDirection: "row",
+                padding: 5,
+                borderBottomWidth: 1,
+                borderColor: "#eee",
+              }}
+            >
+              <Text style={{ width: "10%" }}>{i + 1}</Text>
+              <Text style={{ width: "55%" }}>
+                {s.name}
+                {s.observation ? ` - ${s.observation}` : ""}
+              </Text>
+              <Text style={{ width: "35%", textAlign: "right" }}>
+                R$ {Number(s.value).toFixed(2)}
+              </Text>
+            </View>
+          ))}
         </View>
-      )}
 
-      {/* Total */}
-      <View style={{ marginTop: 10, alignItems: "flex-end" }}>
+        {observation && (
+          <View style={{ marginTop: 10 }}>
+            <Text style={{ fontWeight: "bold" }}>Observações:</Text>
+            {serviceDescription && <Text>{serviceDescription}</Text>}
+            {observation && <Text>{observation}</Text>}
+          </View>
+        )}
+
+        <View style={{ marginTop: 10, alignItems: "flex-end" }}>
+          <View
+            style={{
+              backgroundColor: "#000",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 4,
+            }}
+          >
+            <Text style={{ color: "#fff" }}>
+              Total: R$ {totalAmount.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+
         <View
           style={{
-            backgroundColor: "#000",
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-            borderRadius: 4,
+            position: "absolute",
+            bottom: 100,
+            left: 40,
+            right: 40,
+            alignItems: "center",
           }}
         >
-          <Text style={{ color: "#fff", fontSize: 10 }}>
-            Total: R$ {Number(total).toFixed(2)}
+          <Text style={{ fontSize: 10, marginBottom: 10 }}>
+            ___________________________________________
+          </Text>
+          <Text style={{ fontSize: 10 }}>Assinatura do Cliente</Text>
+        </View>
+
+        <View
+          style={{
+            position: "absolute",
+            bottom: 40,
+            left: 40,
+            right: 40,
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              height: 1,
+              backgroundColor: "#000",
+              width: "100%",
+              marginBottom: 4,
+            }}
+          />
+          <Text style={{ fontSize: 9 }}>
+            Este orçamento foi criado em {dayjs(date).format("DD/MM/YYYY")} e é
+            válido até {dayjs(dateValidate).format("DD/MM/YYYY")}.
           </Text>
         </View>
-      </View>
-
-      {/* Assinatura */}
-      <View style={{ marginTop: 40 }}>
-        <Text style={{ fontSize: 10 }}>
-          ___________________________________________
-        </Text>
-        <Text style={{ fontSize: 10, ml: 5 }}>Assinatura do Cliente</Text>
-      </View>
-
-      {/* Rodapé */}
-      <View style={{ position: "absolute", bottom: 40, left: 40, right: 40 }}>
-        <Text style={{ fontSize: 9, textAlign: "center" }}>
-          Rua Exemplo, 123 – Cidade Brasileira
-        </Text>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};
 
 const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const token = localStorage.getItem("authToken");
-  const [phone, setPhone] = useState("");
-  const [clientName, setClientName] = useState("");
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [dateValidate, setDateValidate] = useState(
     dayjs().format("YYYY-MM-DD")
@@ -310,7 +322,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const [deliveryDate, setDeliveryDate] = useState(
     dayjs().format("YYYY-MM-DD")
   );
-  const [serviceDescription, setServiceDescription] = useState("");
   const [services, setServices] = useState([
     { id: uuidv4(), name: "", value: "", observation: "" },
   ]);
@@ -333,6 +344,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     setValue: setFormValue,
     reset,
     formState: { errors },
+    getValues,
   } = useForm({
     defaultValues: {
       clientName: "",
@@ -349,6 +361,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     },
     resolver: yupResolver(schema),
   });
+  const formValues = getValues();
   const handleAddService = () => {
     const updated = [
       ...services,
@@ -356,20 +369,14 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
     ];
     setServices(updated);
     setFormValue("services", updated, { shouldValidate: true });
-    console.log("Serviços após adicionar:", updated);
   };
 
   const handleRemoveService = (id) => {
     const updated = services.filter((s) => s.id !== id);
     setServices(updated);
     setFormValue("services", updated, { shouldValidate: true });
-    console.log("Serviços após remover:", updated);
   };
-  useEffect(() => {
-    console.log("Erros do formulário:", errors);
-  }, [errors]);
   const onSubmit = async (data, blob) => {
-    console.log("Dados enviados no submit:", data);
     const payload = {
       ...data,
       date,
@@ -395,13 +402,12 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
       );
 
       if (!response.ok) throw new Error("Erro ao criar orçamento");
-
+      setIsLoading(false);
       setSnackbarSeverity("success");
       setSnackbarMessage("Orçamento criado com sucesso");
       setOpenSnackbar(true);
       setEstablishment((prev) => !prev);
 
-      // Resetar tudo
       setDate(dayjs().format("YYYY-MM-DD"));
       setDeliveryDate(dayjs().format("YYYY-MM-DD"));
       setDateValidate(dayjs().format("YYYY-MM-DD"));
@@ -439,7 +445,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
           p: 3,
           borderRadius: 4,
           background: "#f9f5ff",
-          maxHeight: isMobile ? "80rem" : "60rem",
+          maxHeight: isMobile ? "110rem" : "60rem",
         }}
       >
         <Typography variant="h6" fontWeight={700} color="#AC42F7">
@@ -447,7 +453,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
         </Typography>
         <Divider sx={{ my: 2 }} />
 
-        <Grid2 container spacing={2}>
+        <Grid2 container spacing={1.5}>
           <Grid2 size={{ xs: 12, sm: 4 }}>
             <InputLabel
               sx={{ color: "#AC42F7", pb: 0.5, pl: 0.3, fontWeight: 600 }}
@@ -731,22 +737,32 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
               name="year"
               control={control}
               render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  size="small"
-                  error={!!errors.year}
-                  helperText={errors.year?.message}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
-                />
+                <InputMask
+                  mask="9999"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  maskChar={null}
+                >
+                  {(inputProps) => (
+                    <TextField
+                      {...inputProps}
+                      type="text"
+                      fullWidth
+                      size="small"
+                      error={!!errors.year}
+                      helperText={errors.year?.message}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
+                    />
+                  )}
+                </InputMask>
               )}
             />
           </Grid2>
@@ -919,46 +935,6 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             {services.map((service, index) => (
               <React.Fragment key={service.id}>
                 <Grid2 container spacing={2} sx={{ mb: 2 }}>
-                  <Grid2 size={{ xs: 12, sm: 1.5 }}>
-                    <InputLabel
-                      sx={{
-                        color: "#AC42F7",
-                        pb: 0.5,
-                        pl: 0.3,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Valor
-                    </InputLabel>
-                    <Controller
-                      name={`services[${index}].value`}
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          type="number"
-                          size="small"
-                          error={!!errors?.services?.[index]?.value}
-                          helperText={errors?.services?.[index]?.value?.message}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              bgcolor: "#fff",
-                              borderRadius: 2,
-                            },
-                            "& .MuiInputBase-root.Mui-error": {
-                              bgcolor: "#fff",
-                            },
-                          }}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            handleServiceChange(index, "value", e.target.value);
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid2>
-
                   <Grid2 size={{ xs: 12, sm: 3 }}>
                     <InputLabel
                       sx={{
@@ -970,6 +946,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     >
                       Serviço
                     </InputLabel>
+
                     <Controller
                       name={`services.${index}.name`}
                       control={control}
@@ -1016,7 +993,45 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                       )}
                     />
                   </Grid2>
-
+                  <Grid2 size={{ xs: 12, sm: 1.5 }}>
+                    <InputLabel
+                      sx={{
+                        color: "#AC42F7",
+                        pb: 0.5,
+                        pl: 0.3,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Valor
+                    </InputLabel>
+                    <Controller
+                      name={`services[${index}].value`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          type="number"
+                          size="small"
+                          error={!!errors?.services?.[index]?.value}
+                          helperText={errors?.services?.[index]?.value?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          }}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleServiceChange(index, "value", e.target.value);
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid2>
                   <Grid2 size={{ xs: 12, sm: services.length > 1 ? 5 : 7.5 }}>
                     <InputLabel
                       sx={{
@@ -1120,14 +1135,21 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
             document={
               <BudgetDocument
                 establishmentName={establishmentName}
-                phone={phone}
-                clientName={clientName}
-                date={date}
-                dateValidate={dateValidate}
-                deliveryDate={deliveryDate}
-                description={serviceDescription}
-                services={services}
-                total={value}
+                phone={formValues.phone}
+                clientName={formValues.clientName}
+                date={formValues.date}
+                dateValidate={formValues.dateValidate}
+                deliveryDate={formValues.deliveryDate}
+                description={formValues.serviceDescription}
+                services={formValues.services}
+                total={formValues.value}
+                address={formValues.address}
+                referencePoint={formValues.referencePoint}
+                plate={formValues.plate}
+                brand={formValues.brand}
+                model={formValues.model}
+                year={formValues.year}
+                observation={formValues.observation}
               />
             }
           >

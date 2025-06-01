@@ -79,12 +79,10 @@ export const AuthProvider = ({ children }) => {
       );
 
       const result = await response.json();
-      console.log(result.owner.id);
       if (!response.ok)
         throw new Error(result.message || "Erro ao fazer login");
 
       setUser(result.owner);
-      console.log(user);
       localStorage.setItem("authToken", result.token);
       localStorage.setItem("tokenExpiration", Date.now() + 60 * 60 * 1000);
       await buscarEstabelecimentos(result.owner?.id);
