@@ -861,13 +861,14 @@ const EstablishmentServices = ({
                           gap: 2,
                           mt: 1,
                           alignItems: "flex-end",
+                          flexWrap: "wrap",
                         }}
                       >
                         <Box
                           sx={{
                             display: "flex",
                             flexDirection: "column",
-                            width: "35%",
+                            flex: 1,
                           }}
                         >
                           <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
@@ -893,7 +894,7 @@ const EstablishmentServices = ({
                           sx={{
                             display: "flex",
                             flexDirection: "column",
-                            width: "35%",
+                            flex: 1,
                           }}
                         >
                           <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
