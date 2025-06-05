@@ -122,6 +122,7 @@ const ScheduledServices = ({
   const [anchorElDate, setAnchorElDate] = useState(null);
   const servicesEstablishment = owner?.establishments[0]?.services.length;
   const [appointmentSlot, setAppointmentSlot] = useState("");
+  const [currentSchema, setCurrentSchema] = useState(schema);
   const open = Boolean(anchorElDate);
   const dateServices = dayjs();
   const isEditing = !!selectedAppointment;
@@ -132,7 +133,7 @@ const ScheduledServices = ({
     getValues,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(isEditing ? editSchema : schema),
+    resolver: yupResolver(currentSchema),
   });
 
   const handleMenuOpen = (event, item) => {
@@ -154,6 +155,7 @@ const ScheduledServices = ({
   };
   const statusCreate = ["Agendado", "Iniciado"];
   const handleEditClick = async (appointment) => {
+    setCurrentSchema(editSchema);
     setSelectedAppointment(appointment);
     setOpenDialog(true);
     setLoadingServices(true);
@@ -205,10 +207,23 @@ const ScheduledServices = ({
     setOpenDialogScheduling(false);
   };
   const handleOpenDialogScheduling = () => {
+    setCurrentSchema(schema);
+    setSelectedAppointment(null);
+    reset(
+      {
+        clientName: "",
+        clientPhone: "",
+        veiculo: "",
+        date: "",
+        service: "",
+        selectedSlot: "",
+        statusCreateNew: "",
+      },
+      { keepErrors: false, keepDirty: false, keepTouched: false }
+    );
     setOpenDialogScheduling(true);
     setDate("");
     setService("");
-    setDate("");
     setReminderWhatsapp(false);
   };
 
@@ -221,6 +236,7 @@ const ScheduledServices = ({
         .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
+          console.log(availableServices);
           setLoadingServices(false);
         })
         .catch(() => {
@@ -264,7 +280,7 @@ const ScheduledServices = ({
     }
   }, [service, date]);
   useEffect(() => {
-    if (selectedDate && !isEditing) {
+    if (selectedDate && openDialog && !selectedAppointment) {
       setLoadingServices(true);
 
       fetch(
@@ -273,6 +289,7 @@ const ScheduledServices = ({
         .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
+          console.log(availableServices);
           setSelectedService("");
           setAvailableSlots([]);
           setAvailableHours([]);
@@ -283,7 +300,8 @@ const ScheduledServices = ({
           alert("Erro ao buscar serviços.");
         });
     }
-  }, [selectedDate]);
+  }, [selectedDate, openDialog, selectedAppointment]);
+
   useEffect(() => {
     if (selectedDate && selectedService) {
       setLoadingSlots(true);
@@ -297,6 +315,7 @@ const ScheduledServices = ({
             (s) => s.serviceId === selectedService
           );
           setAvailableSlots(serviceData?.availableSlots || []);
+
           setAvailableHours(serviceData?.availableSlots || []);
           setLoadingSlots(false);
         })
@@ -306,6 +325,34 @@ const ScheduledServices = ({
         });
     }
   }, [selectedDate, selectedService]);
+  useEffect(() => {
+    if (openDialog && selectedAppointment) {
+      setLoadingServices(true);
+
+      fetch(
+        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedAppointment.date}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setAvailableServices(data.services);
+          console.log(availableServices);
+          const serviceData = data.services.find(
+            (s) => s.serviceName === selectedAppointment.serviceName
+          );
+          const slot = `${selectedAppointment.startTime} - ${selectedAppointment.endTime}`;
+          let slotsArray = serviceData?.availableSlots || [];
+          if (!slotsArray.includes(slot)) {
+            slotsArray = [slot, ...slotsArray];
+          }
+          setAvailableHours(slotsArray);
+          setLoadingServices(false);
+        })
+        .catch(() => {
+          setLoadingServices(false);
+          alert("Erro ao buscar serviços.");
+        });
+    }
+  }, [openDialog, selectedAppointment]);
 
   const onEditSubmit = async (formData) => {
     try {
@@ -333,9 +380,10 @@ const ScheduledServices = ({
             startTime,
             endTime,
             veiculo: formData.veiculo,
+            date: formData.selectedDate,
+            serviceId: formData.selectedService,
             serviceName: selectedServiceObj?.serviceName,
             price: selectedServiceObj?.price,
-            reminderWhatsapp,
           }),
         }
       );
@@ -1345,7 +1393,7 @@ const ScheduledServices = ({
                       onChange={(e) => {
                         field.onChange(e);
                         setSelectedService(e.target.value);
-                        reset({ ...getValues(), selectedSlot: "" }); // Limpa o horário!
+                        reset({ ...getValues(), selectedSlot: "" });
                       }}
                       sx={{
                         mb: 2,
@@ -1546,7 +1594,6 @@ const ScheduledServices = ({
                 <Controller
                   name="clientName"
                   control={control}
-                  defaultValue={clientName}
                   render={({ field }) => (
                     <TextField
                       {...field}
@@ -1581,7 +1628,6 @@ const ScheduledServices = ({
                 <Controller
                   name="clientPhone"
                   control={control}
-                  defaultValue=""
                   render={({ field }) => (
                     <InputMask
                       {...field}
@@ -1625,7 +1671,6 @@ const ScheduledServices = ({
                 <Controller
                   name="veiculo"
                   control={control}
-                  defaultValue=""
                   render={({ field }) => (
                     <TextField
                       {...field}
@@ -1649,7 +1694,6 @@ const ScheduledServices = ({
                 <Controller
                   name="date"
                   control={control}
-                  defaultValue=""
                   render={({ field }) => (
                     <LocalizationProvider
                       dateAdapter={AdapterDayjs}
@@ -1720,7 +1764,6 @@ const ScheduledServices = ({
                         <Controller
                           name="service"
                           control={control}
-                          defaultValue=""
                           render={({ field }) => (
                             <FormControl
                               fullWidth
@@ -1787,7 +1830,6 @@ const ScheduledServices = ({
                               <Controller
                                 name="selectedSlot"
                                 control={control}
-                                defaultValue=""
                                 render={({ field }) => (
                                   <FormControl
                                     fullWidth
@@ -1880,7 +1922,6 @@ const ScheduledServices = ({
                         <Controller
                           name="statusCreateNew"
                           control={control}
-                          defaultValue=""
                           render={({ field }) => (
                             <FormControl
                               fullWidth
