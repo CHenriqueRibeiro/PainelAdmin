@@ -41,6 +41,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import InputMask from "react-input-mask";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 ///import Alert from "@mui/material/Alert";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router";
@@ -181,9 +182,6 @@ const ScheduledServices = ({
     }
     setAvailableHours(slotsArray);
 
-    console.log("Horário salvo no agendamento:", slot);
-    console.log("Lista de horários disponíveis:", slotsArray);
-
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     reset({
@@ -236,7 +234,6 @@ const ScheduledServices = ({
         .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
-          console.log(availableServices);
           setLoadingServices(false);
         })
         .catch(() => {
@@ -289,7 +286,6 @@ const ScheduledServices = ({
         .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
-          console.log(availableServices);
           setSelectedService("");
           setAvailableSlots([]);
           setAvailableHours([]);
@@ -335,7 +331,6 @@ const ScheduledServices = ({
         .then((res) => res.json())
         .then((data) => {
           setAvailableServices(data.services);
-          console.log(availableServices);
           const serviceData = data.services.find(
             (s) => s.serviceName === selectedAppointment.serviceName
           );
@@ -434,6 +429,44 @@ const ScheduledServices = ({
       setSnackbarMessage("Agendamento deletado com sucesso!");
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
+    } catch (error) {
+      console.error("Erro:", error);
+      setSnackbarMessage("Erro ao deletar agendamento.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoadingButton(false);
+    }
+  };
+  const handleDeleteFromList = async (appointment) => {
+    if (!appointment) return;
+
+    // Confirmação básica (opcional)
+    if (!window.confirm("Tem certeza que deseja deletar este agendamento?"))
+      return;
+
+    try {
+      setIsLoadingButton(true);
+
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/appointments/appointments/${appointment._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar agendamento");
+      }
+
+      setSnackbarMessage("Agendamento deletado com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+
+      onUpdateService();
     } catch (error) {
       console.error("Erro:", error);
       setSnackbarMessage("Erro ao deletar agendamento.");
@@ -945,7 +978,6 @@ const ScheduledServices = ({
                             if (item.status !== "Entregue") {
                               handleOpenDialogStatus(item.status, item._id);
                             } else if (item.status == "Entregue") {
-                              console.log("Veiculo já foi entregue.");
                               setSnackbarSeverity("error");
                               setSnackbarMessage("Veiculo já foi entregue.");
                               setOpenSnackbar(true);
@@ -960,15 +992,28 @@ const ScheduledServices = ({
                         Valor: R$ {item?.price}
                       </Typography>
                     </Box>
-                    <IconButton
-                      size="small"
-                      onClick={(event) => handleMenuOpen(event, item)}
-                      sx={{ color: "#AC42F7" }}
-                    >
-                      <Tooltip title="Opções" arrow>
-                        <MoreVertRoundedIcon />
-                      </Tooltip>
-                    </IconButton>
+                    {item.status === "Entregue" ? (
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteFromList(item)}
+                        sx={{ color: "#AC42F7" }}
+                      >
+                        <Tooltip title="Deletar" arrow>
+                          <DeleteRoundedIcon />
+                        </Tooltip>
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={(event) => handleMenuOpen(event, item)}
+                        sx={{ color: "#AC42F7" }}
+                      >
+                        <Tooltip title="Opções" arrow>
+                          <MoreVertRoundedIcon />
+                        </Tooltip>
+                      </IconButton>
+                    )}
+
                     <Menu
                       id="demo-positioned-menu"
                       aria-labelledby="demo-positioned-button"
@@ -1045,15 +1090,27 @@ const ScheduledServices = ({
                     R$ {item?.price}
                   </Typography>
 
-                  <IconButton
-                    size="small"
-                    onClick={(event) => handleMenuOpen(event, item)}
-                    sx={{ color: "#AC42F7" }}
-                  >
-                    <Tooltip title="Opções" arrow>
-                      <MoreVertRoundedIcon />
-                    </Tooltip>
-                  </IconButton>
+                  {item.status === "Entregue" ? (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteFromList(item)}
+                      sx={{ color: "#AC42F7" }}
+                    >
+                      <Tooltip title="Deletar" arrow>
+                        <DeleteRoundedIcon />
+                      </Tooltip>
+                    </IconButton>
+                  ) : (
+                    <IconButton
+                      size="small"
+                      onClick={(event) => handleMenuOpen(event, item)}
+                      sx={{ color: "#AC42F7" }}
+                    >
+                      <Tooltip title="Opções" arrow>
+                        <MoreVertRoundedIcon />
+                      </Tooltip>
+                    </IconButton>
+                  )}
                   <Menu
                     id="demo-positioned-menu"
                     aria-labelledby="demo-positioned-button"
