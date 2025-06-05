@@ -126,7 +126,9 @@ const ScheduledServices = ({
   const [currentSchema, setCurrentSchema] = useState(schema);
   const open = Boolean(anchorElDate);
   const dateServices = dayjs();
-  const isEditing = !!selectedAppointment;
+  const [openDialogConfirm, setOpenDialogConfirm] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+
   const {
     handleSubmit,
     control,
@@ -154,6 +156,15 @@ const ScheduledServices = ({
   const handleCloseMenu = () => {
     setAnchorElStatus(null);
   };
+  const handleOpenDialogConfirm = (appointment) => {
+    setAppointmentToDelete(appointment);
+    setOpenDialogConfirm(true);
+  };
+  const handleCloseDialogConfirm = () => {
+    setOpenDialogConfirm(false);
+    setAppointmentToDelete(null);
+  };
+
   const statusCreate = ["Agendado", "Iniciado"];
   const handleEditClick = async (appointment) => {
     setCurrentSchema(editSchema);
@@ -438,18 +449,14 @@ const ScheduledServices = ({
       setIsLoadingButton(false);
     }
   };
-  const handleDeleteFromList = async (appointment) => {
-    if (!appointment) return;
-
-    // Confirmação básica (opcional)
-    if (!window.confirm("Tem certeza que deseja deletar este agendamento?"))
-      return;
+  const handleConfirmDelete = async () => {
+    if (!appointmentToDelete) return;
 
     try {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointment._id}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentToDelete._id}`,
         {
           method: "DELETE",
           headers: {
@@ -467,6 +474,8 @@ const ScheduledServices = ({
       setOpenSnackbar(true);
 
       onUpdateService();
+      setOpenDialogConfirm(false);
+      setAppointmentToDelete(null);
     } catch (error) {
       console.error("Erro:", error);
       setSnackbarMessage("Erro ao deletar agendamento.");
@@ -995,7 +1004,7 @@ const ScheduledServices = ({
                     {item.status === "Entregue" ? (
                       <IconButton
                         size="small"
-                        onClick={() => handleDeleteFromList(item)}
+                        onClick={() => handleOpenDialogConfirm(item)}
                         sx={{ color: "#AC42F7" }}
                       >
                         <Tooltip title="Deletar" arrow>
@@ -1093,7 +1102,7 @@ const ScheduledServices = ({
                   {item.status === "Entregue" ? (
                     <IconButton
                       size="small"
-                      onClick={() => handleDeleteFromList(item)}
+                      onClick={() => handleOpenDialogConfirm(item)}
                       sx={{ color: "#AC42F7" }}
                     >
                       <Tooltip title="Deletar" arrow>
@@ -2101,6 +2110,59 @@ const ScheduledServices = ({
               </Button>
             </DialogActions>
           </Dialog>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialogConfirm}
+        onClose={handleCloseDialogConfirm}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            background:
+              "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)",
+            color: "#fff",
+            padding: 2,
+          },
+        }}
+      >
+        <DialogTitle>Confirmar exclusão</DialogTitle>
+        <DialogContent>
+          Tem certeza que deseja deletar este agendamento?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseDialogConfirm}
+            sx={{
+              background: "#FFF",
+              color: "#ac42f7",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              fontSize: "0.8rem",
+              padding: "8px 24px",
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            loading={isLoadingButton}
+            variant="contained"
+            color="error"
+            sx={{
+              color: "#FFF",
+              borderColor: "#FFF",
+              borderRadius: 3,
+              padding: "8px 24px",
+              fontSize: "0.8rem",
+              fontWeight: "bold",
+              "& .MuiCircularProgress-root": {
+                color: "#ffffff",
+              },
+            }}
+          >
+            Deletar
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

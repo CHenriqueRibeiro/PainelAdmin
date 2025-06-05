@@ -18,7 +18,7 @@ import DashboardLayoutBasic from "../Components/DashboardSidebar";
 import Costs from "../Screens/Costs";
 import Products from "../Screens/Products";
 import Budgets from "../Screens/Budgets";
-import PublicBudgetPage from "../Screens/PublicBudgetPage"; // 🔥 Importação da nova página
+import PublicBudgetPage from "../Screens/PublicBudgetPage";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
@@ -45,15 +45,12 @@ const Rotas = () => {
   return (
     <Router>
       <Routes>
-        {/* Página de Login */}
         <Route path="/" element={user ? <Navigate to="/home" /> : <Login />} />
         <Route path="/cadastro" element={<Update />} />
         <Route path="/acessoNegado" element={<Screen401 />} />
 
-        {/* NOVA ROTA PÚBLICA */}
         <Route path="/orcamento" element={<PublicBudgetPage />} />
 
-        {/* Rotas protegidas */}
         <Route
           path="/home"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
