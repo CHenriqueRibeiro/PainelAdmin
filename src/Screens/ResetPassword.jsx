@@ -8,6 +8,8 @@ import {
   Alert,
   LinearProgress,
   InputAdornment,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import KeyIcon from "@mui/icons-material/Key";
 import InputVisibilityToggle from "@mui/icons-material/Visibility";
@@ -19,6 +21,8 @@ import { useParams, useNavigate } from "react-router";
 const ForgotPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -68,6 +72,7 @@ const ForgotPassword = () => {
       sx={{
         backgroundImage: `url(${BackgroundImage})`,
         backgroundSize: "cover",
+        backgroundPosition: "center",
         height: "100vh",
         display: "flex",
         alignItems: "center",
@@ -77,20 +82,25 @@ const ForgotPassword = () => {
       {loading && (
         <LinearProgress
           sx={{
+            width: "100%",
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: "#6F00BF",
+            },
           }}
         />
       )}
       <Box
         sx={{
-          background: "linear-gradient(180deg, #d3c2fb 0%, #945bf2 100%)",
-          p: 4,
-          borderRadius: 4,
-          width: 350,
+          background:
+            "linear-gradient(180deg, #d3c2fb 0%, #945bf2 100%, #f4f4fe 100%)",
+          width: isMobile ? "90%" : "30rem",
+          padding: "2rem",
+          borderRadius: "8px",
           textAlign: "center",
+          boxShadow: 3,
         }}
       >
         <img
@@ -98,7 +108,7 @@ const ForgotPassword = () => {
           alt="LavaJá"
           style={{ width: "50%", marginBottom: 20 }}
         />
-        <Typography variant="h6" color="white">
+        <Typography variant="h5" color="white" gutterBottom>
           Trocar Senha
         </Typography>
 
@@ -148,6 +158,7 @@ const ForgotPassword = () => {
                 backgroundColor: "#6F00BF",
                 color: "#fff",
                 ":hover": { backgroundColor: "#8C4AF2" },
+                textTransform: "capitalize",
               }}
               fullWidth
             >

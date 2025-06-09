@@ -1,3 +1,4 @@
+// ResetPassword.jsx
 import { useState } from "react";
 import {
   Box,
@@ -8,16 +9,22 @@ import {
   Alert,
   LinearProgress,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import Logo from "../../public/logosemfundonovo.png";
 import BackgroundImage from "../../public/background.png";
+import { useNavigate } from "react-router";
 
-const ForgotPassword = () => {
+const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,11 +56,16 @@ const ForgotPassword = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate("/");
+  };
+
   return (
     <Box
       sx={{
         backgroundImage: `url(${BackgroundImage})`,
         backgroundSize: "cover",
+        backgroundPosition: "center",
         height: "100vh",
         display: "flex",
         alignItems: "center",
@@ -63,20 +75,25 @@ const ForgotPassword = () => {
       {loading && (
         <LinearProgress
           sx={{
+            width: "100%",
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: "#6F00BF",
+            },
           }}
         />
       )}
       <Box
         sx={{
-          background: "linear-gradient(180deg, #d3c2fb 0%, #945bf2 100%)",
-          p: 4,
-          borderRadius: 4,
-          width: 350,
+          background:
+            "linear-gradient(180deg, #d3c2fb 0%, #945bf2 100%, #f4f4fe 100%)",
+          width: isMobile ? "90%" : "30rem",
+          padding: "2rem",
+          borderRadius: "8px",
           textAlign: "center",
+          boxShadow: 3,
         }}
       >
         <img
@@ -84,7 +101,7 @@ const ForgotPassword = () => {
           alt="LavaJá"
           style={{ width: "50%", marginBottom: 20 }}
         />
-        <Typography variant="h6" color="white">
+        <Typography variant="h5" color="white" gutterBottom>
           Esqueci Minha Senha
         </Typography>
 
@@ -121,6 +138,20 @@ const ForgotPassword = () => {
           >
             Enviar Link de Redefinição
           </Button>
+
+          <Button
+            variant="contained"
+            onClick={handleBack}
+            sx={{
+              mt: 2,
+              backgroundColor: "#6F00BF",
+              color: "#fff",
+              ":hover": { backgroundColor: "#8C4AF2" },
+            }}
+            fullWidth
+          >
+            Voltar
+          </Button>
         </form>
 
         <Stack spacing={2} mt={2}>
@@ -135,5 +166,4 @@ const ForgotPassword = () => {
     </Box>
   );
 };
-
-export default ForgotPassword;
+export default ResetPassword;
