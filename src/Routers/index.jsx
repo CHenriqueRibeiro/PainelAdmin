@@ -6,7 +6,8 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import Update from "../Screens/Update";
+import ResetPassword from "../Screens/ResetPassword";
+import ForgotPassword from "../Screens/ForgotPassword";
 import Home from "../Screens/Home";
 import Login from "../Screens/Login";
 import Screen401 from "../Screens/Screen401";
@@ -46,9 +47,11 @@ const Rotas = () => {
     <Router>
       <Routes>
         <Route path="/" element={user ? <Navigate to="/home" /> : <Login />} />
-        <Route path="/cadastro" element={<Update />} />
-        <Route path="/acessoNegado" element={<Screen401 />} />
 
+        <Route path="/esqueci-senha" element={<ForgotPassword />} />
+        <Route path="/redefinir-senha/:token" element={<ResetPassword />} />
+
+        <Route path="/acessoNegado" element={<Screen401 />} />
         <Route path="/orcamento" element={<PublicBudgetPage />} />
 
         <Route

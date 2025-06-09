@@ -8,6 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [establishments, setEstablishments] = useState([]);
   const [loadingEstablishments, setLoadingEstablishments] = useState(false);
+  const [requirePasswordChange, setRequirePasswordChange] = useState(false);
+  const [resetToken, setResetToken] = useState(null);
+
   const buscarEstabelecimentos = async (ownerId) => {
     try {
       setLoadingEstablishments(true);
@@ -81,17 +84,29 @@ export const AuthProvider = ({ children }) => {
       const result = await response.json();
       if (!response.ok)
         throw new Error(result.message || "Erro ao fazer login");
+      if (result.requirePasswordChange) {
+        return {
+          requirePasswordChange: true,
+          token: result.token,
+        };
+      }
 
       setUser(result.owner);
       localStorage.setItem("authToken", result.token);
       localStorage.setItem("tokenExpiration", Date.now() + 60 * 60 * 1000);
       await buscarEstabelecimentos(result.owner?.id);
       localStorage.setItem("user", JSON.stringify(result.owner));
+
+      return {
+        requirePasswordChange: false,
+        token: result.token,
+      };
     } catch (error) {
       console.error("Erro ao logar:", error);
       throw error;
     }
   };
+
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -132,6 +147,8 @@ export const AuthProvider = ({ children }) => {
     cadastrarUsuario,
     login,
     isTokenValid,
+    resetToken,
+    requirePasswordChange,
     establishments,
     logout,
     loadingEstablishments,

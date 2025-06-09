@@ -19,6 +19,7 @@ import Logo from "../../public/logosemfundonovo.png";
 import BackgroundImage from "../../public/background.png";
 import PersonIcon from "@mui/icons-material/Person";
 import KeyIcon from "@mui/icons-material/Key";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -27,6 +28,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
@@ -36,8 +38,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, senha);
-      navigate("/estabelecimento", { replace: true });
+      const { requirePasswordChange, token } = await login(email, senha);
+
+      if (requirePasswordChange && token) {
+        navigate(`/redefinir-senha/${token}`);
+      } else {
+        navigate("/estabelecimento");
+      }
     } catch (error) {
       console.error("Erro ao logar:", error);
       setError(error.message || "Usuário não cadastrado ou senha incorreta.");
@@ -172,12 +179,12 @@ const Login = () => {
           </Button>
         </Box>
         <Typography mt={2} color="white">
-          Não tem conta?{" "}
+          Esqueceu a senha?{" "}
           <Link
-            to="/cadastro"
+            to="/esqueci-senha"
             style={{ color: "#FFF", textDecoration: "none" }}
           >
-            Criar conta
+            Redefinir senha
           </Link>
         </Typography>
       </Box>

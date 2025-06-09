@@ -246,7 +246,7 @@ const ScheduledData = ({
       console.error("Erro:", error);
       setSnackbarMessage(
         isEditing
-          ? "Erro ao alterar dados do estabelecimento"
+          ? "É necessario preencher todos os campos"
           : "Erro ao cadastrar estabelecimento"
       );
       setSnackbarSeverity("error");
