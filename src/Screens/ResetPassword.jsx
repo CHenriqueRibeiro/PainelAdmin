@@ -14,10 +14,11 @@ import InputVisibilityToggle from "@mui/icons-material/Visibility";
 import InputVisibilityOff from "@mui/icons-material/VisibilityOff";
 import Logo from "../../public/logosemfundonovo.png";
 import BackgroundImage from "../../public/background.png";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 
 const ForgotPassword = () => {
   const { token } = useParams();
+  const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -47,6 +48,10 @@ const ForgotPassword = () => {
 
       setSuccess(true);
       setNewPassword("");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,57 +102,59 @@ const ForgotPassword = () => {
           Trocar Senha
         </Typography>
 
-        <form onSubmit={handleSubmit}>
-          <OutlinedInput
-            type={showPasswords ? "text" : "password"}
-            value={newPassword}
-            placeholder="Nova Senha"
-            onChange={(e) => setNewPassword(e.target.value)}
-            fullWidth
-            sx={{
-              mt: 2,
-              background: "#fff",
-              borderRadius: 2,
-            }}
-            startAdornment={
-              <InputAdornment position="start">
-                <KeyIcon />
-              </InputAdornment>
-            }
-            endAdornment={
-              <InputAdornment position="end">
-                <Button
-                  onClick={handleTogglePasswordVisibility}
-                  sx={{
-                    minWidth: "auto",
-                    color: "#6F00BF",
-                  }}
-                >
-                  {showPasswords ? (
-                    <InputVisibilityOff />
-                  ) : (
-                    <InputVisibilityToggle />
-                  )}
-                </Button>
-              </InputAdornment>
-            }
-            required
-          />
+        {!success && (
+          <form onSubmit={handleSubmit}>
+            <OutlinedInput
+              type={showPasswords ? "text" : "password"}
+              value={newPassword}
+              placeholder="Nova Senha"
+              onChange={(e) => setNewPassword(e.target.value)}
+              fullWidth
+              sx={{
+                mt: 2,
+                background: "#fff",
+                borderRadius: 2,
+              }}
+              startAdornment={
+                <InputAdornment position="start">
+                  <KeyIcon />
+                </InputAdornment>
+              }
+              endAdornment={
+                <InputAdornment position="end">
+                  <Button
+                    onClick={handleTogglePasswordVisibility}
+                    sx={{
+                      minWidth: "auto",
+                      color: "#6F00BF",
+                    }}
+                  >
+                    {showPasswords ? (
+                      <InputVisibilityOff />
+                    ) : (
+                      <InputVisibilityToggle />
+                    )}
+                  </Button>
+                </InputAdornment>
+              }
+              required
+            />
 
-          <Button
-            type="submit"
-            variant="contained"
-            sx={{
-              mt: 2,
-              backgroundColor: "#6F00BF",
-              color: "#fff",
-              ":hover": { backgroundColor: "#8C4AF2" },
-            }}
-            fullWidth
-          >
-            Trocar Senha
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                mt: 2,
+                backgroundColor: "#6F00BF",
+                color: "#fff",
+                ":hover": { backgroundColor: "#8C4AF2" },
+              }}
+              fullWidth
+            >
+              Trocar Senha
+            </Button>
+          </form>
+        )}
 
         <Stack spacing={2} mt={2}>
           {error && <Alert severity="error">{error}</Alert>}
