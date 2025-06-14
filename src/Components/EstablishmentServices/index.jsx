@@ -24,12 +24,133 @@ import {
   Alert,
   useMediaQuery,
   useTheme,
+  MenuItem,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import * as yup from "yup";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+function getServiceSchema(openingHours) {
+  let validIntervals = [];
+  if (openingHours?.hasLunchBreak) {
+    validIntervals.push({
+      start: openingHours?.intervalOpen,
+      end: openingHours?.intervalClose,
+    });
+  } else {
+    validIntervals.push({
+      start: openingHours?.open,
+      end: openingHours?.close,
+    });
+  }
+
+  function isInValidInterval(time) {
+    return validIntervals.some(
+      (interval) => time >= interval.start && time <= interval.end
+    );
+  }
+
+  return yup.object().shape({
+    name: yup.string().required("Nome do serviço é obrigatório"),
+    description: yup.string().required("Descrição do serviço é obrigatória"),
+    price: yup
+      .number()
+      .typeError("Preço deve ser um número")
+      .required("Preço é obrigatório")
+      .min(0, "Preço não pode ser negativo"),
+    duration: yup
+      .number()
+      .typeError("Duração deve ser um número")
+      .required("Duração é obrigatória")
+      .min(1, "Duração deve ser maior que 0"),
+    permitirAtendimentoSimultaneo: yup.boolean(),
+    quantidadeAtendimentosSimultaneos: yup
+      .number()
+      .transform((value, originalValue) => (originalValue === "" ? undefined : value))
+      .when("permitirAtendimentoSimultaneo", {
+        is: true,
+        then: (schema) =>
+          schema
+            .typeError("Quantidade deve ser um número")
+            .required("Quantidade de atendimentos simultâneos é obrigatória")
+            .min(1, "Deve ser pelo menos 1"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    availability: yup
+      .array()
+      .of(
+        yup.object().shape({
+          day: yup.string().required("Dia é obrigatório"),
+          availableHours: yup
+            .array()
+            .of(
+              yup.object().shape({
+                start: yup
+                  .string()
+                  .required("Horário de início é obrigatório")
+                  .test(
+                    "dentro-do-funcionamento",
+                    "Horário de início fora do funcionamento",
+                    function (value) {
+                      if (!value) return true;
+                      return isInValidInterval(value);
+                    }
+                  )
+                  .test(
+                    "inicio-menor-que-fim",
+                    "Horário de início deve ser menor que o horário de fim",
+                    function (value) {
+                      const { end } = this.parent;
+                      if (!value || !end) return true;
+                      return value < end;
+                    }
+                  ),
+                end: yup
+                  .string()
+                  .required("Horário de fim é obrigatório")
+                  .test(
+                    "dentro-do-funcionamento",
+                    "Horário de fim fora do funcionamento",
+                    function (value) {
+                      if (!value) return true;
+                      return isInValidInterval(value);
+                    }
+                  )
+                  .test(
+                    "fim-maior-que-inicio",
+                    "Horário de fim deve ser maior que o horário de início",
+                    function (value) {
+                      const { start } = this.parent;
+                      if (!value || !start) return true;
+                      return value > start;
+                    }
+                  ),
+              })
+            )
+        })
+      )
+      .test(
+        "pelo-menos-um-dia-com-horario",
+        "Selecione pelo menos um dia e cadastre pelo menos um horário válido",
+        (availability) => {
+          if (!availability) return false;
+          return availability.some(
+            (day) =>
+              Array.isArray(day.availableHours) &&
+              day.availableHours.some(
+                (h) => h.start && h.end
+              )
+          );
+        }
+      ),
+  });
+}
+
 // eslint-disable-next-line react/prop-types
 const EstablishmentServices = ({
   dataEstablishment,
@@ -56,6 +177,33 @@ const EstablishmentServices = ({
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [availability, setAvailability] = useState([]);
   const [availabilityEdit, setAvailabilityEdit] = useState([]);
+
+  const openingHours = dataEstablishment[0]?.openingHours;
+  const serviceSchema = getServiceSchema(openingHours);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+  } = useForm({
+    resolver: yupResolver(serviceSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: "",
+      duration: "",
+      permitirAtendimentoSimultaneo: false,
+      quantidadeAtendimentosSimultaneos: "",
+      availability: availability.map(day => ({
+        day: day.day,
+        availableHours: [{ start: "", end: "" }]
+      }))
+    },
+  });
 
   useEffect(() => {
     if (!dataEstablishment?.length) return;
@@ -88,73 +236,103 @@ const EstablishmentServices = ({
 
     setAvailability(mappedAvailability);
     setAvailabilityEdit(mappedAvailability);
-  }, [dataEstablishment, setAvailability]);
+
+    reset({
+      name: "",
+      description: "",
+      price: "",
+      duration: "",
+      permitirAtendimentoSimultaneo: false,
+      quantidadeAtendimentosSimultaneos: "",
+      availability: mappedAvailability
+    });
+  }, [dataEstablishment, reset]);
 
   const [expandedService, setExpandedService] = useState(null);
 
   const handleOpenDialog = () => {
-    handleCloseDialog();
     setOpenDialog(true);
-  };
-  const handleOpenDialogEdit = (service) => {
-    setServiceName(service.name);
-    setPrice(String(service.price));
-    setDuration(String(service.duration));
-    setDescription(service.description);
-    //setDailyLimit(String(service.dailyLimit));
-    setConcurrentService(service.concurrentService);
-    setConcurrentServiceValue(
-      service.concurrentServiceValue
-        ? Number(service.concurrentServiceValue)
-        : ""
-    );
+    handleCloseDialog();
+  reset({
+    name: "",
+    description: "",
+    price: "",
+    duration: "",
+    permitirAtendimentoSimultaneo: false,
+    quantidadeAtendimentosSimultaneos: "",
+    availability: availability.map(day => ({
+      day: day.day,
+      availableHours: [{ start: "", end: "" }]
+    }))
+  });
+};
 
-    const allDays = [
-      "Segunda",
-      "Terça",
-      "Quarta",
-      "Quinta",
-      "Sexta",
-      "Sábado",
-      "Domingo",
-    ];
+const handleOpenDialogEdit = (service) => {
+  setServiceName(service.name);
+  setPrice(String(service.price));
+  setDuration(String(service.duration));
+  setDescription(service.description);
+  setConcurrentService(service.concurrentService);
+  setConcurrentServiceValue(
+    service.concurrentServiceValue ? Number(service.concurrentServiceValue) : ""
+  );
 
-    const workingDays = dataEstablishment[0]?.workingDays || allDays;
+  const workingDays = dataEstablishment[0]?.workingDays || [
+    "Segunda",
+    "Terça",
+    "Quarta",
+    "Quinta",
+    "Sexta",
+    "Sábado",
+    "Domingo",
+  ];
 
-    const mappedAvailability = workingDays.map((day) => {
-      const existing = service.availability.find((d) => d.day === day);
-      return {
-        day,
-        availableHours: existing?.availableHours?.length
-          ? existing.availableHours
-          : [],
-      };
-    });
-
-    setAvailabilityEdit(mappedAvailability);
-    setExpandedService(service._id);
-    setOpenDialogEdit(true);
-  };
-
-  const sanitizeAvailability = (availability) => {
-    return availability
-      .map((day) => ({
-        day: day.day,
-        availableHours: day.availableHours.filter((h) => h.start && h.end),
-      }))
-      .filter((day) => day.availableHours.length > 0);
+  const daysOrder = {
+    "Segunda": 1,
+    "Terça": 2,
+    "Quarta": 3,
+    "Quinta": 4,
+    "Sexta": 5,
+    "Sábado": 6,
+    "Domingo": 7,
   };
 
-  const handleUpdateService = async () => {
-    if (!serviceName || !price || !duration || !description) {
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Preencha todos os campos");
-      setOpenSnackbar(true);
-      return;
-    }
+  const daysWithHours = service.availability.filter(
+    (d) => d.availableHours && d.availableHours.length > 0
+  );
 
-    const filteredAvailability = sanitizeAvailability(availabilityEdit);
+  const missingDays = workingDays.filter(
+    (day) => !daysWithHours.find((d) => d.day === day)
+  );
 
+  const missingDaysMapped = missingDays.map((day) => ({
+    day,
+    availableHours: [],
+  }));
+
+  const mappedAvailability = [...daysWithHours, ...missingDaysMapped].sort(
+    (a, b) => daysOrder[a.day] - daysOrder[b.day]
+  );
+
+  setAvailability(mappedAvailability);
+  setAvailabilityEdit(mappedAvailability);
+  setExpandedService(service._id);
+  setOpenDialogEdit(true);
+
+  reset({
+    name: service.name,
+    description: service.description,
+    price: String(service.price),
+    duration: String(service.duration),
+    permitirAtendimentoSimultaneo: service.concurrentService,
+    quantidadeAtendimentosSimultaneos: service.concurrentServiceValue
+      ? String(service.concurrentServiceValue)
+      : "",
+    availability: mappedAvailability,
+  });
+};
+
+  const handleUpdateService = async (data) => {
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
@@ -166,13 +344,13 @@ const EstablishmentServices = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            name: serviceName,
-            price: Number(price),
-            duration: Number(duration),
-            description,
-            availability: filteredAvailability,
-            concurrentService,
-            concurrentServiceValue: Number(concurrentServiceValue),
+            name: data.name,
+            price: Number(data.price),
+            duration: Number(data.duration),
+            description: data.description,
+            availability: data.availability,
+            concurrentService: data.permitirAtendimentoSimultaneo,
+            concurrentServiceValue: data.quantidadeAtendimentosSimultaneos,
           }),
         }
       );
@@ -180,6 +358,7 @@ const EstablishmentServices = ({
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
       handleCloseDialogEdit();
+      reset();
       setSnackbarSeverity("success");
       setSnackbarMessage("Serviço atualizado com sucesso");
       setOpenSnackbar(true);
@@ -246,31 +425,7 @@ const EstablishmentServices = ({
     return `${format(start)} - ${format(end)}`;
   };
 
-  const handleCreateService = async () => {
-    if (
-      !serviceName ||
-      !price ||
-      !duration ||
-      !description /*|| !dailyLimit*/
-    ) {
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Preencha todos os campos");
-      setOpenSnackbar(true);
-      return;
-    }
-
-    const hasInvalidAvailability = availability.some((day) =>
-      day.availableHours.some((hours) => hours.start === "" || hours.end === "")
-    );
-    if (hasInvalidAvailability) {
-      alert("Por favor, preencha todos os horários de disponibilidade.");
-      return;
-    }
-
-    const filteredAvailability = availability.filter((day) =>
-      day.availableHours.some((hours) => hours.start && hours.end)
-    );
-
+  const handleCreateService = async (data) => {
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
@@ -282,15 +437,14 @@ const EstablishmentServices = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            name: serviceName,
-            price: Number(price),
-            duration: Number(duration),
-            description,
-            //dailyLimit: Number(dailyLimit),
-            availability: filteredAvailability,
+            name: data.name,
+            price: Number(data.price),
+            duration: Number(data.duration),
+            description: data.description,
+            availability: data.availability,
             establishment_id: dataEstablishment[0]._id,
-            concurrentService,
-            concurrentServiceValue,
+            concurrentService: data.permitirAtendimentoSimultaneo,
+            concurrentServiceValue: data.quantidadeAtendimentosSimultaneos,
           }),
         }
       );
@@ -301,13 +455,12 @@ const EstablishmentServices = ({
 
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
-      //handleCloseDialog();
       setOpenDialog(false);
+      reset();
       setSnackbarSeverity("success");
       setSnackbarMessage("Serviço criado com sucesso");
       setOpenSnackbar(true);
     } catch (error) {
-      alert("Erro ao criar serviço");
       setSnackbarSeverity("error");
       setSnackbarMessage("Erro ao criar serviço");
       setOpenSnackbar(true);
@@ -354,42 +507,27 @@ const EstablishmentServices = ({
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
     setAvailability(newAvailability);
+    
+    setValue('availability', newAvailability);
   };
 
   const removeAvailableHour = (dayIndex, hourIndex) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
     setAvailability(newAvailability);
+    setValue('availability', newAvailability);
   };
 
-  const handleHourChange = (dayIndex, hourIndex, field, value) => {
-    const newAvailability = [...availability];
-    newAvailability[dayIndex].availableHours[hourIndex][field] = value;
-    setAvailability(newAvailability);
-  };
-  const addAvailableHourEdit = (dayIndex) => {
-    setAvailabilityEdit((prev) => {
-      const updated = [...prev];
-      updated[dayIndex].availableHours.push({ start: "", end: "" });
-      return updated;
-    });
+  const countDiasComHorarioAfterRemove = (availabilityArr, dayIndex, hourIndex) => {
+    return availabilityArr.filter((d, idx) => {
+      if (idx === dayIndex) {
+        const remainingHours = d.availableHours.filter((_, hIdx) => hIdx !== hourIndex);
+        return remainingHours.length > 0;
+      }
+      return d.availableHours.length > 0;
+    }).length;
   };
 
-  const removeAvailableHourEdit = (dayIndex, hourIndex) => {
-    setAvailabilityEdit((prev) => {
-      const updated = [...prev];
-      updated[dayIndex].availableHours.splice(hourIndex, 1);
-      return updated;
-    });
-  };
-
-  const handleHourChangeEdit = (dayIndex, hourIndex, field, value) => {
-    setAvailabilityEdit((prev) => {
-      const updated = [...prev];
-      updated[dayIndex].availableHours[hourIndex][field] = value;
-      return updated;
-    });
-  };
   const renderSkeleton = () => (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}>
       <Box
@@ -577,7 +715,9 @@ const EstablishmentServices = ({
                             >
                               Serviço simultâneo?
                             </Typography>
-                            <Typography variant="body2">-</Typography>
+                            <Typography variant="body2">
+                              {service?.concurrentService ? 'Sim' : 'Não'}
+                            </Typography>
                           </Grid2>
                           {/*<Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
                             <Typography
@@ -621,7 +761,9 @@ const EstablishmentServices = ({
                               flexWrap: "wrap",
                             }}
                           >
-                            {service.availability.map((day) => (
+                            {service.availability
+                              .filter(day => day.availableHours && day.availableHours.length > 0)
+                              .map((day) => (
                               <Box
                                 key={day._id}
                                 sx={{
@@ -709,14 +851,19 @@ const EstablishmentServices = ({
               </InputLabel>
               <TextField
                 fullWidth
-                onChange={(e) => setServiceName(e.target.value)}
-                value={serviceName}
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -726,14 +873,19 @@ const EstablishmentServices = ({
               </InputLabel>
               <TextField
                 fullWidth
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register("description")}
+                error={!!errors.description}
+                helperText={errors.description?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -744,14 +896,19 @@ const EstablishmentServices = ({
               <TextField
                 fullWidth
                 type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                {...register("price")}
+                error={!!errors.price}
+                helperText={errors.price?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -762,14 +919,19 @@ const EstablishmentServices = ({
               <TextField
                 fullWidth
                 type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                {...register("duration")}
+                error={!!errors.duration}
+                helperText={errors.duration?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -783,26 +945,37 @@ const EstablishmentServices = ({
                 value={dailyLimit}
                 onChange={(e) => setDailyLimit(e.target.value)}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>*/}
             <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
               <FormControlLabel
                 control={
-                  <Switch
-                    size="small"
-                    checked={concurrentService}
-                    onChange={(e) => setConcurrentService(e.target.checked)}
+                  <Controller
+                    name="permitirAtendimentoSimultaneo"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        {...field}
+                        checked={!!field.value}
+                        onChange={e => field.onChange(e.target.checked)}
+                        size="small"
+                      />
+                    )}
                   />
                 }
                 label="Permitir atendimentos simultâneos?"
               />
             </Grid2>
-            {concurrentService && (
+            {watch("permitirAtendimentoSimultaneo") && (
               <>
                 <Grid2 size={{ xs: 12 }}>
                   <InputLabel
@@ -813,15 +986,19 @@ const EstablishmentServices = ({
                   <TextField
                     fullWidth
                     type="number"
-                    value={concurrentServiceValue}
-                    onChange={(e) => setConcurrentServiceValue(e.target.value)}
+                    {...register("quantidadeAtendimentosSimultaneos")}
+                    error={!!errors.quantidadeAtendimentosSimultaneos}
+                    helperText={errors.quantidadeAtendimentosSimultaneos?.message}
                     size="small"
-                    sx={{
-                      mb: 2,
+                     sx={{
+                    "& .MuiOutlinedInput-root": {
                       bgcolor: "#fff",
                       borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
                   />
                 </Grid2>
               </>
@@ -855,89 +1032,82 @@ const EstablishmentServices = ({
                   ) : (
                     day.availableHours.map((hour, hourIndex) => (
                       <Grid2
-                        key={hourIndex}
-                        sx={{
-                          display: "flex",
-                          gap: 2,
-                          mt: 1,
-                          alignItems: "flex-end",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            flex: 1,
-                          }}
-                        >
-                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
-                            Início
-                          </InputLabel>
-                          <TextField
-                            type="time"
-                            value={hour.start}
-                            onChange={(e) =>
-                              handleHourChange(
-                                dayIndex,
-                                hourIndex,
-                                "start",
-                                e.target.value
-                              )
-                            }
-                            size="small"
-                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
-                          />
-                        </Box>
+  key={hourIndex}
+  sx={{
+    display: "flex",
+    gap: 2,
+    mt: 1,
+    alignItems: { xs: "center",
+      sm: "flex-end"},
+    flexDirection: {
+      xs: "column",
+      sm: "row"
+    },
+    width: "100%",
+  }}
+>
+  <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
+    <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+      Início
+    </InputLabel>
+    <TextField
+      type="time"
+      {...register(`availability.${dayIndex}.availableHours.${hourIndex}.start`)}
+      error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start}
+      helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start?.message}
+      size="small"
+      sx={{ bgcolor: "#fff", borderRadius: 2 }}
+    />
+  </Box>
 
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            flex: 1,
-                          }}
-                        >
-                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
-                            Fim
-                          </InputLabel>
-                          <TextField
-                            type="time"
-                            value={hour.end}
-                            onChange={(e) =>
-                              handleHourChange(
-                                dayIndex,
-                                hourIndex,
-                                "end",
-                                e.target.value
-                              )
-                            }
-                            size="small"
-                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
-                          />
-                        </Box>
+  <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
+    <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+      Fim
+    </InputLabel>
+    <TextField
+      type="time"
+      {...register(`availability.${dayIndex}.availableHours.${hourIndex}.end`)}
+      error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end}
+      helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end?.message}
+      size="small"
+      sx={{ bgcolor: "#fff", borderRadius: 2 }}
+    />
+  </Box>
 
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <Tooltip title="Adicionar horário">
-                            <IconButton
-                              onClick={() => addAvailableHour(dayIndex)}
-                            >
-                              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
-                            </IconButton>
-                          </Tooltip>
-                          <Divider orientation="vertical" flexItem />
-                          <Tooltip title="Remover horário">
-                            <IconButton
-                              onClick={() =>
-                                removeAvailableHour(dayIndex, hourIndex)
-                              }
-                            >
-                              <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </Grid2>
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 1,
+      justifyContent: {
+        xs: "flex-end",
+        sm: "center",
+      },
+      width: {
+        xs: "100%",
+        sm: "auto",
+      },
+    }}
+  >
+    <Tooltip title="Adicionar horário">
+      <IconButton onClick={() => addAvailableHour(dayIndex)}>
+        <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+      </IconButton>
+    </Tooltip>
+    <Divider orientation="vertical" flexItem />
+    <Tooltip title="Remover horário">
+      <IconButton
+        onClick={() => removeAvailableHour(dayIndex, hourIndex)}
+        disabled={
+          countDiasComHorarioAfterRemove(availability, dayIndex, hourIndex) === 0
+        }
+      >
+        <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
+      </IconButton>
+    </Tooltip>
+  </Box>
+</Grid2>
+
                     ))
                   )}
                 </Grid2>
@@ -975,7 +1145,7 @@ const EstablishmentServices = ({
                 color: "#ffffff",
               },
             }}
-            onClick={handleCreateService}
+            onClick={handleSubmit(handleCreateService)}
           >
             Criar
           </Button>
@@ -1010,14 +1180,19 @@ const EstablishmentServices = ({
               </InputLabel>
               <TextField
                 fullWidth
-                onChange={(e) => setServiceName(e.target.value)}
-                value={serviceName}
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -1027,14 +1202,19 @@ const EstablishmentServices = ({
               </InputLabel>
               <TextField
                 fullWidth
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register("description")}
+                error={!!errors.description}
+                helperText={errors.description?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -1045,14 +1225,19 @@ const EstablishmentServices = ({
               <TextField
                 fullWidth
                 type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                {...register("price")}
+                error={!!errors.price}
+                helperText={errors.price?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
@@ -1063,47 +1248,42 @@ const EstablishmentServices = ({
               <TextField
                 fullWidth
                 type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                {...register("duration")}
+                error={!!errors.duration}
+                helperText={errors.duration?.message}
                 size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                 sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
               />
             </Grid2>
 
-            {/*<Grid2 size={{ xs: 12 }}>
-              <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
-                Quantidade de serviço por dia
-              </InputLabel>
-              <TextField
-                fullWidth
-                type="number"
-                value={dailyLimit}
-                onChange={(e) => setDailyLimit(e.target.value)}
-                size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>*/}
             <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
               <FormControlLabel
                 control={
-                  <Switch
-                    size="small"
-                    checked={concurrentService}
-                    onChange={(e) => setConcurrentService(e.target.checked)}
+                  <Controller
+                    name="permitirAtendimentoSimultaneo"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        {...field}
+                        checked={!!field.value}
+                        onChange={e => field.onChange(e.target.checked)}
+                        size="small"
+                      />
+                    )}
                   />
                 }
                 label="Permitir atendimentos simultâneos?"
               />
             </Grid2>
-            {concurrentService && (
+            {watch("permitirAtendimentoSimultaneo") && (
               <>
                 <Grid2 size={{ xs: 12 }}>
                   <InputLabel
@@ -1114,15 +1294,19 @@ const EstablishmentServices = ({
                   <TextField
                     fullWidth
                     type="number"
-                    value={concurrentServiceValue}
-                    onChange={(e) => setConcurrentServiceValue(e.target.value)}
+                    {...register("quantidadeAtendimentosSimultaneos")}
+                    error={!!errors.quantidadeAtendimentosSimultaneos}
+                    helperText={errors.quantidadeAtendimentosSimultaneos?.message}
                     size="small"
-                    sx={{
-                      mb: 2,
+                     sx={{
+                    "& .MuiOutlinedInput-root": {
                       bgcolor: "#fff",
                       borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
                   />
                 </Grid2>
               </>
@@ -1137,7 +1321,7 @@ const EstablishmentServices = ({
               size={{ xs: 12 }}
               sx={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {availabilityEdit?.map((day, dayIndex) => (
+              {availability.map((day, dayIndex) => (
                 <Grid2 size={{ xs: 12 }} key={day.day}>
                   <Typography
                     variant="body2"
@@ -1147,83 +1331,91 @@ const EstablishmentServices = ({
                     {day.day}
                   </Typography>
 
-                  {day.availableHours?.length === 0 ? (
+                  {day.availableHours.length === 0 ? (
                     <Tooltip title="Adicionar horário">
-                      <IconButton
-                        onClick={() => addAvailableHourEdit(dayIndex)}
-                      >
+                      <IconButton onClick={() => addAvailableHour(dayIndex)}>
                         <AddRoundedIcon sx={{ color: "#AC42F7" }} />
                       </IconButton>
                     </Tooltip>
                   ) : (
-                    day.availableHours?.map((hour, hourIndex) => (
+                    day.availableHours.map((hour, hourIndex) => (
                       <Grid2
                         key={hourIndex}
                         sx={{
-                          display: "flex",
-                          gap: 2,
-                          mt: 1,
-                          alignItems: "flex-end",
-                        }}
+    display: "flex",
+    gap: 2,
+    mt: 1,
+    alignItems: { xs: "center",
+      sm: "flex-end"},
+    flexDirection: {
+      xs: "column",
+      sm: "row"
+    },
+    width: "100%",
+  }}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "35%",
-                          }}
-                        >
+                        <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
                           <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
                             Início
                           </InputLabel>
                           <TextField
                             type="time"
-                            value={hour.start}
-                            onChange={(e) =>
-                              handleHourChangeEdit(
-                                dayIndex,
-                                hourIndex,
-                                "start",
-                                e.target.value
-                              )
-                            }
+                            {...register(`availability.${dayIndex}.availableHours.${hourIndex}.start`)}
+                            error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start}
+                            helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start?.message}
                             size="small"
-                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                             sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
                           />
                         </Box>
 
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "35%",
-                          }}
-                        >
+<Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
                           <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
                             Fim
                           </InputLabel>
                           <TextField
                             type="time"
-                            value={hour.end}
-                            onChange={(e) =>
-                              handleHourChangeEdit(
-                                dayIndex,
-                                hourIndex,
-                                "end",
-                                e.target.value
-                              )
-                            }
+                            {...register(`availability.${dayIndex}.availableHours.${hourIndex}.end`)}
+                            error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end}
+                            helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end?.message}
                             size="small"
-                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                             sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
                           />
                         </Box>
 
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 1,
+      justifyContent: {
+        xs: "flex-end",
+        sm: "center",
+      },
+      width: {
+        xs: "100%",
+        sm: "auto",
+      },
+    }}
                         >
                           <Tooltip title="Adicionar horário">
                             <IconButton
-                              onClick={() => addAvailableHourEdit(dayIndex)}
+                              onClick={() => addAvailableHour(dayIndex)}
                             >
                               <AddRoundedIcon sx={{ color: "#AC42F7" }} />
                             </IconButton>
@@ -1231,9 +1423,8 @@ const EstablishmentServices = ({
                           <Divider orientation="vertical" flexItem />
                           <Tooltip title="Remover horário">
                             <IconButton
-                              onClick={() =>
-                                removeAvailableHourEdit(dayIndex, hourIndex)
-                              }
+                              onClick={() => removeAvailableHour(dayIndex, hourIndex)}
+                              disabled={countDiasComHorarioAfterRemove(availability, dayIndex, hourIndex) === 0}
                             >
                               <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
                             </IconButton>
@@ -1296,7 +1487,7 @@ const EstablishmentServices = ({
                 color: "#ffffff",
               },
             }}
-            onClick={handleUpdateService}
+            onClick={handleSubmit(handleUpdateService)}
           >
             Salvar
           </Button>
