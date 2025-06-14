@@ -1,12 +1,13 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
-import { Box, Grid2, Typography, Card, CardContent } from "@mui/material";
+import { Box, Grid2, Typography, Card, CardContent, IconButton } from "@mui/material";
 import Chart from "react-apexcharts";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import updateLocale from "dayjs/plugin/updateLocale";
 import NoCrashIcon from "@mui/icons-material/NoCrash";
 import PaidIcon from "@mui/icons-material/Paid";
+import SearchIcon from "@mui/icons-material/Search";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ptBR } from "@mui/x-date-pickers/locales";
@@ -21,6 +22,7 @@ const ReportPage = () => {
   const [startDate, setStartDate] = useState(dayjs().startOf("week"));
   const [endDate, setEndDate] = useState(dayjs().endOf("week"));
   const [reportData, setReportData] = useState(null);
+  const [dateError, setDateError] = useState("");
   const ownerUser = JSON.parse(localStorage.getItem("user"));
   const ownerId = ownerUser.id;
   const token = localStorage.getItem("authToken");
@@ -49,25 +51,53 @@ const ReportPage = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!owner?.establishments?.[0]?._id) return;
-      try {
-        const res = await fetch(
-          `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${startDate.format(
-            "YYYY-MM-DD"
-          )}&endDate=${endDate.format(
-            "YYYY-MM-DD"
-          )}&establishmentId=${owner.establishments[0]._id}`
-        );
-        const data = await res.json();
-        setReportData(data);
-      } catch (error) {
-        console.error("Erro ao buscar relatório:", error);
-      }
-    };
+    if (owner?.establishments?.[0]?._id) {
+      fetchReportData();
+    }
+  }, [owner]);
 
-    fetchData();
-  }, [startDate, endDate, owner]);
+  const handleStartDateChange = (newValue) => {
+    if (newValue && endDate && newValue.isAfter(endDate)) {
+      setDateError("A data inicial não pode ser maior que a data final");
+      return;
+    }
+    setDateError("");
+    setStartDate(newValue);
+  };
+
+  const handleEndDateChange = (newValue) => {
+    if (newValue) {
+      if (newValue.isBefore(startDate)) {
+        setDateError("A data final não pode ser menor que a data inicial");
+        return;
+      }
+      if (newValue.isAfter(dayjs())) {
+        setDateError("A data final não pode ser maior que hoje");
+        return;
+      }
+    }
+    setDateError("");
+    setEndDate(newValue);
+  };
+
+  const fetchReportData = async () => {
+    if (!owner?.establishments?.[0]?._id) return;
+    if (dateError) {
+      return;
+    }
+    try {
+      const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD");
+      const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD");
+      
+      const res = await fetch(
+        `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${formattedStartDate}&endDate=${formattedEndDate}&establishmentId=${owner.establishments[0]._id}`
+      );
+      const data = await res.json();
+      setReportData(data);
+    } catch (error) {
+      console.error("Erro ao buscar relatório:", error);
+    }
+  };
 
   const weeklyRevenueData = reportData
     ? [
@@ -117,7 +147,7 @@ const ReportPage = () => {
           mb: 3,
         }}
       >
-        <Grid2 size={{ xs: 12, md: 12, lg: 4 }} sx={{ height: "100%" }}>
+        <Grid2 size={{ xs: 12, md: 12, lg: 6 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
@@ -140,156 +170,126 @@ const ReportPage = () => {
               >
                 Filtrar por período
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mt: 1.4 }}>
+              {dateError && (
+                <Typography
+                  variant="caption"
+                  sx={{ color: "red", mt: 0.5, display: "block" }}
+                >
+                  {dateError}
+                </Typography>
+              )}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  mt: 1.4,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
-                  localeText={
-                    ptBR.components.MuiLocalizationProvider.defaultProps
-                      .localeText
-                  }
+                  localeText={ptBR.components.MuiLocalizationProvider.defaultProps.localeText}
                 >
-                  <DatePicker
-                    label="Início"
-                    format="DD/MM/YYYY"
-                    value={startDate ? dayjs(startDate) : null}
-                    onChange={(newValue) => newValue && setStartDate(newValue)}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        size: "small",
-                        sx: {
-                          color: "#FFFFFF",
-                          input: {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiSvgIcon-root": {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": {
-                            color: "#FFFFFF",
-                          },
-                          "& label.Mui-focused": {
-                            color: "#B2BA",
-                          },
-                          "& .MuiInput-underline:after": {
-                            borderBottomColor: "#B2BA",
-                          },
-                          "& .css-joz0rk-MuiPickersSectionList-section-MuiPickersInputBase-section":
-                            {
-                              color: "#FFFFFF",
-                            },
-                          "& .MuiOutlinedInput-root": {
-                            "& fieldset": {
-                              borderColor: "#FFFFFF",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#FFFFFF",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#FFFFFF",
-                            },
-                          },
-                        },
-                      },
-                      day: {
-                        sx: {
-                          "&.Mui-selected": {
-                            backgroundColor: "#1976d2",
-                            color: "#FFFFFF",
-                          },
-                          "&:hover": {
-                            backgroundColor: "#6b21a8",
-                            color: "#FFFFFF",
-                          },
-                        },
-                      },
-                      popper: {
-                        sx: {
-                          "& .MuiPaper-root": {
-                            borderRadius: 6,
-                          },
-                        },
-                      },
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      flex: 1,
+                      flexDirection: { xs: "column", sm: "row" },
+                      minWidth: "6.5rem",
                     }}
-                  />
+                  >
+                    <DatePicker
+                      label="Início"
+                      format="DD/MM/YYYY"
+                      value={startDate}
+                      onChange={handleStartDateChange}
+                      maxDate={endDate || dayjs()}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small",
+                          error: !!dateError,
+                          sx: {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              bgcolor: "#fff",
+                            },
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#ff8ba7",
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          },
+                        },
+                      }}
+                    />
 
-                  <DatePicker
-                    label="Fim"
-                    format="DD/MM/YYYY"
-                    value={endDate ? dayjs(endDate) : null}
-                    onChange={(newValue) => newValue && setEndDate(newValue)}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        size: "small",
-                        sx: {
-                          color: "#FFFFFF",
-                          input: {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiSvgIcon-root": {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiInputLabel-root": {
-                            color: "#FFFFFF",
-                          },
-                          "& .MuiInputLabel-root.Mui-focused": {
-                            color: "#FFFFFF",
-                          },
-                          "& label.Mui-focused": {
-                            color: "#B2BA",
-                          },
-                          "& .MuiInput-underline:after": {
-                            borderBottomColor: "#B2BA",
-                          },
-                          "& .css-joz0rk-MuiPickersSectionList-section-MuiPickersInputBase-section":
-                            {
-                              color: "#FFFFFF",
+                    <DatePicker
+                      label="Fim"
+                      format="DD/MM/YYYY"
+                      value={endDate}
+                      onChange={handleEndDateChange}
+                      minDate={startDate}
+                      maxDate={dayjs()}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small",
+                          error: !!dateError,
+                          sx: {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              bgcolor: "#fff",
                             },
-                          "& .MuiOutlinedInput-root": {
-                            "& fieldset": {
-                              borderColor: "#FFFFFF",
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#ff8ba7",
                             },
-                            "&:hover fieldset": {
-                              borderColor: "#FFFFFF",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#FFFFFF",
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
                             },
                           },
                         },
+                      }}
+                    />
+                  </Box>
+
+                  <IconButton
+                    onClick={fetchReportData}
+                    disabled={!!dateError}
+                    sx={{
+                      bgcolor: "#fff",
+                      borderRadius: 3,
+                      height: 40,
+                      width: 40,
+                      alignSelf: "center",
+                      "&:hover": {
+                        bgcolor: "#eaeaea",
                       },
-                      day: {
-                        sx: {
-                          "&.Mui-selected": {
-                            backgroundColor: "#1976d2",
-                            color: "#FFFFFF",
-                          },
-                          "&:hover": {
-                            backgroundColor: "#6b21a8",
-                            color: "#FFFFFF",
-                          },
-                        },
-                      },
-                      popper: {
-                        sx: {
-                          "& .MuiPaper-root": {
-                            borderRadius: 6,
-                          },
+                      "&.Mui-disabled": {
+                        bgcolor: "#f5f5f5",
+                        "& .MuiSvgIcon-root": {
+                          color: "#bdbdbd",
                         },
                       },
                     }}
-                  />
+                  >
+                    <SearchIcon sx={{ color: "#6b21a8" }} />
+                  </IconButton>
                 </LocalizationProvider>
               </Box>
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 4 }} sx={{ height: "100%" }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 3 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
@@ -339,7 +339,7 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={{ xs: 12, md: 6, lg: 4 }} sx={{ height: "100%" }}>
+        <Grid2 size={{ xs: 12, md: 6, lg: 3 }} sx={{ height: "100%" }}>
           <Card
             sx={{
               background: "transparent",
