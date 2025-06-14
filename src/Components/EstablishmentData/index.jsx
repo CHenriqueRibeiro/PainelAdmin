@@ -26,6 +26,10 @@ import {
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
 import InputMask from "react-input-mask";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from "react-hook-form";
+
 // eslint-disable-next-line react/prop-types
 const ScheduledData = ({
   dataEstablishment,
@@ -36,6 +40,7 @@ const ScheduledData = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editEstablishmentId, setEditEstablishmentId] = useState("");
   const [originalCep, setOriginalCep] = useState("");
+  const [originalData, setOriginalData] = useState(null);
 
   const [openDialog, setOpenDialog] = useState(false);
   const token = localStorage.getItem("authToken");
@@ -61,14 +66,137 @@ const ScheduledData = ({
   });
   const [openingTime, setOpeningTime] = useState("");
   const [closingTime, setClosingTime] = useState("");
-  const [hasLunchBreak, setHasLunchBreak] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [workingDays, setWorkingDays] = useState([]);
+
+  const schema = yup.object().shape({
+    nameEstablishment: yup.string().required("Nome do estabelecimento é obrigatório"),
+    workingDays: yup.array().of(yup.string()).min(1, "Selecione pelo menos um dia de funcionamento").required("Dias de funcionamento são obrigatórios"),
+    paymentMethods: yup.array().of(yup.string()).min(1, "Selecione pelo menos uma forma de pagamento").required("Formas de pagamento são obrigatórias"),
+    address: yup.object().shape({
+      cep: yup.string().required("CEP é obrigatório"),
+      street: yup.string().required("Rua é obrigatória"),
+      number: yup.string().required("Número é obrigatório"),
+      neighborhood: yup.string().required("Bairro é obrigatório"),
+      city: yup.string().required("Cidade é obrigatória"),
+      state: yup.string().required("Estado é obrigatório"),
+    }),
+    openingHours: yup.object().shape({
+      open: yup
+        .string()
+        .required("Horário de abertura é obrigatório")
+        .test(
+          "open-before-close",
+          "Horário de abertura deve ser menor ao horário de fechamento",
+          function (value) {
+            const { close } = this.parent;
+            if (!value || !close) return true;
+            return value <= close;
+          }
+        ),
+      close: yup
+        .string()
+        .required("Horário de fechamento é obrigatório")
+        .test(
+          "close-after-open",
+          "Horário de fechamento deve ser maior ao horário de abertura",
+          function (value) {
+            const { open } = this.parent;
+            if (!value || !open) return true;
+            return value >= open;
+          }
+        ),
+      hasLunchBreak: yup.boolean(),
+      intervalOpen: yup.string().when("hasLunchBreak", {
+        is: true,
+        then: (schema) => schema
+          .required("Início do intervalo é obrigatório")
+          .test(
+            "intervalOpen-valid",
+            "Início do intervalo deve ser maior ou igual ao horário de abertura e menor ou igual ao horário de fechamento",
+            function (value) {
+              const { open, close } = this.parent;
+              if (!value || !open || !close) return true;
+              return value >= open && value <= close;
+            }
+          ),
+      }),
+      intervalClose: yup.string().when(["hasLunchBreak", "intervalOpen", "open", "close"], {
+        is: (hasLunchBreak) => hasLunchBreak,
+        then: (schema) => schema
+          .required("Fim do intervalo é obrigatório")
+          .test(
+            "intervalClose-valid",
+            "Fim do intervalo deve ser maior ou igual ao início do intervalo e ao horário de abertura, e menor ou igual ao horário de fechamento",
+            function (value) {
+              const { open, close, intervalOpen } = this.parent;
+              if (!value || !open || !close || !intervalOpen) return true;
+              return value >= open && value >= intervalOpen && value <= close;
+            }
+          ),
+      }),
+    }),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+    trigger,
+    control,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      nameEstablishment: "",
+      workingDays: [],
+      paymentMethods: [],
+      address: {
+        cep: "",
+        street: "",
+        number: "",
+        complement: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+      },
+      openingHours: {
+        open: "",
+        close: "",
+        hasLunchBreak: false,
+        intervalOpen: "",
+        intervalClose: "",
+      },
+    },
+  });
+
+  const hasLunchBreak = watch("openingHours.hasLunchBreak");
 
   const handleEditEstablishment = (establishment) => {
     setIsEditing(true);
     setEditEstablishmentId(establishment._id);
-    setNameEstablishment(establishment.nameEstablishment || "");
+    setOriginalData(establishment);
+    setValue("nameEstablishment", establishment.nameEstablishment || "");
+    setValue("workingDays", establishment.workingDays || []);
+    setValue("paymentMethods", establishment.paymentMethods || []);
+    setValue("openingHours.open", establishment.openingHours?.open || "");
+    setValue("openingHours.close", establishment.openingHours?.close || "");
+    setValue(
+      "openingHours.hasLunchBreak",
+      establishment.openingHours?.hasLunchBreak == true
+    );
+    setValue("openingHours.intervalOpen", establishment.openingHours?.intervalOpen || "");
+    setValue("openingHours.intervalClose", establishment.openingHours?.intervalClose || "");
+    setValue("address.cep", establishment.address?.cep || "");
+    setValue("address.street", establishment.address?.street || "");
+    setValue("address.number", establishment.address?.number || "");
+    setValue("address.complement", establishment.address?.complement || "");
+    setValue("address.neighborhood", establishment.address?.neighborhood || "");
+    setValue("address.city", establishment.address?.city || "");
+    setValue("address.state", establishment.address?.state || "");
+
     setAddressData({
       cep: establishment.address?.cep || "",
       street: establishment.address?.street || "",
@@ -81,22 +209,19 @@ const ScheduledData = ({
       longitude: establishment.location?.coordinates[0] || "",
     });
     setOriginalCep(establishment.address?.cep || "");
-    setOpeningTime(establishment.openingHours?.open || "");
-    setClosingTime(establishment.openingHours?.close || "");
-    setHasLunchBreak(establishment.openingHours?.hasLunchBreak || false);
-    setLunchStart(establishment.openingHours?.intervalOpen || "");
-    setLunchEnd(establishment.openingHours?.intervalClose || "");
-    setPaymentMethods(establishment.paymentMethods || []);
-    setWorkingDays(establishment.workingDays || []);
 
     setOpenDialog(true);
   };
 
-  const handleOpenDialog = () => setOpenDialog(true);
+  const handleOpenDialog = () => {
+    reset();
+    setOpenDialog(true);
+  };
+
   const handleCloseDialog = () => {
     setIsEditing(false);
     setEditEstablishmentId(null);
-    setNameEstablishment("");
+    reset();
     setAddressData({
       cep: "",
       street: "",
@@ -108,13 +233,7 @@ const ScheduledData = ({
       latitude: "",
       longitude: "",
     });
-    setOpeningTime("");
-    setClosingTime("");
-    setHasLunchBreak(false);
-    setLunchStart("");
-    setLunchEnd("");
-    setPaymentMethods([]);
-    setWorkingDays([]);
+    setOpenDialog(false);
   };
 
   const renderSkeleton = () => (
@@ -155,16 +274,27 @@ const ScheduledData = ({
         return;
       }
       const data = await response.json();
-      setAddressData({
+      const newAddressData = {
         cep: data.cep || "",
         street: data.street || "",
-        number: "",
+        number: addressData.number || "",
         neighborhood: data.neighborhood || "",
         city: data.city || "",
         state: data.state || "",
         latitude: data.location?.coordinates?.latitude || "",
         longitude: data.location?.coordinates?.longitude || "",
-      });
+      };
+      setAddressData(newAddressData);
+      
+      // Atualiza os valores do formulário
+      setValue("address.cep", newAddressData.cep);
+      setValue("address.street", newAddressData.street);
+      setValue("address.number", newAddressData.number);
+      setValue("address.neighborhood", newAddressData.neighborhood);
+      setValue("address.city", newAddressData.city);
+      setValue("address.state", newAddressData.state);
+      // Disparar validação dos campos preenchidos automaticamente
+      trigger(["address.cep", "address.street", "address.number", "address.neighborhood", "address.city", "address.state"]);
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
     }
@@ -172,7 +302,37 @@ const ScheduledData = ({
   if (isLoading) {
     return <Box sx={{ width: "95%", mt: 5, mb: 3 }}>{renderSkeleton()}</Box>;
   }
-  const handleSaveEstablishment = async () => {
+  const deepEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const cleanEstablishment = (est) => ({
+    nameEstablishment: est.nameEstablishment,
+    address: {
+      cep: est.address?.cep || "",
+      street: est.address?.street || "",
+      number: est.address?.number || "",
+      complement: est.address?.complement || "",
+      neighborhood: est.address?.neighborhood || "",
+      city: est.address?.city || "",
+      state: est.address?.state || "",
+    },
+    openingHours: {
+      open: est.openingHours?.open || "",
+      close: est.openingHours?.close || "",
+      hasLunchBreak: est.openingHours?.hasLunchBreak || false,
+      intervalOpen: est.openingHours?.intervalOpen || "",
+      intervalClose: est.openingHours?.intervalClose || "",
+    },
+    paymentMethods: est.paymentMethods || [],
+    workingDays: est.workingDays || [],
+  });
+  const handleSaveEstablishment = async (data) => {
+    if (isEditing && originalData) {
+      const compareData = cleanEstablishment(data);
+      const compareOriginal = cleanEstablishment(originalData);
+      if (deepEqual(compareData, compareOriginal)) {
+        setOpenDialog(false);
+        return;
+      }
+    }
     let latitude = addressData.latitude;
     let longitude = addressData.longitude;
 
@@ -194,21 +354,21 @@ const ScheduledData = ({
     }
 
     const establishmentData = {
-      nameEstablishment,
+      nameEstablishment: data.nameEstablishment,
       address: {
-        ...addressData,
+        ...data.address,
         latitude,
         longitude,
       },
       openingHours: {
-        open: openingTime,
-        close: closingTime,
-        hasLunchBreak: hasLunchBreak,
-        intervalOpen: lunchStart,
-        intervalClose: lunchEnd,
+        open: data.openingHours.open,
+        close: data.openingHours.close,
+        hasLunchBreak: data.openingHours.hasLunchBreak,
+        intervalOpen: data.openingHours.intervalOpen,
+        intervalClose: data.openingHours.intervalClose,
       },
-      paymentMethods,
-      workingDays,
+      paymentMethods: data.paymentMethods,
+      workingDays: data.workingDays,
       owner: OwnerUser.id,
     };
 
@@ -484,385 +644,460 @@ const ScheduledData = ({
           {isEditing ? "Editar Estabelecimento" : "Novo Estabelecimento"}
         </DialogTitle>
 
-        <DialogContent>
-          <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
-            <Grid2 size={{ xs: 12 }}>
-              <InputLabel
-                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-              >
-                Nome do Estabelecimento
-              </InputLabel>
-              <TextField
-                fullWidth
-                value={nameEstablishment}
-                onChange={(e) => setNameEstablishment(e.target.value)}
-                size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-            <Grid2 size={{ xs: 12 }}>
-              <InputLabel
-                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-              >
-                Dias de funcionamento
-              </InputLabel>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                value={workingDays}
-                onChange={(e) => setWorkingDays(e.target.value)}
-                SelectProps={{
-                  multiple: true,
-                  renderValue: (selected) => selected.join(", "),
-                }}
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              >
-                {[
-                  "Domingo",
-                  "Segunda",
-                  "Terça",
-                  "Quarta",
-                  "Quinta",
-                  "Sexta",
-                  "Sábado",
-                ].map((payment) => (
-                  <MenuItem key={payment} value={payment}>
-                    {payment}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid2>
-            <Grid2 size={{ xs: 12 }}>
-              <InputLabel
-                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-              >
-                Formas de pagamento
-              </InputLabel>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                value={paymentMethods}
-                onChange={(e) => setPaymentMethods(e.target.value)}
-                SelectProps={{
-                  multiple: true,
-                  renderValue: (selected) => selected.join(", "),
-                }}
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              >
-                {[
-                  "Pix",
-                  "Cartão de Crédito",
-                  "Cartão de Débito",
-                  "Dinheiro",
-                ].map((payment) => (
-                  <MenuItem key={payment} value={payment}>
-                    {payment}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid2>
-            <Grid2 size={{ xs: 12 }}>
-              <InputLabel
-                sx={{
-                  color: "#FFFFFF",
-                  pb: 0.5,
-                  pl: 0.3,
-                  fontWeight: 600,
-                  mb: 1,
-                }}
-              >
-                Endereço
-              </InputLabel>
-              <Grid2 container spacing={2}>
-                <Grid2 size={8}>
-                  <InputMask
-                    mask="99999-999"
-                    value={addressData.cep}
-                    maskChar={null}
-                    onChange={(e) =>
-                      setAddressData({ ...addressData, cep: e.target.value })
-                    }
-                    onBlur={handleSearchCep}
-                  >
-                    {(inputProps) => (
-                      <TextField
-                        label="CEP"
-                        {...inputProps}
-                        size="small"
-                        fullWidth
-                        sx={{
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                          "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                        }}
-                      />
-                    )}
-                  </InputMask>
-                </Grid2>
-                <Grid2 size={4}>
-                  <Button
-                    onClick={handleSearchCep}
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      height: "100%",
+        <form onSubmit={handleSubmit(handleSaveEstablishment)}>
+          <DialogContent>
+            <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
+              <Grid2 size={{ xs: 12 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Nome do Estabelecimento</InputLabel>
+                <TextField
+                  placeholder="Digite o nome do estabelecimento"
+                  fullWidth
+                  {...register("nameEstablishment")}
+                  error={!!errors.nameEstablishment}
+                  helperText={errors.nameEstablishment?.message}
+                  size="small"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
                       borderRadius: 2,
-                      borderColor: "#AC42F7",
-                      color: "#AC42F7",
-                      "&:hover": {
-                        borderColor: "#8a2be2",
-                        background: "#f9f5ff",
-                      },
-                    }}
-                  >
-                    Buscar
-                  </Button>
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Dias de funcionamento</InputLabel>
+                <TextField
+                  placeholder="Selecione os dias"
+                  select
+                  fullWidth
+                  size="small"
+                  value={watch("workingDays") || []}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    if (typeof value === 'string') {
+                      value = value.split(',').map(v => v.trim()).filter(Boolean);
+                    }
+                    setValue('workingDays', value);
+                    trigger('workingDays');
+                  }}
+                  onPaste={e => {
+                    e.preventDefault();
+                    const paste = e.clipboardData.getData('text');
+                    const arr = paste.split(',').map(v => v.trim()).filter(Boolean);
+                    setValue('workingDays', arr);
+                    trigger('workingDays');
+                  }}
+                  error={!!errors.workingDays}
+                  helperText={errors.workingDays?.message}
+                  SelectProps={{
+                    multiple: true,
+                    renderValue: (selected) => selected.join(", "),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                >
+                  {[
+                    "Domingo",
+                    "Segunda",
+                    "Terça",
+                    "Quarta",
+                    "Quinta",
+                    "Sexta",
+                    "Sábado",
+                  ].map((payment) => (
+                    <MenuItem key={payment} value={payment}>
+                      {payment}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid2>
+              <Grid2 size={{ xs: 12 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Formas de pagamento</InputLabel>
+                <TextField
+                  placeholder="Selecione as formas de pagamento"
+                  select
+                  fullWidth
+                  size="small"
+                  value={watch("paymentMethods") || []}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    if (typeof value === 'string') {
+                      value = value.split(',').map(v => v.trim()).filter(Boolean);
+                    }
+                    setValue('paymentMethods', value);
+                    trigger('paymentMethods');
+                  }}
+                  onPaste={e => {
+                    e.preventDefault();
+                    const paste = e.clipboardData.getData('text');
+                    const arr = paste.split(',').map(v => v.trim()).filter(Boolean);
+                    setValue('paymentMethods', arr);
+                    trigger('paymentMethods');
+                  }}
+                  error={!!errors.paymentMethods}
+                  helperText={errors.paymentMethods?.message}
+                  SelectProps={{
+                    multiple: true,
+                    renderValue: (selected) => selected.join(", "),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                >
+                  {[
+                    "Pix",
+                    "Cartão de Crédito",
+                    "Cartão de Débito",
+                    "Dinheiro",
+                  ].map((payment) => (
+                    <MenuItem key={payment} value={payment}>
+                      {payment}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid2>
+              <Grid2 size={{ xs: 12 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>CEP</InputLabel>
+                <Grid2 container spacing={2}>
+                  <Grid2 size={8}>
+                    <InputMask
+                      mask="99999-999"
+                      maskChar={null}
+                      value={watch("address.cep") || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setValue("address.cep", value);
+                        setAddressData(prev => ({ ...prev, cep: value }));
+                      }}
+                      onBlur={handleSearchCep}
+                    >
+                      {(inputProps) => (
+                        <TextField
+                          placeholder="Digite o CEP"
+                          {...inputProps}
+                          error={!!errors.address?.cep}
+                          helperText={errors.address?.cep?.message}
+                          size="small"
+                          fullWidth
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          }}
+                        />
+                      )}
+                    </InputMask>
+                  </Grid2>
+                  <Grid2 size={4}>
+                    <Button
+                      onClick={handleSearchCep}
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                        height: "2.5rem",
+                        borderRadius: 2,
+                        borderColor: "#AC42F7",
+                        color: "#AC42F7",
+                        "&:hover": {
+                          borderColor: "#8a2be2",
+                          background: "#f9f5ff",
+                        },
+                      }}
+                    >
+                      Buscar
+                    </Button>
+                  </Grid2>
                 </Grid2>
               </Grid2>
-            </Grid2>
-
-            <Grid2 size={{ xs: 8 }}>
-              <TextField
-                label="Rua"
-                fullWidth
-                size="small"
-                value={addressData.street}
-                onChange={(e) =>
-                  setAddressData({ ...addressData, street: e.target.value })
-                }
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 4 }}>
-              <TextField
-                label="Número"
-                fullWidth
-                size="small"
-                value={addressData.number}
-                onChange={(e) =>
-                  setAddressData({ ...addressData, number: e.target.value })
-                }
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-            <Grid2 size={{ xs: 8 }}>
-              <TextField
-                label="Complemento"
-                fullWidth
-                size="small"
-                value={addressData.complement}
-                onChange={(e) =>
-                  setAddressData({
-                    ...addressData,
-                    complement: e.target.value,
-                  })
-                }
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-            <Grid2 size={{ xs: 4 }}>
-              <TextField
-                label="Bairro"
-                fullWidth
-                size="small"
-                value={addressData.neighborhood}
-                onChange={(e) =>
-                  setAddressData({
-                    ...addressData,
-                    neighborhood: e.target.value,
-                  })
-                }
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 8 }}>
-              <TextField
-                label="Cidade"
-                fullWidth
-                size="small"
-                value={addressData.city}
-                onChange={(e) =>
-                  setAddressData({ ...addressData, city: e.target.value })
-                }
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 4 }}>
-              <TextField
-                label="Estado"
-                fullWidth
-                size="small"
-                value={addressData.state}
-                onChange={(e) =>
-                  setAddressData({ ...addressData, state: e.target.value })
-                }
-                sx={{
-                  mb: 2,
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 6 }}>
-              <InputLabel
-                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-              >
-                Horário de Abertura
-              </InputLabel>
-              <TextField
-                type="time"
-                fullWidth
-                size="small"
-                value={openingTime}
-                onChange={(e) => setOpeningTime(e.target.value)}
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 6 }}>
-              <InputLabel
-                sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-              >
-                Horário de Fechamento
-              </InputLabel>
-              <TextField
-                type="time"
-                fullWidth
-                size="small"
-                value={closingTime}
-                onChange={(e) => setClosingTime(e.target.value)}
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Grid2>
-
-            <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={hasLunchBreak}
-                    onChange={(e) => setHasLunchBreak(e.target.checked)}
-                  />
-                }
-                label="Possui intervalo entre horario de funcionamento?"
-              />
-            </Grid2>
-
-            {hasLunchBreak && (
-              <>
-                <Grid2 size={{ xs: 6 }}>
-                  <InputLabel
-                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-                  >
-                    Início do Intervalo
-                  </InputLabel>
-                  <TextField
-                    type="time"
-                    fullWidth
-                    size="small"
-                    value={lunchStart}
-                    onChange={(e) => setLunchStart(e.target.value)}
-                    sx={{
+              <Grid2 size={{ xs: 12, sm:8 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Endereço</InputLabel>
+                <TextField
+                  placeholder="Digite o nome da rua"
+                  fullWidth
+                  size="small"
+                  {...register("address.street")}
+                  error={!!errors.address?.street}
+                  helperText={errors.address?.street?.message}
+                  disabled={isEditing}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       bgcolor: "#fff",
                       borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  />
-                </Grid2>
-
-                <Grid2 size={{ xs: 6 }}>
-                  <InputLabel
-                    sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-                  >
-                    Fim do Intervalo
-                  </InputLabel>
-                  <TextField
-                    type="time"
-                    fullWidth
-                    size="small"
-                    value={lunchEnd}
-                    onChange={(e) => setLunchEnd(e.target.value)}
-                    sx={{
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs:12,sm: 4 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Nº</InputLabel>
+                <TextField
+                  placeholder="Digite o número"
+                  fullWidth
+                  size="small"
+                  {...register("address.number")}
+                  error={!!errors.address?.number}
+                  helperText={errors.address?.number?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       bgcolor: "#fff",
                       borderRadius: 2,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  />
-                </Grid2>
-              </>
-            )}
-          </Grid2>
-        </DialogContent>
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm:8 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Complemento</InputLabel>
+                <TextField
+                  placeholder="Digite o complemento"
+                  fullWidth
+                  size="small"
+                  {...register("address.complement")}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs:12,sm: 4 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Bairro</InputLabel>
+                <TextField
+                  placeholder="Digite o bairro"
+                  fullWidth
+                  size="small"
+                  {...register("address.neighborhood")}
+                  error={!!errors.address?.neighborhood}
+                  helperText={errors.address?.neighborhood?.message}
+                  disabled={isEditing}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm:8 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Cidade</InputLabel>
+                <TextField
+                  placeholder="Digite a cidade"
+                  fullWidth
+                  size="small"
+                  {...register("address.city")}
+                  error={!!errors.address?.city}
+                  helperText={errors.address?.city?.message}
+                  disabled={isEditing}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs:12,sm: 4 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Estado</InputLabel>
+                <TextField
+                  placeholder="Digite o estado"
+                  fullWidth
+                  size="small"
+                  {...register("address.state")}
+                  error={!!errors.address?.state}
+                  helperText={errors.address?.state?.message}
+                  disabled={isEditing}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs:12,sm: 6 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Horário de Abertura</InputLabel>
+                <TextField
+                  type="time"
+                  fullWidth
+                  size="small"
+                  {...register("openingHours.open")}
+                  error={!!errors.openingHours?.open}
+                  helperText={errors.openingHours?.open?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 size={{ xs:12,sm: 6 }}>
+                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Horário de Fechamento</InputLabel>
+                <TextField
+                  type="time"
+                  fullWidth
+                  size="small"
+                  {...register("openingHours.close")}
+                  error={!!errors.openingHours?.close}
+                  helperText={errors.openingHours?.close?.message}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
+                />
+              </Grid2>
+              <Grid2 container alignItems="center" size={{ xs: 12 }} pl={1}>
+                <Controller
+                  name="openingHours.hasLunchBreak"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={!!field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          size="small"
+                        />
+                      }
+                      label="Possui intervalo entre horario de funcionamento?"
+                    />
+                  )}
+                />
+              </Grid2>
+              {hasLunchBreak && (
+                <>
+                  <Grid2 size={{ xs:12,sm: 6 }}>
+                    <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Início do Intervalo</InputLabel>
+                    <TextField
+                      type="time"
+                      fullWidth
+                      size="small"
+                      {...register("openingHours.intervalOpen")}
+                      error={!!errors.openingHours?.intervalOpen}
+                      helperText={errors.openingHours?.intervalOpen?.message}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs:12,sm: 6 }}>
+                    <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Fim do Intervalo</InputLabel>
+                    <TextField
+                      type="time"
+                      fullWidth
+                      size="small"
+                      {...register("openingHours.intervalClose")}
+                      error={!!errors.openingHours?.intervalClose}
+                      helperText={errors.openingHours?.intervalClose?.message}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
+                    />
+                  </Grid2>
+                </>
+              )}
+            </Grid2>
+          </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "end", pb: 2, gap: 2 }}>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            variant="outlined"
-            sx={{
-              background: "#FFF",
-              color: "#ac42f7",
-              borderColor: "#FFF",
-              borderRadius: 3,
-              fontSize: "1rem",
-              padding: "8px 24px",
-            }}
-          >
-            Cancelar
-          </Button>
-          {isEditing && (
+          <DialogActions sx={{ justifyContent: "end", pb: 2, gap: 2 }}>
             <Button
-              variant="contained"
-              onClick={handleDeleteEstablishment}
-              loading={isLoadingButton}
-              color="error"
+              onClick={() => setOpenDialog(false)}
+              variant="outlined"
               sx={{
+                background: "#FFF",
+                color: "#ac42f7",
+                borderColor: "#FFF",
+                borderRadius: 3,
+                fontSize: "1rem",
+                padding: "8px 24px",
+              }}
+            >
+              Cancelar
+            </Button>
+            {isEditing && (
+              <Button
+                variant="contained"
+                onClick={handleDeleteEstablishment}
+                loading={isLoadingButton}
+                color="error"
+                sx={{
+                  color: "#FFF",
+                  borderColor: "#FFF",
+                  borderRadius: 3,
+                  padding: "8px 24px",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  "& .MuiCircularProgress-root": {
+                    color: "#ffffff",
+                  },
+                }}
+              >
+                Excluir
+              </Button>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              loading={isLoadingButtonSave}
+              sx={{
+                background: "#ac42f7",
                 color: "#FFF",
                 borderColor: "#FFF",
                 borderRadius: 3,
@@ -874,29 +1109,10 @@ const ScheduledData = ({
                 },
               }}
             >
-              Excluir
+              Salvar
             </Button>
-          )}
-          <Button
-            variant="contained"
-            onClick={handleSaveEstablishment}
-            loading={isLoadingButtonSave}
-            sx={{
-              background: "#ac42f7",
-              color: "#FFF",
-              borderColor: "#FFF",
-              borderRadius: 3,
-              padding: "8px 24px",
-              fontSize: "1rem",
-              fontWeight: "bold",
-              "& .MuiCircularProgress-root": {
-                color: "#ffffff",
-              },
-            }}
-          >
-            Salvar
-          </Button>
-        </DialogActions>
+          </DialogActions>
+        </form>
       </Dialog>
     </Box>
   );
