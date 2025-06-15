@@ -23,6 +23,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ptBR } from "@mui/x-date-pickers/locales";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import "dayjs/locale/pt-br";
 import InputMask from "react-input-mask";
 import {
@@ -36,6 +37,8 @@ import {
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+
+dayjs.extend(isSameOrAfter);
 
 const styles = StyleSheet.create({
   page: {
@@ -113,10 +116,33 @@ const schema = yup.object().shape({
   model: yup.string().required("Campo obrigatório"),
   year: yup.string().required("Campo obrigatório"),
   date: yup.string().required("Campo obrigatório"),
-  dateValidate: yup.string().required("Campo obrigatório"),
-  deliveryDate: yup.string().required("Campo obrigatório"),
+  dateValidate: yup
+    .string()
+    .required("Campo obrigatório")
+    .test(
+      "is-after-date",
+      "Validade não pode ser menor que a data do orçamento",
+      function (value) {
+        const { date } = this.parent;
+        if (!value || !date) return true;
+        return dayjs(value).isSameOrAfter(dayjs(date), 'day');
+      }
+    ),
+  deliveryDate: yup
+    .string()
+    .required("Campo obrigatório")
+    .test(
+      "is-after-date",
+      "Entrega não pode ser menor que a data do orçamento",
+      function (value) {
+        const { date } = this.parent;
+        if (!value || !date) return true;
+        return dayjs(value).isSameOrAfter(dayjs(date), 'day');
+      }
+    ),
   observation: yup.string(),
   address: yup.string().required("Campo obrigatório"),
+  referencePoint: yup.string(),
   serviceDescription: yup.string(),
   services: yup
     .array()
@@ -334,8 +360,9 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const establishmentName = dataEstablishment[0]?.nameEstablishment;
   const handleServiceChange = (index, field, fieldValue) => {
     const updated = [...services];
-    updated[index][field] = fieldValue;
+    updated[index][field] = field === "value" ? Number(fieldValue) : fieldValue;
     setServices(updated);
+    setFormValue("services", updated, { shouldValidate: true });
     const total = updated.reduce((sum, s) => sum + Number(s.value || 0), 0);
     setValue(total);
   };
@@ -478,7 +505,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
                       field.onChange(formatted);
                       setDate(formatted);
                     }}
@@ -540,7 +567,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
                       field.onChange(formatted);
                       setDateValidate(formatted);
                     }}
@@ -602,7 +629,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue?.format("YYYY-MM-DD") || "";
+                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
                       field.onChange(formatted);
                       setDeliveryDate(formatted);
                     }}

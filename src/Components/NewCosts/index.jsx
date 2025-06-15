@@ -120,9 +120,6 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
           errors[error.path] = error.message;
         });
         setFormErrors(errors);
-        setSnackbarMessage("Por favor, corrija os erros no formulário");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
       } else {
         setSnackbarSeverity("error");
         setSnackbarMessage("Erro ao criar custo");
