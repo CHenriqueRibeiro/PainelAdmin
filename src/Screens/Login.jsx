@@ -43,7 +43,7 @@ const Login = () => {
       if (requirePasswordChange && token) {
         navigate(`/redefinir-senha/${token}`);
       } else {
-        navigate("/estabelecimento");
+        navigate("/Home");
       }
     } catch (error) {
       console.error("Erro ao logar:", error);

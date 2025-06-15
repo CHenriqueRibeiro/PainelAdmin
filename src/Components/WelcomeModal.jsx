@@ -53,15 +53,11 @@ const WelcomeModal = ({
     }
   ];
 
-  const handleNext = () => {
-    onClose();
-  };
 
   const handleAction = () => {
     steps[activeStep].action();
   };
 
-  const stepConcluido = onboardingSteps.estabelecimento && onboardingSteps.servico;
 
   return (
     <Dialog
