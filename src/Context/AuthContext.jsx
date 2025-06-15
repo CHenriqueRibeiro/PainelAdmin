@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { Alert } from "@mui/material";
 
 const AuthContext = createContext();
 
@@ -91,11 +92,16 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      setUser(result.owner);
+      const userToStore = {
+        ...result.owner,
+        statusConta: result.statusConta,
+        dataLimite: result.dataLimite,
+      };
+      setUser(userToStore);
       localStorage.setItem("authToken", result.token);
       localStorage.setItem("tokenExpiration", Date.now() + 60 * 60 * 1000);
+      localStorage.setItem("user", JSON.stringify(userToStore));
       await buscarEstabelecimentos(result.owner?.id);
-      localStorage.setItem("user", JSON.stringify(result.owner));
 
       return {
         requirePasswordChange: false,

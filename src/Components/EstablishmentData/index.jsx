@@ -435,6 +435,7 @@ const ScheduledData = ({
       setEstablishment((prev) => !prev);
       setService((prev) => !prev);
       handleCloseDialog();
+      setSnackbarMessage("Sucesso ao deletar estabelecimento");
       setSnackbarSeverity("success");
       handleCloseDialog();
       setOpenSnackbar(true);
@@ -617,9 +618,9 @@ const ScheduledData = ({
             </Grid2>
           </>
         ) : (
-          <Typography color="textSecondary">
-            Cadastre um estabelecimento para começar a receber agendamentos.
-          </Typography>
+            <><Divider sx={{ my: 1 }} /><Typography color="textSecondary">
+              Cadastre um estabelecimento para depois cadastrar os serviços.
+            </Typography></>
         )}
       </Paper>
 

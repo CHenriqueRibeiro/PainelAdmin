@@ -1,8 +1,10 @@
-import { Box } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import DailyStatus from "../Components/DailyStats";
 import ScheduledServices from "../Components/ScheduledServices";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import WelcomeModal from "../Components/WelcomeModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const ownerUser = JSON.parse(localStorage.getItem("user"));
@@ -13,6 +15,13 @@ export default function Home() {
   const [services, setServices] = useState([]);
   const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+  };
+
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
@@ -58,6 +67,13 @@ export default function Home() {
     establishmentSearch();
   }, []);
 
+useEffect(() => {
+  if (owner) {
+    const steps = owner.onboardingSteps;
+    const precisaMostrar = !(steps?.estabelecimento && steps?.servico);
+    setShowWelcomeModal(precisaMostrar);
+  }
+}, [owner]);
   useEffect(() => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
@@ -79,6 +95,11 @@ export default function Home() {
     }
   };
 
+  if (owner?.dataLimiteTeste) {
+    const data = new Date(owner.dataLimiteTeste);
+    dataLimiteFormatada = data.toLocaleDateString('pt-BR');
+  }
+
   return (
     <Box
       sx={{
@@ -89,6 +110,14 @@ export default function Home() {
         background: "#F1EEFF",
       }}
     >
+     <WelcomeModal
+  isOpen={showWelcomeModal}
+  onClose={() => setShowWelcomeModal(false)}
+  statusConta={owner?.statusConta}
+  dataLimiteTeste={owner?.dataLimite}
+  onboardingSteps={owner?.onboardingSteps}
+/>
+
       <Box
         sx={{
           width: "100%",
