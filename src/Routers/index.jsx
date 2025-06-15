@@ -46,7 +46,7 @@ const Rotas = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/home" /> : <Login />} />
+        <Route path="/" element={user ? <Navigate to="/Home" /> : <Login />} />
 
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha/:token" element={<ResetPassword />} />
