@@ -20,8 +20,39 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
+import * as yup from "yup";
 
 const unidadeOptions = ["mL", "L", "g", "unidade"];
+
+const productSchema = yup.object().shape({
+  name: yup.string().required("Nome do produto é obrigatório"),
+  preco: yup
+    .number()
+    .typeError("Valor inválido")
+    .required("Valor é obrigatório")
+    .min(0, "Valor não pode ser negativo"),
+  quantidadeAtual: yup
+    .number()
+    .typeError("Quantidade inválida")
+    .required("Quantidade é obrigatória"),
+  unidade: yup.string().required("Unidade é obrigatória"),
+  vincularServicos: yup.boolean(),
+  servicosVinculados: yup.array().when("vincularServicos", {
+    is: true,
+    then: (schema) =>
+      schema.of(
+        yup.object().shape({
+          service: yup.string().required("Serviço é obrigatório"),
+          consumoPorServico: yup
+            .number()
+            .typeError("Consumo é obrigatório")
+            .required("Consumo é obrigatório"),
+          unidadeConsumo: yup.string().required("Unidade é obrigatória"),
+        })
+      ),
+    otherwise: (schema) => schema,
+  }),
+});
 
 const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const theme = useTheme();
@@ -41,6 +72,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
     { service: "", consumoPorServico: "", unidadeConsumo: unidade },
   ]);
   const [servicesList, setServicesList] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (vincularServicos && dataEstablishment?.[0]?.services) {
@@ -49,13 +81,17 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   }, [vincularServicos, dataEstablishment]);
 
   const handleCreateProduct = async () => {
-    if (!name || !quantidadeAtual) {
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Preencha todos os campos obrigatórios");
-      setOpenSnackbar(true);
-      return;
-    }
+    const data = {
+      name,
+      preco: preco === "" ? undefined : Number(preco),
+      quantidadeAtual: quantidadeAtual === "" ? undefined : Number(quantidadeAtual),
+      unidade,
+      vincularServicos,
+      servicosVinculados,
+    };
     try {
+      await productSchema.validate(data, { abortEarly: false });
+      setFormErrors({});
       setIsLoading(true);
       const response = await fetch(
         `https://lavaja.up.railway.app/api/products/establishments/${dataEstablishment[0]._id}/products`,
@@ -79,7 +115,6 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
         }
       );
       if (!response.ok) throw new Error("Erro ao criar produto");
-
       setSnackbarSeverity("success");
       setSnackbarMessage("Produto criado com sucesso");
       setOpenSnackbar(true);
@@ -92,9 +127,29 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setVincularServicos(false);
       setEstablishment((prev) => !prev);
     } catch (error) {
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Erro ao criar produto");
-      setOpenSnackbar(true);
+      if (error.inner) {
+        const errors = {};
+        error.inner.forEach((err) => {
+          if (err.path && err.path.startsWith("servicosVinculados")) {
+            // path: servicosVinculados[0].service
+            const match = err.path.match(/servicosVinculados\[(\d+)\]\.(\w+)/);
+            if (match) {
+              const idx = match[1];
+              const field = match[2];
+              if (!errors.servicosVinculados) errors.servicosVinculados = [];
+              if (!errors.servicosVinculados[idx]) errors.servicosVinculados[idx] = {};
+              errors.servicosVinculados[idx][field] = err.message;
+            }
+          } else if (err.path) {
+            errors[err.path] = err.message;
+          }
+        });
+        setFormErrors(errors);
+      } else {
+        setSnackbarSeverity("error");
+        setSnackbarMessage("Erro ao criar produto");
+        setOpenSnackbar(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +159,18 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
     const updated = [...servicosVinculados];
     updated[index][field] = value;
     setServicosVinculados(updated);
+    setFormErrors((prev) => {
+      if (!prev.servicosVinculados) return prev;
+      const newErrors = { ...prev };
+      if (newErrors.servicosVinculados[index]) {
+        newErrors.servicosVinculados = [...newErrors.servicosVinculados];
+        newErrors.servicosVinculados[index] = {
+          ...newErrors.servicosVinculados[index],
+          [field]: undefined,
+        };
+      }
+      return newErrors;
+    });
   };
 
   const addNovoServico = () => {
@@ -146,19 +213,27 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
           Novo Produto
         </Typography>
         <Divider sx={{ my: 2 }} />
-        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1 }}>
           Nome do Produto
         </InputLabel>
         <TextField
           fullWidth
           size="small"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            setFormErrors((prev) => ({ ...prev, name: undefined }));
+          }}
+          error={!!formErrors.name}
+          helperText={formErrors.name}
           sx={{
-            bgcolor: "#fff",
-            borderRadius: 2,
-            mt: 1,
-            "& .MuiOutlinedInput-root": { borderRadius: 2 },
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#fff",
+              borderRadius: 2,
+            },
+            "& .MuiInputBase-root.Mui-error": {
+              bgcolor: "#fff",
+            },
           }}
         />
         <Box
@@ -177,7 +252,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
               Valor
             </InputLabel>
             <TextField
@@ -185,13 +260,21 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               type="number"
               size="small"
               value={preco}
-              onChange={(e) => setPreco(e.target.value)}
-              sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                mt: 1,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+              onChange={e => {
+                setPreco(e.target.value);
+                setFormErrors(prev => ({ ...prev, preco: undefined }));
               }}
+              error={!!formErrors.preco}
+              helperText={formErrors.preco}
+              sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
             />
           </Box>
           <Box
@@ -202,7 +285,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
               Quantidade
             </InputLabel>
             <TextField
@@ -210,12 +293,20 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               type="number"
               size="small"
               value={quantidadeAtual}
-              onChange={(e) => setQuantidadeAtual(e.target.value)}
+              onChange={(e) => {
+                setQuantidadeAtual(e.target.value === "" ? "" : Number(e.target.value));
+                setFormErrors((prev) => ({ ...prev, quantidadeAtual: undefined }));
+              }}
+              error={!!formErrors.quantidadeAtual}
+              helperText={formErrors.quantidadeAtual}
               sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                mt: 1,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
               }}
             />
           </Box>
@@ -227,7 +318,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600 }}>
+            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
               Unidade
             </InputLabel>
             <TextField
@@ -236,12 +327,17 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               size="small"
               value={unidade}
               onChange={(e) => setUnidade(e.target.value)}
-              sx={{
-                bgcolor: "#fff",
-                borderRadius: 2,
-                mt: 1,
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
+              error={!!formErrors.unidade}
+              helperText={formErrors.unidade}
+             sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
             >
               {unidadeOptions.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -294,12 +390,17 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     onChange={(e) =>
                       handleServicoChange(index, "service", e.target.value)
                     }
+                    error={!!formErrors.servicosVinculados?.[index]?.service}
+                    helperText={formErrors.servicosVinculados?.[index]?.service}
                     sx={{
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
                   >
                     {servicesList.map((s) => (
                       <MenuItem key={s._id} value={s._id}>
@@ -317,15 +418,20 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                       handleServicoChange(
                         index,
                         "consumoPorServico",
-                        e.target.value
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
+                    error={!!formErrors.servicosVinculados?.[index]?.consumoPorServico}
+                    helperText={formErrors.servicosVinculados?.[index]?.consumoPorServico}
                     sx={{
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
                   />
                   <Box
                     sx={{
@@ -346,11 +452,16 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                           e.target.value
                         )
                       }
+                      error={!!formErrors.servicosVinculados?.[index]?.unidadeConsumo}
+                      helperText={formErrors.servicosVinculados?.[index]?.unidadeConsumo}
                       sx={{
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        mt: 1,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
                       }}
                     >
                       {unidadeOptions
