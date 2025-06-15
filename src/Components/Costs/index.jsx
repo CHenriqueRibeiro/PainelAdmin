@@ -26,6 +26,36 @@ import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import ArrowDropUpRoundedIcon from "@mui/icons-material/ArrowDropUpRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import { DatePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import * as yup from "yup";
+import { LoadingButton } from "@mui/lab";
+
+const costSchema = yup.object().shape({
+  type: yup.string().required("Tipo é obrigatório"),
+  value: yup
+    .number()
+    .required("Valor é obrigatório")
+    .positive("Valor deve ser maior que zero")
+    .typeError("Valor deve ser um número"),
+  date: yup
+    .mixed()
+    .required("Data é obrigatória")
+    .test("is-valid-date", "Data inválida", (value) => {
+      if (!value) return false;
+      const date = new Date(value);
+      return date instanceof Date && !isNaN(date);
+    })
+    .test("is-future-date", "Data não pode ser futura", (value) => {
+      if (!value) return false;
+      const date = new Date(value);
+      return date <= new Date();
+    }),
+  description: yup.string().required("Descrição é obrigatória"),
+  observation: yup.string().optional(),
+});
 
 const Costs = ({
   dataEstablishment,
@@ -39,6 +69,26 @@ const Costs = ({
   const [expandedType, setExpandedType] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCost, setSelectedCost] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const validateField = async (field, value) => {
+    try {
+      if (field === "date" && !value) {
+        setFormErrors(prev => ({ ...prev, [field]: "Data é obrigatória" }));
+        return;
+      }
+      await costSchema.validateAt(field, { [field]: value });
+      setFormErrors(prev => ({ ...prev, [field]: "" }));
+    } catch (err) {
+      setFormErrors(prev => ({ ...prev, [field]: err.message }));
+    }
+  };
+
+  const handleFieldChange = (field, value, setter) => {
+    setter(value);
+    validateField(field, value);
+  };
 
   const handleDelete = async (costId) => {
     try {
@@ -69,6 +119,8 @@ const Costs = ({
 
   const handleUpdate = async () => {
     try {
+      setLoading(true);
+      await costSchema.validate(selectedCost);
       const response = await fetch(
         `https://lavaja.up.railway.app/api/cost/cost/${selectedCost._id}`,
         {
@@ -83,20 +135,22 @@ const Costs = ({
           }),
         }
       );
-
       if (!response.ok) throw new Error("Erro ao atualizar custo");
-
       setSnackbarMessage("Custo atualizado com sucesso");
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
       setDialogOpen(false);
       setEstablishment((prev) => !prev);
     } catch (err) {
-      console.error(err);
-      setSnackbarMessage("Erro ao atualizar custo");
-      setSnackbarSeverity("error");
-      setOpenSnackbar(true);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleOpenEditDialog = (cost) => {
+    setSelectedCost(cost);
+    setFormErrors({});
+    setDialogOpen(true);
   };
 
   if (isLoading) {
@@ -254,10 +308,7 @@ const Costs = ({
                     >
                       <Tooltip title="Editar custo">
                         <IconButton
-                          onClick={() => {
-                            setSelectedCost(cost);
-                            setDialogOpen(true);
-                          }}
+                          onClick={() => handleOpenEditDialog(cost)}
                         >
                           <EditRoundedIcon />
                         </IconButton>
@@ -315,11 +366,12 @@ const Costs = ({
                 fullWidth
                 value={selectedCost?.type || ""}
                 onChange={(e) =>
-                  setSelectedCost((prev) => ({
-                    ...prev,
-                    type: e.target.value,
-                  }))
+                  handleFieldChange("type", e.target.value, (value) =>
+                    setSelectedCost((prev) => ({ ...prev, type: value }))
+                  )
                 }
+                error={!!formErrors.type}
+                helperText={formErrors.type}
                 size="small"
                 sx={{
                   bgcolor: "#fff",
@@ -356,37 +408,74 @@ const Costs = ({
                 type="number"
                 value={selectedCost?.value || ""}
                 onChange={(e) =>
-                  setSelectedCost((prev) => ({
-                    ...prev,
-                    value: e.target.value,
-                  }))
+                  handleFieldChange("value", e.target.value, (value) =>
+                    setSelectedCost((prev) => ({ ...prev, value: value }))
+                  )
                 }
+                error={!!formErrors.value}
+                helperText={formErrors.value}
                 size="small"
                 sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
               />
             </Grid2>
             <Grid2 size={{ xs: 12, sm: 6 }}>
               <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
                 Data
               </InputLabel>
-              <TextField
-                fullWidth
-                type="date"
-                value={selectedCost?.date?.slice(0, 10) || ""}
-                onChange={(e) =>
-                  setSelectedCost((prev) => ({ ...prev, date: e.target.value }))
-                }
-                size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  placeholder="Data"
+                  format="DD/MM/YYYY"
+                  value={selectedCost?.date ? dayjs(selectedCost.date) : null}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      handleFieldChange("date", newValue.format("YYYY-MM-DD"), (value) =>
+                        setSelectedCost((prev) => ({ ...prev, date: value }))
+                      );
+                    } else {
+                      handleFieldChange("date", "", (value) =>
+                        setSelectedCost((prev) => ({ ...prev, date: value }))
+                      );
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!formErrors.date,
+                      helperText: formErrors.date,
+                      InputProps: {
+                            sx: {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                          },
+                          sx: {
+                            "& .MuiOutlinedInput-root": {
+                              bgcolor: "#fff",
+                              borderRadius: 2,
+                            },
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                              {
+                                borderColor: "#ff8ba7",
+                              },
+                            "& .MuiInputBase-root.Mui-error": {
+                              bgcolor: "#fff",
+                            },
+                          },
+                        
+                    },
+                  }}
+                />
+              </LocalizationProvider>
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
               <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
@@ -396,17 +485,22 @@ const Costs = ({
                 fullWidth
                 value={selectedCost?.description || ""}
                 onChange={(e) =>
-                  setSelectedCost((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
+                  handleFieldChange("description", e.target.value, (value) =>
+                    setSelectedCost((prev) => ({ ...prev, description: value }))
+                  )
                 }
+                error={!!formErrors.description}
+                helperText={formErrors.description}
                 size="small"
                 sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
               />
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
@@ -417,28 +511,67 @@ const Costs = ({
                 fullWidth
                 value={selectedCost?.observation || ""}
                 onChange={(e) =>
-                  setSelectedCost((prev) => ({
-                    ...prev,
-                    observation: e.target.value,
-                  }))
+                  handleFieldChange("observation", e.target.value, (value) =>
+                    setSelectedCost((prev) => ({ ...prev, observation: value }))
+                  )
                 }
+                error={!!formErrors.observation}
+                helperText={formErrors.observation}
                 size="small"
                 sx={{
-                  bgcolor: "#fff",
-                  borderRadius: 2,
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      }}
               />
             </Grid2>
           </Grid2>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} color="inherit">
+        <DialogActions sx={{mr:2}}>
+          <Button
+            onClick={() => {
+              setDialogOpen(false);
+              setFormErrors({});
+            }}
+            color="secondary"
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              fontWeight: 600,
+              color: "#AC42F7",
+              borderColor: "#AC42F7",
+              mr: 1,
+              '&:hover': {
+                background: '#f3e8ff',
+                borderColor: '#AC42F7',
+              },
+            }}
+            disabled={loading}
+          >
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleUpdate}>
+          <LoadingButton
+            variant="contained"
+            onClick={handleUpdate}
+            loading={loading}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 600,
+              background: "#AC42F7",
+              color: "#fff",
+              boxShadow: "none",
+              '&:hover': {
+                background: '#8f2fc9',
+              },
+            }}
+            disabled={loading}
+          >
             Salvar
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Box>
