@@ -188,7 +188,8 @@ const WelcomeModal = ({
                 statusConta === 'cancelada' ? '#FFCDD2' :
                 statusConta === 'teste' ? '#FFE0B2' :
                 '#C8E6C9',
-              p: 2
+              p: 2,
+              borderRadius: 4
             }}
           >
             <Typography
@@ -202,6 +203,19 @@ const WelcomeModal = ({
             >
               {gerarMensagemStatus()}
             </Typography>
+            {statusConta === 'teste' && (
+              <Typography
+                sx={{
+                  color: '#B26A00',
+                  fontWeight: 500,
+                  textAlign: 'center',
+                  mt: 1,
+                  fontSize: '1rem',
+                }}
+              >
+                Atenção: Na versão de teste, as notificações para os clientes via WhatsApp não estão disponíveis.
+              </Typography>
+            )}
           </Paper>
         </Box>
       )}
