@@ -10,9 +10,11 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Paper
+  Paper,
+  Tooltip
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
 
 const WelcomeModal = ({
   isOpen,
@@ -22,7 +24,18 @@ const WelcomeModal = ({
   onboardingSteps = { estabelecimento: false, servico: false }
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    // Se estiver na página de estabelecimento e o estabelecimento não estiver cadastrado
+    if (location.pathname === '/Estabelecimento' && !onboardingSteps.estabelecimento) {
+      setShowTooltip(true);
+    } else {
+      setShowTooltip(false);
+    }
+  }, [location.pathname, onboardingSteps.estabelecimento]);
 
   const formatarData = (data) => {
     if (!data) return null;
@@ -47,17 +60,87 @@ const WelcomeModal = ({
 
   const steps = [
     {
-      label: 'Cadastrar Estabelecimento e Serviços',
-      description: 'Cadastre primeiro seu estabelecimento e depois do cadastro concluído, cadastre pelo menos um serviço para começar a utilizar o agendamento e outros serviços.',
-      action: () => navigate('/Estabelecimento')
+      label: 'Cadastrar Estabelecimento',
+      description: 'Clique no botão "+" para cadastrar seu primeiro estabelecimento.',
+      action: () => navigate('/Estabelecimento'),
+      completed: onboardingSteps.estabelecimento
+    },
+    {
+      label: 'Cadastrar Serviços',
+      description: 'Parábens o estabelecimento foi criado com sucesso, agora clique no botão "+" para cadastrar seu primeiro serviço',
+      action: () => navigate('/Estabelecimento'),
+      completed: onboardingSteps.servico
     }
   ];
-
 
   const handleAction = () => {
     steps[activeStep].action();
   };
 
+  // Filtrar apenas os passos não concluídos
+  const pendingSteps = steps.filter(step => !step.completed);
+
+  // Se todos os passos estiverem completos, não mostra o modal
+  if (pendingSteps.length === 0) {
+    return null;
+  }
+
+  // Se estiver na página de estabelecimento e o estabelecimento não estiver cadastrado
+  if (location.pathname === '/Estabelecimento' && !onboardingSteps.estabelecimento) {
+    return (
+      <Tooltip
+        open={showTooltip}
+        title="Clique aqui para cadastrar seu primeiro estabelecimento"
+        arrow
+        placement="right"
+        PopperProps={{
+          sx: {
+            '& .MuiTooltip-tooltip': {
+              backgroundColor: '#6A1B9A',
+              color: 'white',
+              fontSize: '1rem',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              maxWidth: 300
+            }
+          }
+        }}
+      >
+        <Box
+          sx={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1000,
+            pointerEvents: 'none'
+          }}
+        >
+          <AddIcon
+            sx={{
+              fontSize: 40,
+              color: '#6A1B9A',
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%': {
+                  transform: 'scale(1)',
+                  opacity: 1
+                },
+                '50%': {
+                  transform: 'scale(1.2)',
+                  opacity: 0.8
+                },
+                '100%': {
+                  transform: 'scale(1)',
+                  opacity: 1
+                }
+              }
+            }}
+          />
+        </Box>
+      </Tooltip>
+    );
+  }
 
   return (
     <Dialog
@@ -133,7 +216,7 @@ const WelcomeModal = ({
               fontSize: '1.1rem'
             }}
           >
-            Estamos felizes em tê-lo conosco! Para começar a usar o sistema, siga o passo abaixo:
+            Estamos felizes em tê-lo conosco! Para começar a usar o sistema, siga os passos abaixo:
           </Typography>
         </Box>
 
@@ -156,8 +239,8 @@ const WelcomeModal = ({
             }
           }}
         >
-          {steps.map((step, index) => (
-            <Step key={step.label}>
+          {pendingSteps.map((step, index) => (
+            <Step key={step.label} completed={step.completed}>
               <StepLabel>
                 <Typography variant="h6" sx={{ color: '#6A1B9A' }}>
                   {step.label}

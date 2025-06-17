@@ -600,7 +600,7 @@ const handleOpenDialogEdit = (service) => {
         <Divider sx={{ my: 2 }} />
         {dataEstablishment[0].services.length === 0 ? (
           <Typography color="textSecondary">
-            Cadastre serviço(s) para começar a receber agendamentos.
+            Cadastre seus serviços para começar a realizar agendamentos.
           </Typography>
         ) : (
           <>

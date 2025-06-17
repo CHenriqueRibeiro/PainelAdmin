@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
       );
 
       const data = await response.json();
-      console.log(data);
       setEstablishments(data.establishments || []);
     } catch (err) {
       console.error("Erro ao buscar estabelecimentos:", err);
@@ -37,7 +36,6 @@ export const AuthProvider = ({ children }) => {
       setLoadingEstablishments(false);
     }
   };
-  console.log(establishments);
   const cadastrarUsuario = async (email, senha, nomeDoCliente, telefone) => {
     const userData = {
       name: nomeDoCliente,
