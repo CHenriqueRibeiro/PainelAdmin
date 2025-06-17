@@ -67,7 +67,7 @@ const WelcomeModal = ({
     },
     {
       label: 'Cadastrar Serviços',
-      description: 'Parábens o estabelecimento foi criado com sucesso, agora clique no botão "+" para cadastrar seu primeiro serviço',
+      description: 'Parábens o estabelecimento foi criado com sucesso, agora clique no botão "+" na parte de serviços para cadastrar seu primeiro serviço',
       action: () => navigate('/Estabelecimento'),
       completed: onboardingSteps.servico
     }
