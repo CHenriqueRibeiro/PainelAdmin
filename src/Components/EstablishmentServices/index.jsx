@@ -1057,7 +1057,15 @@ const handleOpenDialogEdit = (service) => {
       error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start}
       helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start?.message}
       size="small"
-      sx={{ bgcolor: "#fff", borderRadius: 2 }}
+      sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
     />
   </Box>
 
@@ -1071,7 +1079,15 @@ const handleOpenDialogEdit = (service) => {
       error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end}
       helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end?.message}
       size="small"
-      sx={{ bgcolor: "#fff", borderRadius: 2 }}
+      sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                    },
+                    "& .MuiInputBase-root.Mui-error": {
+                      bgcolor: "#fff",
+                    },
+                  }}
     />
   </Box>
 
