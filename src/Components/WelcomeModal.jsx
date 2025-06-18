@@ -78,6 +78,12 @@ const WelcomeModal = ({
 
   const pendingSteps = steps.filter(step => !step.completed);
 
+  const firstPendingIndex = steps.findIndex(step => !step.completed);
+
+  useEffect(() => {
+    setActiveStep(firstPendingIndex === -1 ? 0 : firstPendingIndex);
+  }, [onboardingSteps]);
+
   if (pendingSteps.length === 0) {
     return null;
   }
@@ -137,12 +143,6 @@ const WelcomeModal = ({
       </Tooltip>
     );
   }
-
-  const firstPendingIndex = steps.findIndex(step => !step.completed);
-
-  useEffect(() => {
-    setActiveStep(firstPendingIndex === -1 ? 0 : firstPendingIndex);
-  }, [onboardingSteps]);
 
   return (
     <Dialog
