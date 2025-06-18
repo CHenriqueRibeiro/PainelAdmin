@@ -33,7 +33,7 @@ const NAVIGATION = [
     onClick: () => Navigate("/relatorios"),
   },
   {
-    segment: "Gestão/Estoque",
+    segment: "Gestão",
     title: "Gestão",
     icon: <DonutSmallRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
     children: [
