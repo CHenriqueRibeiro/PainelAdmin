@@ -29,7 +29,6 @@ const WelcomeModal = ({
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
-    // Se estiver na página de estabelecimento e o estabelecimento não estiver cadastrado
     if (location.pathname === '/Estabelecimento' && !onboardingSteps.estabelecimento) {
       setShowTooltip(true);
     } else {
@@ -61,7 +60,7 @@ const WelcomeModal = ({
   const steps = [
     {
       label: 'Cadastrar Estabelecimento',
-      description: 'Clique no botão "+" para cadastrar seu primeiro estabelecimento.',
+      description: 'Clique no botão "+" em estabelecimento para cadastrar seu primeiro estabelecimento.',
       action: () => navigate('/Estabelecimento'),
       completed: onboardingSteps.estabelecimento
     },
@@ -77,15 +76,12 @@ const WelcomeModal = ({
     steps[activeStep].action();
   };
 
-  // Filtrar apenas os passos não concluídos
   const pendingSteps = steps.filter(step => !step.completed);
 
-  // Se todos os passos estiverem completos, não mostra o modal
   if (pendingSteps.length === 0) {
     return null;
   }
 
-  // Se estiver na página de estabelecimento e o estabelecimento não estiver cadastrado
   if (location.pathname === '/Estabelecimento' && !onboardingSteps.estabelecimento) {
     return (
       <Tooltip
@@ -142,6 +138,12 @@ const WelcomeModal = ({
     );
   }
 
+  const firstPendingIndex = steps.findIndex(step => !step.completed);
+
+  useEffect(() => {
+    setActiveStep(firstPendingIndex === -1 ? 0 : firstPendingIndex);
+  }, [onboardingSteps]);
+
   return (
     <Dialog
       open={isOpen}
@@ -170,7 +172,7 @@ const WelcomeModal = ({
             textAlign: 'center'
           }}
         >
-          Bem-vindo ao Painel Administrativo!
+          Bem-vindo ao Painel do LavaJá!
         </Typography>
       </DialogTitle>
 
@@ -248,47 +250,57 @@ const WelcomeModal = ({
                 color: '#6A1B9A'
               },
               '&.Mui-completed': {
-                color: '#6A1B9A'
+                color: '#2E7D32'
               }
             }
           }}
         >
-          {pendingSteps.map((step, index) => (
+          {steps.map((step, index) => (
             <Step key={step.label} completed={step.completed}>
               <StepLabel>
-                <Typography variant="h6" sx={{ color: '#6A1B9A' }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: step.completed ? '#2E7D32' : '#6A1B9A',
+                    fontWeight: step.completed ? 700 : 'bold'
+                  }}
+                >
                   {step.label}
                 </Typography>
               </StepLabel>
-              <StepContent>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    color: '#666666',
-                    mb: 2,
-                    fontSize: '1rem'
-                  }}
-                >
-                  {step.description}
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Button
-                    variant="contained"
-                    onClick={handleAction}
-                    sx={{ 
-                      mt: 1, 
-                      mr: 1,
-                      borderRadius: 3,
-                      background: '#6A1B9A',
-                      '&:hover': {
-                        background: '#5A3FE0'
-                      }
+              {activeStep === index && (
+                <StepContent>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: '#666666',
+                      mb: 2,
+                      fontSize: '1rem'
                     }}
                   >
-                    Ir para este passo
-                  </Button>
-                </Box>
-              </StepContent>
+                    {step.description}
+                  </Typography>
+                  {!step.completed && (
+                    <Box sx={{ mb: 2 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleAction}
+                        sx={{
+                          mt: 1,
+                          mr: 1,
+                          borderRadius: 3,
+                          background: '#6A1B9A',
+                          '&:hover': {
+                            background: '#5A3FE0'
+                          }
+                        }}
+                      >
+                        Ir para este passo
+                      </Button>
+                    </Box>
+                  )}
+                </StepContent>
+              )}
             </Step>
           ))}
         </Stepper>
