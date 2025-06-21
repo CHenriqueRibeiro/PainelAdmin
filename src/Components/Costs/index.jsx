@@ -75,13 +75,13 @@ const Costs = ({
   const validateField = async (field, value) => {
     try {
       if (field === "date" && !value) {
-        setFormErrors(prev => ({ ...prev, [field]: "Data é obrigatória" }));
+        setFormErrors((prev) => ({ ...prev, [field]: "Data é obrigatória" }));
         return;
       }
       await costSchema.validateAt(field, { [field]: value });
-      setFormErrors(prev => ({ ...prev, [field]: "" }));
+      setFormErrors((prev) => ({ ...prev, [field]: "" }));
     } catch (err) {
-      setFormErrors(prev => ({ ...prev, [field]: err.message }));
+      setFormErrors((prev) => ({ ...prev, [field]: err.message }));
     }
   };
 
@@ -307,9 +307,7 @@ const Costs = ({
                       }}
                     >
                       <Tooltip title="Editar custo">
-                        <IconButton
-                          onClick={() => handleOpenEditDialog(cost)}
-                        >
+                        <IconButton onClick={() => handleOpenEditDialog(cost)}>
                           <EditRoundedIcon />
                         </IconButton>
                       </Tooltip>
@@ -416,14 +414,14 @@ const Costs = ({
                 helperText={formErrors.value}
                 size="small"
                 sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
             <Grid2 size={{ xs: 12, sm: 6 }}>
@@ -437,8 +435,11 @@ const Costs = ({
                   value={selectedCost?.date ? dayjs(selectedCost.date) : null}
                   onChange={(newValue) => {
                     if (newValue) {
-                      handleFieldChange("date", newValue.format("YYYY-MM-DD"), (value) =>
-                        setSelectedCost((prev) => ({ ...prev, date: value }))
+                      handleFieldChange(
+                        "date",
+                        newValue.format("YYYY-MM-DD"),
+                        (value) =>
+                          setSelectedCost((prev) => ({ ...prev, date: value }))
                       );
                     } else {
                       handleFieldChange("date", "", (value) =>
@@ -453,25 +454,24 @@ const Costs = ({
                       error: !!formErrors.date,
                       helperText: formErrors.date,
                       InputProps: {
-                            sx: {
-                              bgcolor: "#fff",
-                              borderRadius: 2,
-                            },
+                        sx: {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                      },
+                      sx: {
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: "#fff",
+                          borderRadius: 2,
+                        },
+                        "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                          {
+                            borderColor: "#ff8ba7",
                           },
-                          sx: {
-                            "& .MuiOutlinedInput-root": {
-                              bgcolor: "#fff",
-                              borderRadius: 2,
-                            },
-                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
-                              {
-                                borderColor: "#ff8ba7",
-                              },
-                            "& .MuiInputBase-root.Mui-error": {
-                              bgcolor: "#fff",
-                            },
-                          },
-                        
+                        "& .MuiInputBase-root.Mui-error": {
+                          bgcolor: "#fff",
+                        },
+                      },
                     },
                   }}
                 />
@@ -493,14 +493,14 @@ const Costs = ({
                 helperText={formErrors.description}
                 size="small"
                 sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
             <Grid2 size={{ xs: 12 }}>
@@ -519,19 +519,19 @@ const Costs = ({
                 helperText={formErrors.observation}
                 size="small"
                 sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
           </Grid2>
         </DialogContent>
-        <DialogActions sx={{mr:2}}>
+        <DialogActions sx={{ mr: 2 }}>
           <Button
             onClick={() => {
               setDialogOpen(false);
@@ -545,9 +545,9 @@ const Costs = ({
               color: "#AC42F7",
               borderColor: "#AC42F7",
               mr: 1,
-              '&:hover': {
-                background: '#f3e8ff',
-                borderColor: '#AC42F7',
+              "&:hover": {
+                background: "#f3e8ff",
+                borderColor: "#AC42F7",
               },
             }}
             disabled={loading}
@@ -564,8 +564,8 @@ const Costs = ({
               background: "#AC42F7",
               color: "#fff",
               boxShadow: "none",
-              '&:hover': {
-                background: '#8f2fc9',
+              "&:hover": {
+                background: "#8f2fc9",
               },
             }}
             disabled={loading}

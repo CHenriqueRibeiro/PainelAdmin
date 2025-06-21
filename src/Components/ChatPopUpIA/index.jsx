@@ -58,7 +58,9 @@ export default function ChatPopUpIA({ open, onClose, token }) {
 
   const buscarMensagem = async (rota) => {
     if (!idEstabelecimento) {
-      setMensagem("É necessário cadastrar um estabelecimento e pelo menos um serviço para realizar consultas com a JáIA.");
+      setMensagem(
+        "É necessário cadastrar um estabelecimento e pelo menos um serviço para realizar consultas com a JáIA."
+      );
       return;
     }
 
@@ -159,10 +161,10 @@ export default function ChatPopUpIA({ open, onClose, token }) {
           mensagem && (
             <Typography
               component="div"
-              sx={{ 
-                whiteSpace: "pre-line", 
+              sx={{
+                whiteSpace: "pre-line",
                 fontSize: 14,
-                color: !idEstabelecimento ? "#B26A00" : "inherit"
+                color: !idEstabelecimento ? "#B26A00" : "inherit",
               }}
               dangerouslySetInnerHTML={{
                 __html: mensagem

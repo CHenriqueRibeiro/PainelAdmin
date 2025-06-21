@@ -17,7 +17,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-
   const handleCloseWelcomeModal = () => {
     setShowWelcomeModal(false);
   };
@@ -67,13 +66,13 @@ export default function Home() {
     establishmentSearch();
   }, []);
 
-useEffect(() => {
-  if (owner) {
-    const steps = owner.onboardingSteps;
-    const precisaMostrar = !(steps?.estabelecimento && steps?.servico);
-    setShowWelcomeModal(precisaMostrar);
-  }
-}, [owner]);
+  useEffect(() => {
+    if (owner) {
+      const steps = owner.onboardingSteps;
+      const precisaMostrar = !(steps?.estabelecimento && steps?.servico);
+      setShowWelcomeModal(precisaMostrar);
+    }
+  }, [owner]);
   useEffect(() => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
@@ -97,7 +96,7 @@ useEffect(() => {
 
   if (owner?.dataLimiteTeste) {
     const data = new Date(owner.dataLimiteTeste);
-    dataLimiteFormatada = data.toLocaleDateString('pt-BR');
+    dataLimiteFormatada = data.toLocaleDateString("pt-BR");
   }
 
   return (
@@ -110,13 +109,13 @@ useEffect(() => {
         background: "#F1EEFF",
       }}
     >
-     <WelcomeModal
-  isOpen={showWelcomeModal}
-  onClose={() => setShowWelcomeModal(false)}
-  statusConta={owner?.statusConta}
-  dataLimiteTeste={owner?.dataLimite}
-  onboardingSteps={owner?.onboardingSteps}
-/>
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        statusConta={owner?.statusConta}
+        dataLimiteTeste={owner?.dataLimite}
+        onboardingSteps={owner?.onboardingSteps}
+      />
 
       <Box
         sx={{

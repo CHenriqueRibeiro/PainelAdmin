@@ -84,7 +84,8 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
     const data = {
       name,
       preco: preco === "" ? undefined : Number(preco),
-      quantidadeAtual: quantidadeAtual === "" ? undefined : Number(quantidadeAtual),
+      quantidadeAtual:
+        quantidadeAtual === "" ? undefined : Number(quantidadeAtual),
       unidade,
       vincularServicos,
       servicosVinculados,
@@ -137,7 +138,8 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               const idx = match[1];
               const field = match[2];
               if (!errors.servicosVinculados) errors.servicosVinculados = [];
-              if (!errors.servicosVinculados[idx]) errors.servicosVinculados[idx] = {};
+              if (!errors.servicosVinculados[idx])
+                errors.servicosVinculados[idx] = {};
               errors.servicosVinculados[idx][field] = err.message;
             }
           } else if (err.path) {
@@ -213,7 +215,7 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
           Novo Produto
         </Typography>
         <Divider sx={{ my: 2 }} />
-        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1 }}>
+        <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600, mb: 1 }}>
           Nome do Produto
         </InputLabel>
         <TextField
@@ -252,7 +254,9 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
+            <InputLabel
+              sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600, mb: 1 }}
+            >
               Valor
             </InputLabel>
             <TextField
@@ -260,21 +264,21 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               type="number"
               size="small"
               value={preco}
-              onChange={e => {
+              onChange={(e) => {
                 setPreco(e.target.value);
-                setFormErrors(prev => ({ ...prev, preco: undefined }));
+                setFormErrors((prev) => ({ ...prev, preco: undefined }));
               }}
               error={!!formErrors.preco}
               helperText={formErrors.preco}
               sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             />
           </Box>
           <Box
@@ -285,7 +289,9 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
+            <InputLabel
+              sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600, mb: 1 }}
+            >
               Quantidade
             </InputLabel>
             <TextField
@@ -294,8 +300,13 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               size="small"
               value={quantidadeAtual}
               onChange={(e) => {
-                setQuantidadeAtual(e.target.value === "" ? "" : Number(e.target.value));
-                setFormErrors((prev) => ({ ...prev, quantidadeAtual: undefined }));
+                setQuantidadeAtual(
+                  e.target.value === "" ? "" : Number(e.target.value)
+                );
+                setFormErrors((prev) => ({
+                  ...prev,
+                  quantidadeAtual: undefined,
+                }));
               }}
               error={!!formErrors.quantidadeAtual}
               helperText={formErrors.quantidadeAtual}
@@ -318,7 +329,9 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600,mb:1  }}>
+            <InputLabel
+              sx={{ color: "#ac42f7", pl: 0.3, fontWeight: 600, mb: 1 }}
+            >
               Unidade
             </InputLabel>
             <TextField
@@ -329,15 +342,15 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               onChange={(e) => setUnidade(e.target.value)}
               error={!!formErrors.unidade}
               helperText={formErrors.unidade}
-             sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             >
               {unidadeOptions.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -393,14 +406,14 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     error={!!formErrors.servicosVinculados?.[index]?.service}
                     helperText={formErrors.servicosVinculados?.[index]?.service}
                     sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                      "& .MuiInputBase-root.Mui-error": {
+                        bgcolor: "#fff",
+                      },
+                    }}
                   >
                     {servicesList.map((s) => (
                       <MenuItem key={s._id} value={s._id}>
@@ -421,17 +434,22 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                         e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
-                    error={!!formErrors.servicosVinculados?.[index]?.consumoPorServico}
-                    helperText={formErrors.servicosVinculados?.[index]?.consumoPorServico}
+                    error={
+                      !!formErrors.servicosVinculados?.[index]
+                        ?.consumoPorServico
+                    }
+                    helperText={
+                      formErrors.servicosVinculados?.[index]?.consumoPorServico
+                    }
                     sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                      "& .MuiInputBase-root.Mui-error": {
+                        bgcolor: "#fff",
+                      },
+                    }}
                   />
                   <Box
                     sx={{
@@ -452,8 +470,12 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                           e.target.value
                         )
                       }
-                      error={!!formErrors.servicosVinculados?.[index]?.unidadeConsumo}
-                      helperText={formErrors.servicosVinculados?.[index]?.unidadeConsumo}
+                      error={
+                        !!formErrors.servicosVinculados?.[index]?.unidadeConsumo
+                      }
+                      helperText={
+                        formErrors.servicosVinculados?.[index]?.unidadeConsumo
+                      }
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           bgcolor: "#fff",

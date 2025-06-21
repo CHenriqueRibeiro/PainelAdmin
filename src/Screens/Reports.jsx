@@ -1,6 +1,13 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
-import { Box, Grid2, Typography, Card, CardContent, IconButton } from "@mui/material";
+import {
+  Box,
+  Grid2,
+  Typography,
+  Card,
+  CardContent,
+  IconButton,
+} from "@mui/material";
 import Chart from "react-apexcharts";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
@@ -88,7 +95,7 @@ const ReportPage = () => {
     try {
       const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD");
       const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD");
-      
+
       const res = await fetch(
         `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${formattedStartDate}&endDate=${formattedEndDate}&establishmentId=${owner.establishments[0]._id}`
       );
@@ -191,7 +198,10 @@ const ReportPage = () => {
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   adapterLocale="pt-br"
-                  localeText={ptBR.components.MuiLocalizationProvider.defaultProps.localeText}
+                  localeText={
+                    ptBR.components.MuiLocalizationProvider.defaultProps
+                      .localeText
+                  }
                 >
                   <Box
                     sx={{
@@ -220,9 +230,10 @@ const ReportPage = () => {
                               borderRadius: 2,
                               bgcolor: "#fff",
                             },
-                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#ff8ba7",
-                            },
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                              {
+                                borderColor: "#ff8ba7",
+                              },
                             "& .MuiInputBase-root.Mui-error": {
                               bgcolor: "#fff",
                             },
@@ -250,9 +261,10 @@ const ReportPage = () => {
                               borderRadius: 2,
                               bgcolor: "#fff",
                             },
-                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#ff8ba7",
-                            },
+                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                              {
+                                borderColor: "#ff8ba7",
+                              },
                             "& .MuiInputBase-root.Mui-error": {
                               bgcolor: "#fff",
                             },

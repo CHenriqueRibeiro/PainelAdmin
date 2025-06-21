@@ -61,13 +61,13 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   const validateField = async (field, value) => {
     try {
       if (field === "date" && !value) {
-        setFormErrors(prev => ({ ...prev, [field]: "Data é obrigatória" }));
+        setFormErrors((prev) => ({ ...prev, [field]: "Data é obrigatória" }));
         return;
       }
       await costSchema.validateAt(field, { [field]: value });
-      setFormErrors(prev => ({ ...prev, [field]: "" }));
+      setFormErrors((prev) => ({ ...prev, [field]: "" }));
     } catch (err) {
-      setFormErrors(prev => ({ ...prev, [field]: err.message }));
+      setFormErrors((prev) => ({ ...prev, [field]: err.message }));
     }
   };
 
@@ -87,7 +87,7 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       };
 
       await costSchema.validate(costData, { abortEarly: false });
-      
+
       setIsLoadingCostSave(true);
       const response = await fetch("https://lavaja.up.railway.app/api/cost", {
         method: "POST",
@@ -116,7 +116,7 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
     } catch (err) {
       if (err instanceof yup.ValidationError) {
         const errors = {};
-        err.inner.forEach(error => {
+        err.inner.forEach((error) => {
           errors[error.path] = error.message;
         });
         setFormErrors(errors);
@@ -179,7 +179,11 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                 value={costDate ? dayjs(costDate) : null}
                 onChange={(newValue) => {
                   if (newValue) {
-                    handleFieldChange("date", newValue.format("YYYY-MM-DD"), setCostDate);
+                    handleFieldChange(
+                      "date",
+                      newValue.format("YYYY-MM-DD"),
+                      setCostDate
+                    );
                   } else {
                     handleFieldChange("date", "", setCostDate);
                   }
@@ -191,18 +195,18 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     error: !!formErrors.date,
                     helperText: formErrors.date,
                     sx: {
-                            "& .MuiOutlinedInput-root": {
-                              bgcolor: "#fff",
-                              borderRadius: 2,
-                            },
-                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
-                              {
-                                borderColor: "#ff8ba7",
-                              },
-                            "& .MuiInputBase-root.Mui-error": {
-                              bgcolor: "#fff",
-                            },
-                          },
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                      "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline":
+                        {
+                          borderColor: "#ff8ba7",
+                        },
+                      "& .MuiInputBase-root.Mui-error": {
+                        bgcolor: "#fff",
+                      },
+                    },
                   },
                   day: {
                     sx: {
@@ -240,19 +244,21 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               size="small"
               name="tipo"
               value={costType}
-              onChange={(e) => handleFieldChange("type", e.target.value, setCostType)}
+              onChange={(e) =>
+                handleFieldChange("type", e.target.value, setCostType)
+              }
               error={!!formErrors.type}
               helperText={formErrors.type}
               variant="outlined"
               sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             >
               {[
                 "Itens de limpeza",
@@ -287,19 +293,21 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               fullWidth
               name="valor"
               value={costValue}
-              onChange={(e) => handleFieldChange("value", e.target.value, setCostValue)}
+              onChange={(e) =>
+                handleFieldChange("value", e.target.value, setCostValue)
+              }
               error={!!formErrors.value}
               helperText={formErrors.value}
               variant="outlined"
               sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             />
           </Grid2>
 
@@ -315,19 +323,25 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               placeholder="Ex: Material de trabalho, Água, Equipamento e etc."
               name="descricao"
               value={costDescription}
-              onChange={(e) => handleFieldChange("description", e.target.value, setCostDescription)}
+              onChange={(e) =>
+                handleFieldChange(
+                  "description",
+                  e.target.value,
+                  setCostDescription
+                )
+              }
               error={!!formErrors.description}
               helperText={formErrors.description}
               variant="outlined"
               sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             />
           </Grid2>
 
@@ -342,17 +356,23 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
               size="small"
               name="comprovante"
               value={costObservation}
-              onChange={(e) => handleFieldChange("observation", e.target.value, setCostObservation)}
+              onChange={(e) =>
+                handleFieldChange(
+                  "observation",
+                  e.target.value,
+                  setCostObservation
+                )
+              }
               variant="outlined"
               sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#fff",
+                  borderRadius: 2,
+                },
+                "& .MuiInputBase-root.Mui-error": {
+                  bgcolor: "#fff",
+                },
+              }}
             />
           </Grid2>
         </Grid2>

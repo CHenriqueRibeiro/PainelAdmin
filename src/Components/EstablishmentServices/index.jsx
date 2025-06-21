@@ -24,7 +24,6 @@ import {
   Alert,
   useMediaQuery,
   useTheme,
-  MenuItem,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -37,21 +36,19 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 function getServiceSchema(openingHours) {
   let validIntervals = [];
+
   if (openingHours?.hasLunchBreak) {
-    validIntervals.push({
-      start: openingHours?.intervalOpen,
-      end: openingHours?.intervalClose,
-    });
+    validIntervals = [
+      { start: openingHours?.open, end: openingHours?.intervalOpen },
+      { start: openingHours?.intervalClose, end: openingHours?.close },
+    ];
   } else {
-    validIntervals.push({
-      start: openingHours?.open,
-      end: openingHours?.close,
-    });
+    validIntervals = [{ start: openingHours?.open, end: openingHours?.close }];
   }
 
   function isInValidInterval(time) {
     return validIntervals.some(
-      (interval) => time >= interval.start && time <= interval.end
+      (interval) => time >= interval?.start && time <= interval?.end
     );
   }
 
@@ -71,7 +68,9 @@ function getServiceSchema(openingHours) {
     permitirAtendimentoSimultaneo: yup.boolean(),
     quantidadeAtendimentosSimultaneos: yup
       .number()
-      .transform((value, originalValue) => (originalValue === "" ? undefined : value))
+      .transform((value, originalValue) =>
+        originalValue === "" ? undefined : value
+      )
       .when("permitirAtendimentoSimultaneo", {
         is: true,
         then: (schema) =>
@@ -86,52 +85,50 @@ function getServiceSchema(openingHours) {
       .of(
         yup.object().shape({
           day: yup.string().required("Dia é obrigatório"),
-          availableHours: yup
-            .array()
-            .of(
-              yup.object().shape({
-                start: yup
-                  .string()
-                  .required("Horário de início é obrigatório")
-                  .test(
-                    "dentro-do-funcionamento",
-                    "Horário de início fora do funcionamento",
-                    function (value) {
-                      if (!value) return true;
-                      return isInValidInterval(value);
-                    }
-                  )
-                  .test(
-                    "inicio-menor-que-fim",
-                    "Horário de início deve ser menor que o horário de fim",
-                    function (value) {
-                      const { end } = this.parent;
-                      if (!value || !end) return true;
-                      return value < end;
-                    }
-                  ),
-                end: yup
-                  .string()
-                  .required("Horário de fim é obrigatório")
-                  .test(
-                    "dentro-do-funcionamento",
-                    "Horário de fim fora do funcionamento",
-                    function (value) {
-                      if (!value) return true;
-                      return isInValidInterval(value);
-                    }
-                  )
-                  .test(
-                    "fim-maior-que-inicio",
-                    "Horário de fim deve ser maior que o horário de início",
-                    function (value) {
-                      const { start } = this.parent;
-                      if (!value || !start) return true;
-                      return value > start;
-                    }
-                  ),
-              })
-            )
+          availableHours: yup.array().of(
+            yup.object().shape({
+              start: yup
+                .string()
+                .required("Horário de início é obrigatório")
+                .test(
+                  "dentro-do-funcionamento",
+                  "Horário de início fora do funcionamento",
+                  function (value) {
+                    if (!value) return true;
+                    return isInValidInterval(value);
+                  }
+                )
+                .test(
+                  "inicio-menor-que-fim",
+                  "Horário de início deve ser menor que o horário de fim",
+                  function (value) {
+                    const { end } = this.parent;
+                    if (!value || !end) return true;
+                    return value < end;
+                  }
+                ),
+              end: yup
+                .string()
+                .required("Horário de fim é obrigatório")
+                .test(
+                  "dentro-do-funcionamento",
+                  "Horário de fim fora do funcionamento",
+                  function (value) {
+                    if (!value) return true;
+                    return isInValidInterval(value);
+                  }
+                )
+                .test(
+                  "fim-maior-que-inicio",
+                  "Horário de fim deve ser maior que o horário de início",
+                  function (value) {
+                    const { start } = this.parent;
+                    if (!value || !start) return true;
+                    return value > start;
+                  }
+                ),
+            })
+          ),
         })
       )
       .test(
@@ -142,9 +139,7 @@ function getServiceSchema(openingHours) {
           return availability.some(
             (day) =>
               Array.isArray(day.availableHours) &&
-              day.availableHours.some(
-                (h) => h.start && h.end
-              )
+              day.availableHours.some((h) => h.start && h.end)
           );
         }
       ),
@@ -198,10 +193,10 @@ const EstablishmentServices = ({
       duration: "",
       permitirAtendimentoSimultaneo: false,
       quantidadeAtendimentosSimultaneos: "",
-      availability: availability.map(day => ({
+      availability: availability.map((day) => ({
         day: day.day,
-        availableHours: [{ start: "", end: "" }]
-      }))
+        availableHours: [{ start: "", end: "" }],
+      })),
     },
   });
 
@@ -244,7 +239,7 @@ const EstablishmentServices = ({
       duration: "",
       permitirAtendimentoSimultaneo: false,
       quantidadeAtendimentosSimultaneos: "",
-      availability: mappedAvailability
+      availability: mappedAvailability,
     });
   }, [dataEstablishment, reset]);
 
@@ -253,84 +248,86 @@ const EstablishmentServices = ({
   const handleOpenDialog = () => {
     setOpenDialog(true);
     handleCloseDialog();
-  reset({
-    name: "",
-    description: "",
-    price: "",
-    duration: "",
-    permitirAtendimentoSimultaneo: false,
-    quantidadeAtendimentosSimultaneos: "",
-    availability: availability.map(day => ({
-      day: day.day,
-      availableHours: [{ start: "", end: "" }]
-    }))
-  });
-};
-
-const handleOpenDialogEdit = (service) => {
-  setServiceName(service.name);
-  setPrice(String(service.price));
-  setDuration(String(service.duration));
-  setDescription(service.description);
-  setConcurrentService(service.concurrentService);
-  setConcurrentServiceValue(
-    service.concurrentServiceValue ? Number(service.concurrentServiceValue) : ""
-  );
-
-  const workingDays = dataEstablishment[0]?.workingDays || [
-    "Segunda",
-    "Terça",
-    "Quarta",
-    "Quinta",
-    "Sexta",
-    "Sábado",
-    "Domingo",
-  ];
-
-  const daysOrder = {
-    "Segunda": 1,
-    "Terça": 2,
-    "Quarta": 3,
-    "Quinta": 4,
-    "Sexta": 5,
-    "Sábado": 6,
-    "Domingo": 7,
+    reset({
+      name: "",
+      description: "",
+      price: "",
+      duration: "",
+      permitirAtendimentoSimultaneo: false,
+      quantidadeAtendimentosSimultaneos: "",
+      availability: availability.map((day) => ({
+        day: day.day,
+        availableHours: [{ start: "", end: "" }],
+      })),
+    });
   };
 
-  const daysWithHours = service.availability.filter(
-    (d) => d.availableHours && d.availableHours.length > 0
-  );
+  const handleOpenDialogEdit = (service) => {
+    setServiceName(service.name);
+    setPrice(String(service.price));
+    setDuration(String(service.duration));
+    setDescription(service.description);
+    setConcurrentService(service.concurrentService);
+    setConcurrentServiceValue(
+      service.concurrentServiceValue
+        ? Number(service.concurrentServiceValue)
+        : ""
+    );
 
-  const missingDays = workingDays.filter(
-    (day) => !daysWithHours.find((d) => d.day === day)
-  );
+    const workingDays = dataEstablishment[0]?.workingDays || [
+      "Segunda",
+      "Terça",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+      "Sábado",
+      "Domingo",
+    ];
 
-  const missingDaysMapped = missingDays.map((day) => ({
-    day,
-    availableHours: [],
-  }));
+    const daysOrder = {
+      Segunda: 1,
+      Terça: 2,
+      Quarta: 3,
+      Quinta: 4,
+      Sexta: 5,
+      Sábado: 6,
+      Domingo: 7,
+    };
 
-  const mappedAvailability = [...daysWithHours, ...missingDaysMapped].sort(
-    (a, b) => daysOrder[a.day] - daysOrder[b.day]
-  );
+    const daysWithHours = service.availability.filter(
+      (d) => d.availableHours && d.availableHours.length > 0
+    );
 
-  setAvailability(mappedAvailability);
-  setAvailabilityEdit(mappedAvailability);
-  setExpandedService(service._id);
-  setOpenDialogEdit(true);
+    const missingDays = workingDays.filter(
+      (day) => !daysWithHours.find((d) => d.day === day)
+    );
 
-  reset({
-    name: service.name,
-    description: service.description,
-    price: String(service.price),
-    duration: String(service.duration),
-    permitirAtendimentoSimultaneo: service.concurrentService,
-    quantidadeAtendimentosSimultaneos: service.concurrentServiceValue
-      ? String(service.concurrentServiceValue)
-      : "",
-    availability: mappedAvailability,
-  });
-};
+    const missingDaysMapped = missingDays.map((day) => ({
+      day,
+      availableHours: [],
+    }));
+
+    const mappedAvailability = [...daysWithHours, ...missingDaysMapped].sort(
+      (a, b) => daysOrder[a.day] - daysOrder[b.day]
+    );
+
+    setAvailability(mappedAvailability);
+    setAvailabilityEdit(mappedAvailability);
+    setExpandedService(service._id);
+    setOpenDialogEdit(true);
+
+    reset({
+      name: service.name,
+      description: service.description,
+      price: String(service.price),
+      duration: String(service.duration),
+      permitirAtendimentoSimultaneo: service.concurrentService,
+      quantidadeAtendimentosSimultaneos: service.concurrentServiceValue
+        ? String(service.concurrentServiceValue)
+        : "",
+      availability: mappedAvailability,
+    });
+  };
 
   const handleUpdateService = async (data) => {
     try {
@@ -507,21 +504,27 @@ const handleOpenDialogEdit = (service) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
     setAvailability(newAvailability);
-    
-    setValue('availability', newAvailability);
+
+    setValue("availability", newAvailability);
   };
 
   const removeAvailableHour = (dayIndex, hourIndex) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
     setAvailability(newAvailability);
-    setValue('availability', newAvailability);
+    setValue("availability", newAvailability);
   };
 
-  const countDiasComHorarioAfterRemove = (availabilityArr, dayIndex, hourIndex) => {
+  const countDiasComHorarioAfterRemove = (
+    availabilityArr,
+    dayIndex,
+    hourIndex
+  ) => {
     return availabilityArr.filter((d, idx) => {
       if (idx === dayIndex) {
-        const remainingHours = d.availableHours.filter((_, hIdx) => hIdx !== hourIndex);
+        const remainingHours = d.availableHours.filter(
+          (_, hIdx) => hIdx !== hourIndex
+        );
         return remainingHours.length > 0;
       }
       return d.availableHours.length > 0;
@@ -576,7 +579,6 @@ const handleOpenDialogEdit = (service) => {
         </Alert>
       </Snackbar>
       <Paper
-        
         elevation={3}
         sx={{ p: 3, borderRadius: 4, background: "#f9f5ff" }}
       >
@@ -717,7 +719,7 @@ const handleOpenDialogEdit = (service) => {
                               Serviço simultâneo?
                             </Typography>
                             <Typography variant="body2">
-                              {service?.concurrentService ? 'Sim' : 'Não'}
+                              {service?.concurrentService ? "Sim" : "Não"}
                             </Typography>
                           </Grid2>
                           {/*<Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
@@ -763,53 +765,57 @@ const handleOpenDialogEdit = (service) => {
                             }}
                           >
                             {service.availability
-                              .filter(day => day.availableHours && day.availableHours.length > 0)
+                              .filter(
+                                (day) =>
+                                  day.availableHours &&
+                                  day.availableHours.length > 0
+                              )
                               .map((day) => (
-                              <Box
-                                key={day._id}
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  fontWeight={500}
-                                  color="#AC42F7"
-                                >
-                                  {formatDay(day.day)}{" "}
-                                </Typography>
                                 <Box
+                                  key={day._id}
                                   sx={{
                                     display: "flex",
-                                    flexWrap: "nowrap",
-                                    gap: 1,
-                                    mt: 0.5,
+                                    flexDirection: "column",
                                   }}
                                 >
-                                  {day.availableHours.map((hour, index) => (
-                                    <Box
-                                      key={index}
-                                      sx={{
-                                        px: 2,
-                                        py: 0.5,
-                                        backgroundColor: "#E9D5FF",
-                                        color: "#6B21A8",
-                                        borderRadius: 2,
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      {formatHourRange(
-                                        hour.start,
-                                        hour.end
-                                      )}{" "}
-                                    </Box>
-                                  ))}
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={500}
+                                    color="#AC42F7"
+                                  >
+                                    {formatDay(day.day)}{" "}
+                                  </Typography>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexWrap: "nowrap",
+                                      gap: 1,
+                                      mt: 0.5,
+                                    }}
+                                  >
+                                    {day.availableHours.map((hour, index) => (
+                                      <Box
+                                        key={index}
+                                        sx={{
+                                          px: 2,
+                                          py: 0.5,
+                                          backgroundColor: "#E9D5FF",
+                                          color: "#6B21A8",
+                                          borderRadius: 2,
+                                          fontSize: 14,
+                                          fontWeight: 500,
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        {formatHourRange(
+                                          hour.start,
+                                          hour.end
+                                        )}{" "}
+                                      </Box>
+                                    ))}
+                                  </Box>
                                 </Box>
-                              </Box>
-                            ))}
+                              ))}
                           </Grid2>
                         </Grid2>
                       </Box>
@@ -856,15 +862,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -878,15 +884,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.description}
                 helperText={errors.description?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -901,38 +907,39 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.price}
                 helperText={errors.price?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
             <Grid2 size={{ xs: 12, sm: 6 }}>
               <InputLabel sx={{ color: "#FFFFFF", pl: 0.3, fontWeight: 600 }}>
-                Tempo do serviço (min)
+                Duração ( minutos )
               </InputLabel>
               <TextField
+                placeholder="Ex: 30"
                 fullWidth
                 type="number"
                 {...register("duration")}
                 error={!!errors.duration}
                 helperText={errors.duration?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -967,7 +974,7 @@ const handleOpenDialogEdit = (service) => {
                       <Switch
                         {...field}
                         checked={!!field.value}
-                        onChange={e => field.onChange(e.target.checked)}
+                        onChange={(e) => field.onChange(e.target.checked)}
                         size="small"
                       />
                     )}
@@ -989,17 +996,19 @@ const handleOpenDialogEdit = (service) => {
                     type="number"
                     {...register("quantidadeAtendimentosSimultaneos")}
                     error={!!errors.quantidadeAtendimentosSimultaneos}
-                    helperText={errors.quantidadeAtendimentosSimultaneos?.message}
+                    helperText={
+                      errors.quantidadeAtendimentosSimultaneos?.message
+                    }
                     size="small"
-                     sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                      "& .MuiInputBase-root.Mui-error": {
+                        bgcolor: "#fff",
+                      },
+                    }}
                   />
                 </Grid2>
               </>
@@ -1033,98 +1042,136 @@ const handleOpenDialogEdit = (service) => {
                   ) : (
                     day.availableHours.map((hour, hourIndex) => (
                       <Grid2
-  key={hourIndex}
-  sx={{
-    display: "flex",
-    gap: 2,
-    mt: 1,
-    alignItems: { xs: "center",
-      sm: "flex-end"},
-    flexDirection: {
-      xs: "column",
-      sm: "row"
-    },
-    width: "100%",
-  }}
->
-  <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
-    <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
-      Início
-    </InputLabel>
-    <TextField
-      type="time"
-      {...register(`availability.${dayIndex}.availableHours.${hourIndex}.start`)}
-      error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start}
-      helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start?.message}
-      size="small"
-      sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
-    />
-  </Box>
+                        key={hourIndex}
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          mt: 1,
+                          alignItems: { xs: "center", sm: "flex-end" },
+                          flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                          },
+                          width: "100%",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            width: "100%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Início
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            {...register(
+                              `availability.${dayIndex}.availableHours.${hourIndex}.start`
+                            )}
+                            error={
+                              !!errors.availability?.[dayIndex]
+                                ?.availableHours?.[hourIndex]?.start
+                            }
+                            helperText={
+                              errors.availability?.[dayIndex]?.availableHours?.[
+                                hourIndex
+                              ]?.start?.message
+                            }
+                            size="small"
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                bgcolor: "#fff",
+                                borderRadius: 2,
+                              },
+                              "& .MuiInputBase-root.Mui-error": {
+                                bgcolor: "#fff",
+                              },
+                            }}
+                          />
+                        </Box>
 
-  <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
-    <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
-      Fim
-    </InputLabel>
-    <TextField
-      type="time"
-      {...register(`availability.${dayIndex}.availableHours.${hourIndex}.end`)}
-      error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end}
-      helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end?.message}
-      size="small"
-      sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
-    />
-  </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            width: "100%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Fim
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            {...register(
+                              `availability.${dayIndex}.availableHours.${hourIndex}.end`
+                            )}
+                            error={
+                              !!errors.availability?.[dayIndex]
+                                ?.availableHours?.[hourIndex]?.end
+                            }
+                            helperText={
+                              errors.availability?.[dayIndex]?.availableHours?.[
+                                hourIndex
+                              ]?.end?.message
+                            }
+                            size="small"
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                bgcolor: "#fff",
+                                borderRadius: 2,
+                              },
+                              "& .MuiInputBase-root.Mui-error": {
+                                bgcolor: "#fff",
+                              },
+                            }}
+                          />
+                        </Box>
 
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      gap: 1,
-      justifyContent: {
-        xs: "flex-end",
-        sm: "center",
-      },
-      width: {
-        xs: "100%",
-        sm: "auto",
-      },
-    }}
-  >
-    <Tooltip title="Adicionar horário">
-      <IconButton onClick={() => addAvailableHour(dayIndex)}>
-        <AddRoundedIcon sx={{ color: "#AC42F7" }} />
-      </IconButton>
-    </Tooltip>
-    <Divider orientation="vertical" flexItem />
-    <Tooltip title="Remover horário">
-      <IconButton
-        onClick={() => removeAvailableHour(dayIndex, hourIndex)}
-        disabled={
-          countDiasComHorarioAfterRemove(availability, dayIndex, hourIndex) === 0
-        }
-      >
-        <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
-      </IconButton>
-    </Tooltip>
-  </Box>
-</Grid2>
-
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            justifyContent: {
+                              xs: "flex-end",
+                              sm: "center",
+                            },
+                            width: {
+                              xs: "100%",
+                              sm: "auto",
+                            },
+                          }}
+                        >
+                          <Tooltip title="Adicionar horário">
+                            <IconButton
+                              onClick={() => addAvailableHour(dayIndex)}
+                            >
+                              <AddRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Divider orientation="vertical" flexItem />
+                          <Tooltip title="Remover horário">
+                            <IconButton
+                              onClick={() =>
+                                removeAvailableHour(dayIndex, hourIndex)
+                              }
+                              disabled={
+                                countDiasComHorarioAfterRemove(
+                                  availability,
+                                  dayIndex,
+                                  hourIndex
+                                ) === 0
+                              }
+                            >
+                              <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Grid2>
                     ))
                   )}
                 </Grid2>
@@ -1201,15 +1248,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -1223,15 +1270,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.description}
                 helperText={errors.description?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -1246,15 +1293,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.price}
                 helperText={errors.price?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -1269,15 +1316,15 @@ const handleOpenDialogEdit = (service) => {
                 error={!!errors.duration}
                 helperText={errors.duration?.message}
                 size="small"
-                 sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                  },
+                  "& .MuiInputBase-root.Mui-error": {
+                    bgcolor: "#fff",
+                  },
+                }}
               />
             </Grid2>
 
@@ -1291,7 +1338,7 @@ const handleOpenDialogEdit = (service) => {
                       <Switch
                         {...field}
                         checked={!!field.value}
-                        onChange={e => field.onChange(e.target.checked)}
+                        onChange={(e) => field.onChange(e.target.checked)}
                         size="small"
                       />
                     )}
@@ -1313,17 +1360,19 @@ const handleOpenDialogEdit = (service) => {
                     type="number"
                     {...register("quantidadeAtendimentosSimultaneos")}
                     error={!!errors.quantidadeAtendimentosSimultaneos}
-                    helperText={errors.quantidadeAtendimentosSimultaneos?.message}
+                    helperText={
+                      errors.quantidadeAtendimentosSimultaneos?.message
+                    }
                     size="small"
-                     sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#fff",
+                        borderRadius: 2,
+                      },
+                      "& .MuiInputBase-root.Mui-error": {
+                        bgcolor: "#fff",
+                      },
+                    }}
                   />
                 </Grid2>
               </>
@@ -1359,76 +1408,107 @@ const handleOpenDialogEdit = (service) => {
                       <Grid2
                         key={hourIndex}
                         sx={{
-    display: "flex",
-    gap: 2,
-    mt: 1,
-    alignItems: { xs: "center",
-      sm: "flex-end"},
-    flexDirection: {
-      xs: "column",
-      sm: "row"
-    },
-    width: "100%",
-  }}
+                          display: "flex",
+                          gap: 2,
+                          mt: 1,
+                          alignItems: { xs: "center", sm: "flex-end" },
+                          flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                          },
+                          width: "100%",
+                        }}
                       >
-                        <Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            width: "100%",
+                          }}
+                        >
                           <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
                             Início
                           </InputLabel>
                           <TextField
                             type="time"
-                            {...register(`availability.${dayIndex}.availableHours.${hourIndex}.start`)}
-                            error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start}
-                            helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.start?.message}
+                            {...register(
+                              `availability.${dayIndex}.availableHours.${hourIndex}.start`
+                            )}
+                            error={
+                              !!errors.availability?.[dayIndex]
+                                ?.availableHours?.[hourIndex]?.start
+                            }
+                            helperText={
+                              errors.availability?.[dayIndex]?.availableHours?.[
+                                hourIndex
+                              ]?.start?.message
+                            }
                             size="small"
-                             sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
-                          />
-                        </Box>
-
-<Box sx={{ display: "flex", flexDirection: "column", flex: 1 , width: "100%"}}>
-                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
-                            Fim
-                          </InputLabel>
-                          <TextField
-                            type="time"
-                            {...register(`availability.${dayIndex}.availableHours.${hourIndex}.end`)}
-                            error={!!errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end}
-                            helperText={errors.availability?.[dayIndex]?.availableHours?.[hourIndex]?.end?.message}
-                            size="small"
-                             sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: "#fff",
-                      borderRadius: 2,
-                    },
-                    "& .MuiInputBase-root.Mui-error": {
-                      bgcolor: "#fff",
-                    },
-                  }}
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                bgcolor: "#fff",
+                                borderRadius: 2,
+                              },
+                              "& .MuiInputBase-root.Mui-error": {
+                                bgcolor: "#fff",
+                              },
+                            }}
                           />
                         </Box>
 
                         <Box
                           sx={{
-      display: "flex",
-      alignItems: "center",
-      gap: 1,
-      justifyContent: {
-        xs: "flex-end",
-        sm: "center",
-      },
-      width: {
-        xs: "100%",
-        sm: "auto",
-      },
-    }}
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            width: "100%",
+                          }}
+                        >
+                          <InputLabel sx={{ color: "#FFFFFF", pl: 0.3 }}>
+                            Fim
+                          </InputLabel>
+                          <TextField
+                            type="time"
+                            {...register(
+                              `availability.${dayIndex}.availableHours.${hourIndex}.end`
+                            )}
+                            error={
+                              !!errors.availability?.[dayIndex]
+                                ?.availableHours?.[hourIndex]?.end
+                            }
+                            helperText={
+                              errors.availability?.[dayIndex]?.availableHours?.[
+                                hourIndex
+                              ]?.end?.message
+                            }
+                            size="small"
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                bgcolor: "#fff",
+                                borderRadius: 2,
+                              },
+                              "& .MuiInputBase-root.Mui-error": {
+                                bgcolor: "#fff",
+                              },
+                            }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            justifyContent: {
+                              xs: "flex-end",
+                              sm: "center",
+                            },
+                            width: {
+                              xs: "100%",
+                              sm: "auto",
+                            },
+                          }}
                         >
                           <Tooltip title="Adicionar horário">
                             <IconButton
@@ -1440,8 +1520,16 @@ const handleOpenDialogEdit = (service) => {
                           <Divider orientation="vertical" flexItem />
                           <Tooltip title="Remover horário">
                             <IconButton
-                              onClick={() => removeAvailableHour(dayIndex, hourIndex)}
-                              disabled={countDiasComHorarioAfterRemove(availability, dayIndex, hourIndex) === 0}
+                              onClick={() =>
+                                removeAvailableHour(dayIndex, hourIndex)
+                              }
+                              disabled={
+                                countDiasComHorarioAfterRemove(
+                                  availability,
+                                  dayIndex,
+                                  hourIndex
+                                ) === 0
+                              }
                             >
                               <DeleteRoundedIcon sx={{ color: "#AC42F7" }} />
                             </IconButton>

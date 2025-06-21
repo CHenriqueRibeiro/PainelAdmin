@@ -45,9 +45,6 @@ const ScheduledData = ({
   const [openDialog, setOpenDialog] = useState(false);
   const token = localStorage.getItem("authToken");
   const OwnerUser = JSON.parse(localStorage.getItem("user"));
-  const [nameEstablishment, setNameEstablishment] = useState("");
-  const [lunchStart, setLunchStart] = useState("");
-  const [lunchEnd, setLunchEnd] = useState("");
   const [isLoadingButton, setIsLoadingButton] = useState(false);
   const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -64,15 +61,21 @@ const ScheduledData = ({
     latitude: "",
     longitude: "",
   });
-  const [openingTime, setOpeningTime] = useState("");
-  const [closingTime, setClosingTime] = useState("");
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [workingDays, setWorkingDays] = useState([]);
 
   const schema = yup.object().shape({
-    nameEstablishment: yup.string().required("Nome do estabelecimento é obrigatório"),
-    workingDays: yup.array().of(yup.string()).min(1, "Selecione pelo menos um dia de funcionamento").required("Dias de funcionamento são obrigatórios"),
-    paymentMethods: yup.array().of(yup.string()).min(1, "Selecione pelo menos uma forma de pagamento").required("Formas de pagamento são obrigatórias"),
+    nameEstablishment: yup
+      .string()
+      .required("Nome do estabelecimento é obrigatório"),
+    workingDays: yup
+      .array()
+      .of(yup.string())
+      .min(1, "Selecione pelo menos um dia de funcionamento")
+      .required("Dias de funcionamento são obrigatórios"),
+    paymentMethods: yup
+      .array()
+      .of(yup.string())
+      .min(1, "Selecione pelo menos uma forma de pagamento")
+      .required("Formas de pagamento são obrigatórias"),
     address: yup.object().shape({
       cep: yup.string().required("CEP é obrigatório"),
       street: yup.string().required("Rua é obrigatória"),
@@ -109,32 +112,38 @@ const ScheduledData = ({
       hasLunchBreak: yup.boolean(),
       intervalOpen: yup.string().when("hasLunchBreak", {
         is: true,
-        then: (schema) => schema
-          .required("Início do intervalo é obrigatório")
-          .test(
-            "intervalOpen-valid",
-            "Início do intervalo deve ser maior ou igual ao horário de abertura e menor ou igual ao horário de fechamento",
-            function (value) {
-              const { open, close } = this.parent;
-              if (!value || !open || !close) return true;
-              return value >= open && value <= close;
-            }
-          ),
+        then: (schema) =>
+          schema
+            .required("Início do intervalo é obrigatório")
+            .test(
+              "intervalOpen-valid",
+              "Início do intervalo deve ser maior ou igual ao horário de abertura e menor ou igual ao horário de fechamento",
+              function (value) {
+                const { open, close } = this.parent;
+                if (!value || !open || !close) return true;
+                return value >= open && value <= close;
+              }
+            ),
       }),
-      intervalClose: yup.string().when(["hasLunchBreak", "intervalOpen", "open", "close"], {
-        is: (hasLunchBreak) => hasLunchBreak,
-        then: (schema) => schema
-          .required("Fim do intervalo é obrigatório")
-          .test(
-            "intervalClose-valid",
-            "Fim do intervalo deve ser maior ou igual ao início do intervalo e ao horário de abertura, e menor ou igual ao horário de fechamento",
-            function (value) {
-              const { open, close, intervalOpen } = this.parent;
-              if (!value || !open || !close || !intervalOpen) return true;
-              return value >= open && value >= intervalOpen && value <= close;
-            }
-          ),
-      }),
+      intervalClose: yup
+        .string()
+        .when(["hasLunchBreak", "intervalOpen", "open", "close"], {
+          is: (hasLunchBreak) => hasLunchBreak,
+          then: (schema) =>
+            schema
+              .required("Fim do intervalo é obrigatório")
+              .test(
+                "intervalClose-valid",
+                "Fim do intervalo deve ser maior ou igual ao início do intervalo e ao horário de abertura, e menor ou igual ao horário de fechamento",
+                function (value) {
+                  const { open, close, intervalOpen } = this.parent;
+                  if (!value || !open || !close || !intervalOpen) return true;
+                  return (
+                    value >= open && value >= intervalOpen && value <= close
+                  );
+                }
+              ),
+        }),
     }),
   });
 
@@ -187,8 +196,14 @@ const ScheduledData = ({
       "openingHours.hasLunchBreak",
       establishment.openingHours?.hasLunchBreak == true
     );
-    setValue("openingHours.intervalOpen", establishment.openingHours?.intervalOpen || "");
-    setValue("openingHours.intervalClose", establishment.openingHours?.intervalClose || "");
+    setValue(
+      "openingHours.intervalOpen",
+      establishment.openingHours?.intervalOpen || ""
+    );
+    setValue(
+      "openingHours.intervalClose",
+      establishment.openingHours?.intervalClose || ""
+    );
     setValue("address.cep", establishment.address?.cep || "");
     setValue("address.street", establishment.address?.street || "");
     setValue("address.number", establishment.address?.number || "");
@@ -281,20 +296,25 @@ const ScheduledData = ({
         neighborhood: data.neighborhood || "",
         city: data.city || "",
         state: data.state || "",
-        latitude: data.location?.coordinates?.latitude || "",
-        longitude: data.location?.coordinates?.longitude || "",
+        latitude: data.location?.coordinates?.latitude || "-00.000000",
+        longitude: data.location?.coordinates?.longitude || "0.000000",
       };
       setAddressData(newAddressData);
-      
-      // Atualiza os valores do formulário
+
       setValue("address.cep", newAddressData.cep);
       setValue("address.street", newAddressData.street);
       setValue("address.number", newAddressData.number);
       setValue("address.neighborhood", newAddressData.neighborhood);
       setValue("address.city", newAddressData.city);
       setValue("address.state", newAddressData.state);
-      // Disparar validação dos campos preenchidos automaticamente
-      trigger(["address.cep", "address.street", "address.number", "address.neighborhood", "address.city", "address.state"]);
+      trigger([
+        "address.cep",
+        "address.street",
+        "address.number",
+        "address.neighborhood",
+        "address.city",
+        "address.state",
+      ]);
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
     }
@@ -343,8 +363,8 @@ const ScheduledData = ({
         );
         if (response.ok) {
           const data = await response.json();
-          latitude = data.location?.coordinates?.latitude || "";
-          longitude = data.location?.coordinates?.longitude || "";
+          latitude = data.location?.coordinates?.latitude || "-00.000000";
+          longitude = data.location?.coordinates?.longitude || "0.000000";
         } else {
           console.error("Erro ao buscar localização pelo novo CEP");
         }
@@ -618,9 +638,12 @@ const ScheduledData = ({
             </Grid2>
           </>
         ) : (
-            <><Divider sx={{ my: 1 }} /><Typography color="textSecondary">
+          <>
+            <Divider sx={{ my: 1 }} />
+            <Typography color="textSecondary">
               Cadastre um estabelecimento para depois cadastrar os serviços.
-            </Typography></>
+            </Typography>
+          </>
         )}
       </Paper>
 
@@ -649,7 +672,11 @@ const ScheduledData = ({
           <DialogContent>
             <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
               <Grid2 size={{ xs: 12 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Nome do Estabelecimento</InputLabel>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Nome do Estabelecimento
+                </InputLabel>
                 <TextField
                   placeholder="Digite o nome do estabelecimento"
                   fullWidth
@@ -669,7 +696,11 @@ const ScheduledData = ({
                 />
               </Grid2>
               <Grid2 size={{ xs: 12 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Dias de funcionamento</InputLabel>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Dias de funcionamento
+                </InputLabel>
                 <TextField
                   placeholder="Selecione os dias"
                   select
@@ -678,18 +709,24 @@ const ScheduledData = ({
                   value={watch("workingDays") || []}
                   onChange={(e) => {
                     let value = e.target.value;
-                    if (typeof value === 'string') {
-                      value = value.split(',').map(v => v.trim()).filter(Boolean);
+                    if (typeof value === "string") {
+                      value = value
+                        .split(",")
+                        .map((v) => v.trim())
+                        .filter(Boolean);
                     }
-                    setValue('workingDays', value);
-                    trigger('workingDays');
+                    setValue("workingDays", value);
+                    trigger("workingDays");
                   }}
-                  onPaste={e => {
+                  onPaste={(e) => {
                     e.preventDefault();
-                    const paste = e.clipboardData.getData('text');
-                    const arr = paste.split(',').map(v => v.trim()).filter(Boolean);
-                    setValue('workingDays', arr);
-                    trigger('workingDays');
+                    const paste = e.clipboardData.getData("text");
+                    const arr = paste
+                      .split(",")
+                      .map((v) => v.trim())
+                      .filter(Boolean);
+                    setValue("workingDays", arr);
+                    trigger("workingDays");
                   }}
                   error={!!errors.workingDays}
                   helperText={errors.workingDays?.message}
@@ -723,7 +760,11 @@ const ScheduledData = ({
                 </TextField>
               </Grid2>
               <Grid2 size={{ xs: 12 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Formas de pagamento</InputLabel>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Formas de pagamento
+                </InputLabel>
                 <TextField
                   placeholder="Selecione as formas de pagamento"
                   select
@@ -732,18 +773,24 @@ const ScheduledData = ({
                   value={watch("paymentMethods") || []}
                   onChange={(e) => {
                     let value = e.target.value;
-                    if (typeof value === 'string') {
-                      value = value.split(',').map(v => v.trim()).filter(Boolean);
+                    if (typeof value === "string") {
+                      value = value
+                        .split(",")
+                        .map((v) => v.trim())
+                        .filter(Boolean);
                     }
-                    setValue('paymentMethods', value);
-                    trigger('paymentMethods');
+                    setValue("paymentMethods", value);
+                    trigger("paymentMethods");
                   }}
-                  onPaste={e => {
+                  onPaste={(e) => {
                     e.preventDefault();
-                    const paste = e.clipboardData.getData('text');
-                    const arr = paste.split(',').map(v => v.trim()).filter(Boolean);
-                    setValue('paymentMethods', arr);
-                    trigger('paymentMethods');
+                    const paste = e.clipboardData.getData("text");
+                    const arr = paste
+                      .split(",")
+                      .map((v) => v.trim())
+                      .filter(Boolean);
+                    setValue("paymentMethods", arr);
+                    trigger("paymentMethods");
                   }}
                   error={!!errors.paymentMethods}
                   helperText={errors.paymentMethods?.message}
@@ -774,7 +821,11 @@ const ScheduledData = ({
                 </TextField>
               </Grid2>
               <Grid2 size={{ xs: 12 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>CEP</InputLabel>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  CEP
+                </InputLabel>
                 <Grid2 container spacing={2}>
                   <Grid2 size={8}>
                     <InputMask
@@ -784,7 +835,7 @@ const ScheduledData = ({
                       onChange={(e) => {
                         const value = e.target.value;
                         setValue("address.cep", value);
-                        setAddressData(prev => ({ ...prev, cep: value }));
+                        setAddressData((prev) => ({ ...prev, cep: value }));
                       }}
                       onBlur={handleSearchCep}
                     >
@@ -830,8 +881,12 @@ const ScheduledData = ({
                   </Grid2>
                 </Grid2>
               </Grid2>
-              <Grid2 size={{ xs: 12, sm:8 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Endereço</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 8 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Endereço
+                </InputLabel>
                 <TextField
                   placeholder="Digite o nome da rua"
                   fullWidth
@@ -851,8 +906,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs:12,sm: 4 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Nº</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 4 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Nº
+                </InputLabel>
                 <TextField
                   placeholder="Digite o número"
                   fullWidth
@@ -871,8 +930,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs: 12, sm:8 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Complemento</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 8 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Complemento
+                </InputLabel>
                 <TextField
                   placeholder="Digite o complemento"
                   fullWidth
@@ -889,8 +952,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs:12,sm: 4 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Bairro</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 4 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Bairro
+                </InputLabel>
                 <TextField
                   placeholder="Digite o bairro"
                   fullWidth
@@ -910,8 +977,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs: 12, sm:8 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Cidade</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 8 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Cidade
+                </InputLabel>
                 <TextField
                   placeholder="Digite a cidade"
                   fullWidth
@@ -931,8 +1002,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs:12,sm: 4 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Estado</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 4 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Estado
+                </InputLabel>
                 <TextField
                   placeholder="Digite o estado"
                   fullWidth
@@ -952,8 +1027,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs:12,sm: 6 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Horário de Abertura</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 6 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Horário de Abertura
+                </InputLabel>
                 <TextField
                   type="time"
                   fullWidth
@@ -972,8 +1051,12 @@ const ScheduledData = ({
                   }}
                 />
               </Grid2>
-              <Grid2 size={{ xs:12,sm: 6 }}>
-                <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Horário de Fechamento</InputLabel>
+              <Grid2 size={{ xs: 12, sm: 6 }}>
+                <InputLabel
+                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                >
+                  Horário de Fechamento
+                </InputLabel>
                 <TextField
                   type="time"
                   fullWidth
@@ -1012,8 +1095,17 @@ const ScheduledData = ({
               </Grid2>
               {hasLunchBreak && (
                 <>
-                  <Grid2 size={{ xs:12,sm: 6 }}>
-                    <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Início do Intervalo</InputLabel>
+                  <Grid2 size={{ xs: 12, sm: 6 }}>
+                    <InputLabel
+                      sx={{
+                        color: "#FFFFFF",
+                        pb: 0.5,
+                        pl: 0.3,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Início do Intervalo
+                    </InputLabel>
                     <TextField
                       type="time"
                       fullWidth
@@ -1032,8 +1124,17 @@ const ScheduledData = ({
                       }}
                     />
                   </Grid2>
-                  <Grid2 size={{ xs:12,sm: 6 }}>
-                    <InputLabel sx={{ color: '#FFFFFF', pb: 0.5, pl: 0.3, fontWeight: 600 }}>Fim do Intervalo</InputLabel>
+                  <Grid2 size={{ xs: 12, sm: 6 }}>
+                    <InputLabel
+                      sx={{
+                        color: "#FFFFFF",
+                        pb: 0.5,
+                        pl: 0.3,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Fim do Intervalo
+                    </InputLabel>
                     <TextField
                       type="time"
                       fullWidth

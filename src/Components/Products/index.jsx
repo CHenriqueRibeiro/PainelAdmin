@@ -124,71 +124,71 @@ const Products = ({ dataEstablishment, isLoading }) => {
   useEffect(() => {
     if (dataEstablishment.length > 0) fetchProducts();
   }, [dataEstablishment]);
- const handleReporEstoque = async () => {
-  const data = {
-    quantidade: quantidadeReposicao === "" ? undefined : Number(quantidadeReposicao),
-    precoUnitario: precoReposicao === "" ? undefined : Number(precoReposicao),
-    unidade: unidadeReposicao || selectedProduct?.unidade,
-    observacao: observacaoReposicao,
-  };
+  const handleReporEstoque = async () => {
+    const data = {
+      quantidade:
+        quantidadeReposicao === "" ? undefined : Number(quantidadeReposicao),
+      precoUnitario: precoReposicao === "" ? undefined : Number(precoReposicao),
+      unidade: unidadeReposicao || selectedProduct?.unidade,
+      observacao: observacaoReposicao,
+    };
 
-  try {
-    // Validação Yup
-    await reporSchema.validate(data, { abortEarly: false });
+    try {
+      // Validação Yup
+      await reporSchema.validate(data, { abortEarly: false });
 
-    // Se passou na validação, limpa erros
-    setFormErrorsRepor({});
+      // Se passou na validação, limpa erros
+      setFormErrorsRepor({});
 
-    const response = await fetch(
-      `https://lavaja.up.railway.app/api/products/products/${selectedProduct._id}/repor`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Erro ao repor estoque");
-    }
-
-    setSnackbarMessage("Reposição realizada com sucesso!");
-    setSnackbarSeverity("success");
-    setOpenSnackbar(true);
-    setReporDialogOpen(false);
-    fetchProducts();
-  } catch (error) {
-    console.log(error);
-    // Validação Yup
-    if (error.name === "ValidationError") {
-      const errors = {};
-      error.inner.forEach((err) => {
-        if (err.path && err.path.startsWith("servicos")) {
-          const match = err.path.match(/servicos\[(\d+)\]\.(\w+)/);
-          if (match) {
-            const idx = match[1];
-            const field = match[2];
-            if (!errors.servicos) errors.servicos = [];
-            if (!errors.servicos[idx]) errors.servicos[idx] = {};
-            errors.servicos[idx][field] = err.message;
-          }
-        } else if (err.path) {
-          errors[err.path] = err.message;
+      const response = await fetch(
+        `https://lavaja.up.railway.app/api/products/products/${selectedProduct._id}/repor`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
         }
-      });
-      setFormErrorsRepor(errors);
-    } else {
-      // Se for erro na requisição
-      setSnackbarMessage("Erro ao repor estoque");
-      setSnackbarSeverity("error");
-      setOpenSnackbar(true);
-    }
-  }
-};
+      );
 
+      if (!response.ok) {
+        throw new Error("Erro ao repor estoque");
+      }
+
+      setSnackbarMessage("Reposição realizada com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      setReporDialogOpen(false);
+      fetchProducts();
+    } catch (error) {
+      console.log(error);
+      // Validação Yup
+      if (error.name === "ValidationError") {
+        const errors = {};
+        error.inner.forEach((err) => {
+          if (err.path && err.path.startsWith("servicos")) {
+            const match = err.path.match(/servicos\[(\d+)\]\.(\w+)/);
+            if (match) {
+              const idx = match[1];
+              const field = match[2];
+              if (!errors.servicos) errors.servicos = [];
+              if (!errors.servicos[idx]) errors.servicos[idx] = {};
+              errors.servicos[idx][field] = err.message;
+            }
+          } else if (err.path) {
+            errors[err.path] = err.message;
+          }
+        });
+        setFormErrorsRepor(errors);
+      } else {
+        // Se for erro na requisição
+        setSnackbarMessage("Erro ao repor estoque");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -214,7 +214,8 @@ const Products = ({ dataEstablishment, isLoading }) => {
 
   const handleServicoChange = (index, field, value) => {
     const updated = [...selectedProduct.servicos];
-    updated[index][field] = field === "consumoPorServico" && value !== "" ? Number(value) : value;
+    updated[index][field] =
+      field === "consumoPorServico" && value !== "" ? Number(value) : value;
     setSelectedProduct((prev) => ({ ...prev, servicos: updated }));
   };
 
@@ -223,7 +224,11 @@ const Products = ({ dataEstablishment, isLoading }) => {
       ...prev,
       servicos: [
         ...(prev.servicos || []),
-        { service: "", consumoPorServico: "", unidadeConsumo: prev.unidade || "mL" },
+        {
+          service: "",
+          consumoPorServico: "",
+          unidadeConsumo: prev.unidade || "mL",
+        },
       ],
     }));
   };
@@ -234,14 +239,24 @@ const Products = ({ dataEstablishment, isLoading }) => {
   };
 
   const handleEditDialogOpen = (product) => {
-    const servicos = product.servicos?.map(s => ({
-      service: s.service?._id || s.service || "",
-      consumoPorServico: (s.consumoPorServico ?? ""),
-      unidadeConsumo: (s.unidadeConsumo ?? product.unidade )
-    })) || [];
+    const servicos =
+      product.servicos?.map((s) => ({
+        service: s.service?._id || s.service || "",
+        consumoPorServico: s.consumoPorServico ?? "",
+        unidadeConsumo: s.unidadeConsumo ?? product.unidade,
+      })) || [];
     const vincular = product.servicos?.length > 0;
     // Se for para vincular e não houver serviços, adiciona um serviço vazio
-    const servicosFinal = vincular && servicos.length === 0 ? [{ service: "", consumoPorServico: "", unidadeConsumo: product.unidade || "mL" }] : servicos;
+    const servicosFinal =
+      vincular && servicos.length === 0
+        ? [
+            {
+              service: "",
+              consumoPorServico: "",
+              unidadeConsumo: product.unidade || "mL",
+            },
+          ]
+        : servicos;
     setSelectedProduct({
       ...product,
       preco: product.preco ?? "",
@@ -257,8 +272,14 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const handleUpdate = async () => {
     const data = {
       ...selectedProduct,
-      preco: selectedProduct.preco === "" ? undefined : Number(selectedProduct.preco),
-      quantidadeAtual: selectedProduct.quantidadeAtual === "" ? undefined : Number(selectedProduct.quantidadeAtual),
+      preco:
+        selectedProduct.preco === ""
+          ? undefined
+          : Number(selectedProduct.preco),
+      quantidadeAtual:
+        selectedProduct.quantidadeAtual === ""
+          ? undefined
+          : Number(selectedProduct.quantidadeAtual),
       servicos: vincularServicos ? selectedProduct.servicos : [],
       vincularServicos,
       unidade: selectedProduct.unidade || "mL",
@@ -460,14 +481,14 @@ const Products = ({ dataEstablishment, isLoading }) => {
                         open={Boolean(anchorEl)}
                         onClose={handleMenuClose}
                         sx={{
-                          '& .MuiPaper-root': {
-                            minWidth: '6rem',
-                            background: '#f1eeff',
+                          "& .MuiPaper-root": {
+                            minWidth: "6rem",
+                            background: "#f1eeff",
                           },
                         }}
                       >
                         <MenuItem
-                          sx={{ fontSize: '12px', padding: '8px 16px' }}
+                          sx={{ fontSize: "12px", padding: "8px 16px" }}
                           onClick={() => {
                             setSelectedProduct(menuProduct);
                             setQuantidadeReposicao("");
@@ -482,7 +503,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
                           Repor Estoque
                         </MenuItem>
                         <MenuItem
-                          sx={{ fontSize: '12px', padding: '8px 16px' }}
+                          sx={{ fontSize: "12px", padding: "8px 16px" }}
                           onClick={() => {
                             handleEditDialogOpen(menuProduct);
                             handleMenuClose();
@@ -491,7 +512,11 @@ const Products = ({ dataEstablishment, isLoading }) => {
                           Editar
                         </MenuItem>
                         <MenuItem
-                          sx={{ fontSize: '12px', padding: '8px 16px', color: 'red' }}
+                          sx={{
+                            fontSize: "12px",
+                            padding: "8px 16px",
+                            color: "red",
+                          }}
                           onClick={() => {
                             handleDelete(menuProduct._id);
                             handleMenuClose();
@@ -605,15 +630,15 @@ const Products = ({ dataEstablishment, isLoading }) => {
             error={!!formErrorsEdit.name}
             helperText={formErrorsEdit.name}
             size="small"
-           sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
           />
           <InputLabel
             sx={{
@@ -630,21 +655,24 @@ const Products = ({ dataEstablishment, isLoading }) => {
             type="number"
             value={selectedProduct?.preco || ""}
             onChange={(e) => {
-              setSelectedProduct((prev) => ({ ...prev, preco: e.target.value }));
+              setSelectedProduct((prev) => ({
+                ...prev,
+                preco: e.target.value,
+              }));
               setFormErrorsEdit((prev) => ({ ...prev, preco: undefined }));
             }}
             error={!!formErrorsEdit.preco}
             helperText={formErrorsEdit.preco}
             size="small"
-           sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
           />
           <InputLabel
             sx={{
@@ -661,21 +689,27 @@ const Products = ({ dataEstablishment, isLoading }) => {
             type="number"
             value={selectedProduct?.quantidadeAtual || ""}
             onChange={(e) => {
-              setSelectedProduct((prev) => ({ ...prev, quantidadeAtual: e.target.value }));
-              setFormErrorsEdit((prev) => ({ ...prev, quantidadeAtual: undefined }));
+              setSelectedProduct((prev) => ({
+                ...prev,
+                quantidadeAtual: e.target.value,
+              }));
+              setFormErrorsEdit((prev) => ({
+                ...prev,
+                quantidadeAtual: undefined,
+              }));
             }}
             error={!!formErrorsEdit.quantidadeAtual}
             helperText={formErrorsEdit.quantidadeAtual}
             size="small"
             sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
           />
           <InputLabel
             sx={{
@@ -692,21 +726,24 @@ const Products = ({ dataEstablishment, isLoading }) => {
             select
             value={selectedProduct?.unidade || "mL"}
             onChange={(e) => {
-              setSelectedProduct((prev) => ({ ...prev, unidade: e.target.value }));
+              setSelectedProduct((prev) => ({
+                ...prev,
+                unidade: e.target.value,
+              }));
               setFormErrorsEdit((prev) => ({ ...prev, unidade: undefined }));
             }}
             error={!!formErrorsEdit.unidade}
             helperText={formErrorsEdit.unidade}
             size="small"
-           sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
           >
             {unidadeOptions.map((u) => (
               <MenuItem key={u} value={u}>
@@ -721,10 +758,19 @@ const Products = ({ dataEstablishment, isLoading }) => {
                 checked={vincularServicos}
                 onChange={(e) => {
                   setVincularServicos(e.target.checked);
-                  if (e.target.checked && selectedProduct.servicos.length === 0) {
+                  if (
+                    e.target.checked &&
+                    selectedProduct.servicos.length === 0
+                  ) {
                     setSelectedProduct((prev) => ({
                       ...prev,
-                      servicos: [{ service: "", consumoPorServico: "", unidadeConsumo: prev.unidade || "mL" }],
+                      servicos: [
+                        {
+                          service: "",
+                          consumoPorServico: "",
+                          unidadeConsumo: prev.unidade || "mL",
+                        },
+                      ],
                     }));
                   }
                 }}
@@ -788,23 +834,26 @@ const Products = ({ dataEstablishment, isLoading }) => {
                             e.target.value
                           )
                         }
-                        error={!!formErrorsEdit.servicos?.[index]?.consumoPorServico}
-                        helperText={formErrorsEdit.servicos?.[index]?.consumoPorServico}
+                        error={
+                          !!formErrorsEdit.servicos?.[index]?.consumoPorServico
+                        }
+                        helperText={
+                          formErrorsEdit.servicos?.[index]?.consumoPorServico
+                        }
                         size="small"
                         sx={{
                           width: "70%",
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                          "& .MuiInputBase-root.Mui-error": {
+                            bgcolor: "#fff",
+                          },
+                        }}
                       />
 
                       <TextField
-                        
                         select
                         size="small"
                         value={
@@ -821,14 +870,14 @@ const Products = ({ dataEstablishment, isLoading }) => {
                         }
                         sx={{
                           width: "30%",
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
+                          "& .MuiOutlinedInput-root": {
+                            bgcolor: "#fff",
+                            borderRadius: 2,
+                          },
+                          "& .MuiInputBase-root.Mui-error": {
+                            bgcolor: "#fff",
+                          },
+                        }}
                       >
                         {unidadeOptions
                           .filter((option) => {
@@ -940,68 +989,72 @@ const Products = ({ dataEstablishment, isLoading }) => {
         </DialogTitle>
         <DialogContent>
           <InputLabel sx={{ mt: 1 }}>Quantidade a adicionar</InputLabel>
-<TextField
-  fullWidth
-  type="number"
-  value={quantidadeReposicao}
-  onChange={(e) => {
-    setQuantidadeReposicao(e.target.value);
-    setFormErrorsRepor((prev) => ({ ...prev, quantidade: undefined }));
-  }}
-  error={!!formErrorsRepor.quantidade}
-  helperText={formErrorsRepor.quantidade}
-  size="small"
-  sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
-/>
+          <TextField
+            fullWidth
+            type="number"
+            value={quantidadeReposicao}
+            onChange={(e) => {
+              setQuantidadeReposicao(e.target.value);
+              setFormErrorsRepor((prev) => ({
+                ...prev,
+                quantidade: undefined,
+              }));
+            }}
+            error={!!formErrorsRepor.quantidade}
+            helperText={formErrorsRepor.quantidade}
+            size="small"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
+          />
 
-<InputLabel sx={{ mt: 2 }}>Unidade</InputLabel>
-<TextField
-  select
-  fullWidth
-  value={unidadeReposicao || selectedProduct?.unidade || "mL"}
-  onChange={(e) => setUnidadeReposicao(e.target.value)}
-  size="small"
-  sx={{ bgcolor: "#fff", borderRadius: 2 }}
->
-  {unidadeOptions.map((option) => (
-    <MenuItem key={option} value={option}>
-      {option}
-    </MenuItem>
-  ))}
-</TextField>
+          <InputLabel sx={{ mt: 2 }}>Unidade</InputLabel>
+          <TextField
+            select
+            fullWidth
+            value={unidadeReposicao || selectedProduct?.unidade || "mL"}
+            onChange={(e) => setUnidadeReposicao(e.target.value)}
+            size="small"
+            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+          >
+            {unidadeOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
 
-<InputLabel sx={{ mt: 2 }}>Preço pago por unidade</InputLabel>
-<TextField
-  fullWidth
-  type="number"
-  value={precoReposicao}
-  onChange={(e) => {
-    setPrecoReposicao(e.target.value);
-    setFormErrorsRepor((prev) => ({ ...prev, precoUnitario: undefined }));
-  }}
-  error={!!formErrorsRepor.precoUnitario}
-  helperText={formErrorsRepor.precoUnitario}
-  size="small"
-  sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
-/>
-
-
+          <InputLabel sx={{ mt: 2 }}>Preço pago por unidade</InputLabel>
+          <TextField
+            fullWidth
+            type="number"
+            value={precoReposicao}
+            onChange={(e) => {
+              setPrecoReposicao(e.target.value);
+              setFormErrorsRepor((prev) => ({
+                ...prev,
+                precoUnitario: undefined,
+              }));
+            }}
+            error={!!formErrorsRepor.precoUnitario}
+            helperText={formErrorsRepor.precoUnitario}
+            size="small"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#fff",
+                borderRadius: 2,
+              },
+              "& .MuiInputBase-root.Mui-error": {
+                bgcolor: "#fff",
+              },
+            }}
+          />
 
           <InputLabel sx={{ mt: 2, color: "#FFFFFF", fontWeight: 600 }}>
             Observação (opcional)

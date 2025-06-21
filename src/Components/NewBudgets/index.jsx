@@ -125,7 +125,7 @@ const schema = yup.object().shape({
       function (value) {
         const { date } = this.parent;
         if (!value || !date) return true;
-        return dayjs(value).isSameOrAfter(dayjs(date), 'day');
+        return dayjs(value).isSameOrAfter(dayjs(date), "day");
       }
     ),
   deliveryDate: yup
@@ -137,7 +137,7 @@ const schema = yup.object().shape({
       function (value) {
         const { date } = this.parent;
         if (!value || !date) return true;
-        return dayjs(value).isSameOrAfter(dayjs(date), 'day');
+        return dayjs(value).isSameOrAfter(dayjs(date), "day");
       }
     ),
   observation: yup.string(),
@@ -505,7 +505,10 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
+                      const formatted =
+                        newValue && newValue.isValid()
+                          ? newValue.format("YYYY-MM-DD")
+                          : "";
                       field.onChange(formatted);
                       setDate(formatted);
                     }}
@@ -567,7 +570,10 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
+                      const formatted =
+                        newValue && newValue.isValid()
+                          ? newValue.format("YYYY-MM-DD")
+                          : "";
                       field.onChange(formatted);
                       setDateValidate(formatted);
                     }}
@@ -629,7 +635,10 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
                     format="DD/MM/YYYY"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(newValue) => {
-                      const formatted = newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "";
+                      const formatted =
+                        newValue && newValue.isValid()
+                          ? newValue.format("YYYY-MM-DD")
+                          : "";
                       field.onChange(formatted);
                       setDeliveryDate(formatted);
                     }}
