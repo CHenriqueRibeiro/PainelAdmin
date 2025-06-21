@@ -7,7 +7,7 @@ import { Box, IconButton, Tooltip } from "@mui/material";
 
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import AutoAwesomeMosaicRoundedIcon from "@mui/icons-material/AutoAwesomeMosaicRounded";
+import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
@@ -19,9 +19,8 @@ import { useAuth } from "../../Context/AuthContext";
 const NAVIGATION = [
   {
     segment: "Home",
-    icon: (
-      <AutoAwesomeMosaicRoundedIcon sx={{ color: "#009688", fontSize: 28 }} />
-    ),
+    title: "Agendamentos",
+    icon: <UpdateRoundedIcon sx={{ color: "#009688", fontSize: 28 }} />,
   },
   {
     segment: "Estabelecimento",
