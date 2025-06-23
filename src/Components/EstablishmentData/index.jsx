@@ -79,7 +79,11 @@ const ScheduledData = ({
     address: yup.object().shape({
       cep: yup.string().required("CEP é obrigatório"),
       street: yup.string().required("Rua é obrigatória"),
-      number: yup.string().required("Número é obrigatório"),
+      number: yup
+        .string()
+        .required("Número é obrigatório")
+        .matches(/^[0-9A-Za-z\s]+$/, "Digite um número válido"),
+
       neighborhood: yup.string().required("Bairro é obrigatório"),
       city: yup.string().required("Cidade é obrigatória"),
       state: yup.string().required("Estado é obrigatório"),
@@ -158,6 +162,7 @@ const ScheduledData = ({
     control,
   } = useForm({
     resolver: yupResolver(schema),
+    mode: "onBlur",
     defaultValues: {
       nameEstablishment: "",
       workingDays: [],
