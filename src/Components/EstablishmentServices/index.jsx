@@ -257,7 +257,12 @@ const EstablishmentServices = ({
       quantidadeAtendimentosSimultaneos: "",
       availability: availability.map((day) => ({
         day: day.day,
-        availableHours: [{ start: "", end: "" }],
+        availableHours: [
+          {
+            start: openingHours?.open || "",
+            end: openingHours?.close || "",
+          },
+        ],
       })),
     });
   };
@@ -501,16 +506,24 @@ const EstablishmentServices = ({
   };
 
   const addAvailableHour = (dayIndex) => {
-    const newAvailability = [...availability];
-    newAvailability[dayIndex].availableHours.push({ start: "", end: "" });
-    setAvailability(newAvailability);
+    const currentAvailability = watch("availability");
+    const newAvailability = [...currentAvailability];
 
+    newAvailability[dayIndex].availableHours.push({
+      start: openingHours?.open || "",
+      end: openingHours?.close || "",
+    });
+
+    setAvailability(newAvailability);
     setValue("availability", newAvailability);
   };
 
   const removeAvailableHour = (dayIndex, hourIndex) => {
-    const newAvailability = [...availability];
+    const currentAvailability = watch("availability");
+    const newAvailability = [...currentAvailability];
+
     newAvailability[dayIndex].availableHours.splice(hourIndex, 1);
+
     setAvailability(newAvailability);
     setValue("availability", newAvailability);
   };
