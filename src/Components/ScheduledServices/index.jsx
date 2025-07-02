@@ -173,7 +173,7 @@ const ScheduledServices = ({
     setLoadingServices(true);
 
     const response = await fetch(
-      `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${appointment.date}`
+      `http://localhost:3000/api/availability/${establishmentId}?date=${appointment.date}`
     );
     const data = await response.json();
     setAvailableServices(data.services);
@@ -240,7 +240,7 @@ const ScheduledServices = ({
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -270,7 +270,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -292,7 +292,7 @@ const ScheduledServices = ({
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -314,7 +314,7 @@ const ScheduledServices = ({
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -337,7 +337,7 @@ const ScheduledServices = ({
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedAppointment.date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedAppointment.date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -378,7 +378,7 @@ const ScheduledServices = ({
       );
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -418,7 +418,7 @@ const ScheduledServices = ({
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -456,7 +456,7 @@ const ScheduledServices = ({
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentToDelete._id}`,
+        `http://localhost:3000/api/appointments/appointments/${appointmentToDelete._id}`,
         {
           method: "DELETE",
           headers: {
@@ -513,7 +513,7 @@ const ScheduledServices = ({
       );
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments`,
+        `http://localhost:3000/api/appointments/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1311,7 +1311,7 @@ const ScheduledServices = ({
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
+                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
