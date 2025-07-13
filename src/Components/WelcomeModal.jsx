@@ -20,14 +20,13 @@ const WelcomeModal = ({
   isOpen,
   onClose,
   statusConta,
-  dataLimiteTeste,
+  dataLimite,
   onboardingSteps = { estabelecimento: false, servico: false }
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
-
   useEffect(() => {
     if (location.pathname === '/Estabelecimento' && !onboardingSteps.estabelecimento) {
       setShowTooltip(true);
@@ -36,13 +35,29 @@ const WelcomeModal = ({
     }
   }, [location.pathname, onboardingSteps.estabelecimento]);
 
+ const isDataLimiteExpirada = () => {
+  if (!dataLimite) return false;
+  const agora = new Date();
+  let limite;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataLimite)) {
+    const [dia, mes, ano] = dataLimite.split("/");
+    limite = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+  } else {
+    limite = new Date(dataLimite);
+  }
+  return agora > limite;
+};
+
+
+  const expirado = isDataLimiteExpirada();
+
   const formatarData = (data) => {
     if (!data) return null;
     const novaData = new Date(data);
     return !isNaN(novaData) ? novaData.toLocaleDateString('pt-BR') : data;
   };
 
-  const dataLimiteFormatada = formatarData(dataLimiteTeste);
+  const dataLimiteFormatada = formatarData(dataLimite);
 
   const gerarMensagemStatus = () => {
     if (statusConta === 'teste') {
@@ -83,6 +98,71 @@ const WelcomeModal = ({
   useEffect(() => {
     setActiveStep(firstPendingIndex === -1 ? 0 : firstPendingIndex);
   }, [onboardingSteps]);
+ if (expirado) {
+  return (
+    <Dialog
+      open={isOpen}
+      disableEscapeKeyDown
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 8,
+          padding: 2,
+          background: '#FFEBEE'
+        }
+      }}
+    >
+      <DialogTitle>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontWeight: 'bold', 
+            color: '#C62828',
+            textAlign: 'center'
+          }}
+        >
+          Seu período de teste expirou
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Box sx={{ mt: 2, mb: 2 }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: '#C62828',
+              textAlign: 'center',
+              fontSize: '1.1rem'
+            }}
+          >
+            O prazo de teste ({dataLimite}) já terminou.<br />
+            Para continuar utilizando o LavaJá, realize o pagamento do seu plano <b>falando com nosso suporte.</b>
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button
+            variant="contained"
+            sx={{
+              background: '#25D366',
+              color: 'white',
+              borderRadius: 3,
+              px: 4,
+              fontWeight: 'bold',
+              '&:hover': {
+                background: '#128C7E'
+              }
+            }}
+            href="https://wa.me/5585991673309?text=Olá!%20Preciso%20reativar%20meu%20plano%20no%20LavaJá."
+            target="_blank"
+            rel="noopener"
+          >
+            Falar com Suporte (WhatsApp)
+          </Button>
+        </Box>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
   if (pendingSteps.length === 0) {
     return null;
