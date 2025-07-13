@@ -4,7 +4,7 @@ import ScheduledServices from "../Components/ScheduledServices";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import WelcomeModal from "../Components/WelcomeModal";
-import { useNavigate } from "react-router-dom";
+
 
 export default function Home() {
   const ownerUser = JSON.parse(localStorage.getItem("user"));
@@ -17,9 +17,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-  const handleCloseWelcomeModal = () => {
-    setShowWelcomeModal(false);
-  };
 
   const fetchAppointments = async (establishmentId) => {
     try {
@@ -69,8 +66,23 @@ export default function Home() {
   useEffect(() => {
     if (owner) {
       const steps = owner.onboardingSteps;
-      const precisaMostrar = !(steps?.estabelecimento && steps?.servico);
-      setShowWelcomeModal(precisaMostrar);
+      const precisaMostrarOnboarding = !(steps?.estabelecimento && steps?.servico);
+      function isDataLimiteExpirada() {
+        if (!owner.dataLimite) return false;
+        const agora = new Date();
+        let limite;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(owner.dataLimite)) {
+          const [dia, mes, ano] = owner.dataLimite.split("/");
+          limite = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+        } else {
+          limite = new Date(owner.dataLimite);
+        }
+        return agora > limite;
+      }
+
+      const expirado = isDataLimiteExpirada();
+
+      setShowWelcomeModal(precisaMostrarOnboarding || expirado);
     }
   }, [owner]);
   useEffect(() => {
@@ -113,7 +125,7 @@ export default function Home() {
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
         statusConta={owner?.statusConta}
-        dataLimiteTeste={owner?.dataLimite}
+        dataLimite={owner?.dataLimite}
         onboardingSteps={owner?.onboardingSteps}
       />
 

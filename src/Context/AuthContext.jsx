@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { Alert } from "@mui/material";
 
 const AuthContext = createContext();
 
