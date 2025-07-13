@@ -121,21 +121,13 @@ export default function WhatsAppConnectionPopUp({
           </>
         ) : null}
 
-        {connectionStatus === "qr" && (
-          <Typography color="primary">
-            Escaneie o QR Code no seu WhatsApp
-          </Typography>
-        )}
-        {connectionStatus === "ready" && (
+        {connectionStatus === "open" && (
           <Typography color="success.main" textAlign={"center"}>
             WhatsApp conectado!
           </Typography>
         )}
-        {connectionStatus === "connecting" && (
-          <Typography color="warning.main">🔄 Conectando...</Typography>
-        )}
-        {connectionStatus === "disconnected" && (
-          <Typography color="error.main">❌ Desconectado</Typography>
+        {connectionStatus === "close" && (
+          <Typography color="error.main" textAlign={"center"}>WhatsApp desconectado!</Typography>
         )}
       </DialogContent>
 
@@ -158,7 +150,7 @@ export default function WhatsAppConnectionPopUp({
         </Button>
         <Button
           onClick={handleButtonClick}
-          disabled={qrCode || loading || connectionStatus === "ready"}
+          disabled={qrCode || loading || connectionStatus === "open"}
           startIcon={<WhatsAppIcon />}
           variant="outlined"
           sx={{
@@ -170,7 +162,7 @@ export default function WhatsAppConnectionPopUp({
             padding: "8px 24px",
           }}
         >
-          {qrCode && hasQrBeenGenerated ? "Gerar QR Code" : "Conectar"}
+          Conectar
         </Button>
       </DialogActions>
     </Dialog>

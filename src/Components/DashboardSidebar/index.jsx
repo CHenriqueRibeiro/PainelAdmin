@@ -89,7 +89,8 @@ function SidebarFooter() {
   );
 }
 
-function ToolbarActions({ onToggleIA, onOpenWhatsApp }) {
+function ToolbarActions({ onToggleIA, onOpenWhatsApp, connectionStatus }) {
+  const isConnected = connectionStatus === "open";
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, pr: 2 }}>
       <Box
@@ -112,7 +113,7 @@ function ToolbarActions({ onToggleIA, onOpenWhatsApp }) {
       <Box
         onClick={onOpenWhatsApp}
         sx={{
-          background: "#6A1B9A",
+          background: isConnected ? "#0DC143" : "#6A1B9A", // muda aqui
           color: "#fff",
           px: 1,
           py: 1,
@@ -145,6 +146,7 @@ function ToolbarActions({ onToggleIA, onOpenWhatsApp }) {
   );
 }
 
+
 export default function DashboardLayoutBasic(props) {
   const { window } = props;
   const demoWindow = window ? window() : undefined;
@@ -157,7 +159,6 @@ export default function DashboardLayoutBasic(props) {
   const [loading, setLoading] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState("");
   const [countdown, setCountdown] = React.useState(0);
-  const [shouldReconnect, setShouldReconnect] = React.useState(false);
   const [hasQrBeenGenerated, setHasQrBeenGenerated] = React.useState(false);
   const userRaw = localStorage.getItem("user");
   const user = JSON.parse(userRaw);
@@ -165,84 +166,74 @@ export default function DashboardLayoutBasic(props) {
 
   const socketRef = React.useRef(null);
 
-  const handleCheckAndProceed = async () => {
+  const handleCheckAndProceed = React.useCallback(() => {
     setLoading(true);
     setError("");
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/evolution/instance/consult`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ownerId }),
-        }
-      );
-      const data = await response.json();
+    setShowWhatsAppModal(true);
+    socketRef.current.emit("consult_instance", { ownerId });
+  }, [ownerId]);
 
-      if (data?.connectData?.status === 404) {
-        setShowWhatsAppModal(true);
-        await handleEmitInstance();
-      } else if (data?.state === "open") {
-        setConnectionStatus("ready");
-        setShowWhatsAppModal(true);
-      } else {
-        handleReconnect();
-        setShowWhatsAppModal(true);
-      }
-    } catch (err) {
-      console.error("Erro ao verificar instância:", err);
-      setError("Erro ao verificar status da instância.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReconnect = async () => {
+  const handleReconnect = React.useCallback(() => {
     setLoading(true);
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/evolution/instance/consult`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ownerId }),
-        }
-      );
-      const data = await response.json();
-      setQrCode(data.connectData?.base64);
-      setLoading(false);
-      setHasQrBeenGenerated(true);
-      setCountdown(30);
-      if (data.state === "open") {
-        setConnectionStatus("ready");
-      }
-    } catch (err) {
-      console.error("Erro ao consultar instância:", err);
-      setError("Erro ao consultar status da instância.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError("");
+    setShowWhatsAppModal(true);
+    socketRef.current.emit("consult_instance", { ownerId });
+  }, [ownerId]);
+
+  const handleEmitInstance = React.useCallback(() => {
+    setLoading(true);
+    setError("");
+    setShowWhatsAppModal(true);
+    socketRef.current.emit("create_instance", { ownerId });
+  }, [ownerId]);
 
   React.useEffect(() => {
     socketRef.current = io("http://localhost:3000");
 
     socketRef.current.on("whatsapp_qrcode", (data) => {
-      if (data.qrcode?.base64) {
-        setQrCode(data.qrcode?.base64);
+      if (data.qrcode) {
+        setQrCode(typeof data.qrcode === "string" ? data.qrcode : data.qrcode.base64);
         setLoading(false);
         setHasQrBeenGenerated(true);
         setCountdown(30);
+        setConnectionStatus("");
+      }
+      if (data.error) {
+        setError(data.error);
+        setLoading(false);
       }
     });
 
     socketRef.current.on("whatsapp_connection_status", (data) => {
-      if (
-        data?.instance?.toString().trim() === instanceName.toString().trim()
-      ) {
-        setConnectionStatus(data.status || "desconhecido");
-        if (data.qrcode?.base64) setQrCode(data.qrcode.base64);
+  if (
+    data?.instance?.toString().trim() === instanceName.toString().trim() || !instanceName
+  ) {
+    const status = data.status || "desconhecido";
+    setConnectionStatus(status);
+    setLoading(false);
+
+    if (status === "open") {
+      setHasQrBeenGenerated(false);
+      setQrCode(null);
+    } else if (status === "connecting" || status === "close") {
+      if (data.qrcode?.base64) {
+        setQrCode(data.qrcode.base64);
+        setHasQrBeenGenerated(true);
+        setCountdown(30);
       }
+    }
+  }
+
+  if (data.error) {
+    setError(data.error);
+    setLoading(false);
+  }
+});
+
+
+    socketRef.current.on("whatsapp_error", (data) => {
+      setError(data.error || "Erro desconhecido");
+      setLoading(false);
     });
 
     return () => {
@@ -265,35 +256,6 @@ export default function DashboardLayoutBasic(props) {
     return () => clearInterval(interval);
   }, [qrCode]);
 
-  const handleEmitInstance = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/evolution/instance/create`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ownerId }),
-        }
-      );
-      const data = await res.json();
-      console.log("Dados da instância:", data);
-      if (data?.error) {
-        const errorMessage = data?.response?.message?.[0];
-        if (errorMessage?.includes("is already in use")) {
-          setShouldReconnect(true);
-          return;
-        } else {
-          setError(data.error);
-        }
-      }
-    } catch (err) {
-      setError("Erro ao criar instância");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <AppProvider
       navigation={getNavigation()}
@@ -308,9 +270,11 @@ export default function DashboardLayoutBasic(props) {
           ),
           toolbarActions: () => (
             <ToolbarActions
-              onOpenWhatsApp={handleCheckAndProceed}
-              onToggleIA={() => setShowIA((prev) => !prev)}
-            />
+  onOpenWhatsApp={handleCheckAndProceed}
+  onToggleIA={() => setShowIA((prev) => !prev)}
+  connectionStatus={connectionStatus} // <--- adicione isso
+/>
+
           ),
           sidebarFooter: SidebarFooter,
         }}

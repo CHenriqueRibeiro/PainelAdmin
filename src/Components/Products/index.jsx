@@ -162,8 +162,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
       setReporDialogOpen(false);
       fetchProducts();
     } catch (error) {
-      console.log(error);
-      // Validação Yup
       if (error.name === "ValidationError") {
         const errors = {};
         error.inner.forEach((err) => {
@@ -305,7 +303,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
       setEditDialogOpen(false);
       fetchProducts();
     } catch (error) {
-      console.log(error);
       if (error.name === "ValidationError") {
         const errors = {};
         error.inner.forEach((err) => {
