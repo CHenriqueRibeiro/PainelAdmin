@@ -33,6 +33,9 @@ import {
   Popper,
   Paper,
   ClickAwayListener,
+  FormControlLabel,
+  Checkbox,
+  Modal,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
@@ -128,6 +131,55 @@ const ScheduledServices = ({
   const dateServices = dayjs();
   const [openDialogConfirm, setOpenDialogConfirm] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+  const [addPhotos, setAddPhotos] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [openZoom, setOpenZoom] = useState(false);
+const [zoomImage, setZoomImage] = useState(null);
+const [cameraOpen, setCameraOpen] = useState(false);
+const videoRef = React.useRef();
+  const canvasRef = React.useRef();
+
+// Função para detectar mobile/tablet
+const isMobileOrTablet = () => /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+
+// Tira foto com a câmera traseira
+const handleOpenCamera = async () => {
+  setCameraOpen(true);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+    });
+    if (videoRef.current) videoRef.current.srcObject = stream;
+  } catch {
+    alert("Erro ao acessar a câmera.");
+    setCameraOpen(false);
+  }
+};
+
+const handleCapturePhoto = () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  if (!video || !canvas) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  canvas.toBlob((blob) => {
+    if (blob) {
+      const file = new File([blob], `foto-veiculo-${Date.now()}.jpg`, { type: "image/jpeg" });
+      setSelectedFiles((prev) => [...prev, file]);
+    }
+  }, "image/jpeg", 0.85);
+  let tracks = video.srcObject?.getTracks();
+  tracks && tracks.forEach((t) => t.stop());
+  setCameraOpen(false);
+};
+
+const handleCloseCamera = () => {
+  let tracks = videoRef.current?.srcObject?.getTracks();
+  tracks && tracks.forEach((t) => t.stop());
+  setCameraOpen(false);
+};
+
 
   const {
     handleSubmit,
@@ -2069,6 +2121,228 @@ const ScheduledServices = ({
                         Não há serviços disponíveis para a data selecionada.
                       </Typography>
                     )}
+                    <Box sx={{ mt: 2 }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        checked={addPhotos}
+        onChange={(e) => setAddPhotos(e.target.checked)}
+        sx={{ color: "#AC42F7" }}
+      />
+    }
+    label="Adicionar fotos do veículo"
+    sx={{ color: "#FFFFFF", fontWeight: 600 }}
+  />
+</Box>
+
+{addPhotos && (
+  <Box sx={{ mt: 2 }}>
+    <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+      {/* Botão Carregar fotos */}
+      <Button
+        variant="outlined"
+        color="secondary"
+        component="label"
+        sx={{
+          background: "#ac42f7",
+          color: "#FFF",
+          borderColor: "#ac42f7",
+          borderRadius: 3,
+          padding: "8px 24px",
+          fontSize: "1rem",
+          fontWeight: "bold",
+        }}
+      >
+        Carregar fotos
+        <input
+          type="file"
+          hidden
+          accept="image/*"
+          capture="environment"
+          multiple
+          onChange={(e) => {
+      setSelectedFiles([...selectedFiles, ...e.target.files]);
+      // Reset o valor do input
+      e.target.value = null;
+    }}
+        />
+      </Button>
+      {/* Botão Tirar Foto (mobile/tablet) */}
+      {isMobileOrTablet() && (
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{
+            background: "#AC42F7",
+            color: "#FFF",
+            borderRadius: 3,
+            padding: "8px 24px",
+            fontSize: "1rem",
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+          onClick={handleOpenCamera}
+          //startIcon={<CameraAltIcon />}
+        >
+          Tirar foto
+        </Button>
+      )}
+    </Box>
+
+    {/* Preview das imagens com lupa */}
+    {selectedFiles.length > 0 && (
+      <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
+        {selectedFiles.map((file, idx) => {
+          const url = URL.createObjectURL(file);
+          return (
+            <Box key={idx} sx={{ position: "relative", display: "inline-block" }}>
+              <img
+  src={URL.createObjectURL(file)}
+  alt={file.name}
+  width={120}
+  style={{ borderRadius: 8, boxShadow: "0 1px 6px #bbb", marginBottom: 6, cursor: "pointer" }}
+  onClick={() => {
+    setZoomImage({
+      url: URL.createObjectURL(file),
+      idx: idx, // <- Guarda o índice
+    });
+    setOpenZoom(true);
+  }}
+/>
+
+              <Typography color="#FFF" fontSize={12} textAlign="center" sx={{ maxWidth: 120, overflowWrap: "anywhere" }}>
+                {file.name}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    )}
+
+   {/* Modal de zoom */}
+<Modal open={openZoom} onClose={() => setOpenZoom(false)}>
+  <Box
+    sx={{
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      bgcolor: "#222",
+      borderRadius: 3,
+      outline: "none",
+      p: 2,
+      boxShadow: 10,
+      maxWidth: "95vw",
+      maxHeight: "90vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    }}
+  >
+    <img
+      src={zoomImage?.url}
+      alt="Zoom"
+      style={{
+        maxWidth: "90vw",
+        maxHeight: "90vh",
+        borderRadius: 12,
+        boxShadow: "0 2px 12px #000",
+      }}
+    />
+    <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+      <Button
+        onClick={() => setOpenZoom(false)}
+        sx={{
+          color: "#fff",
+          background: "#ac42f7",
+          "&:hover": { background: "#8030d7" },
+        }}
+      >
+        Fechar
+      </Button>
+      <Button
+        color="error"
+        sx={{
+          background: "#ff3333",
+          color: "#fff",
+          "&:hover": { background: "#ff5555" },
+        }}
+        onClick={() => {
+          setSelectedFiles(prev =>
+            prev.filter((_, i) => i !== zoomImage.idx)
+          );
+          setOpenZoom(false);
+        }}
+      >
+        Excluir
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+
+    {/* Modal de câmera */}
+    <Modal open={cameraOpen} onClose={handleCloseCamera}>
+      <Box
+        sx={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "#2e1065",
+          borderRadius: 3,
+          outline: "none",
+          p: 2,
+          boxShadow: 10,
+          width:"85%",
+          height:"85%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{ width: "98%", height:"80%",borderRadius: 12, background: "#000" }}
+        />
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+        <Button
+          onClick={handleCapturePhoto}
+          variant="contained"
+                              sx={{
+            mt:"1rem",
+            background: "#ac42f7",
+            color: "#FFF",
+            borderRadius: 3,
+            fontSize: "1rem",
+            fontWeight: "bold",
+          }}
+        >
+          Capturar Foto
+        </Button>
+        <Button
+          onClick={handleCloseCamera}
+                              sx={{
+            mt:"1rem",
+            background: "#fff",
+            color: "#ac42f7",
+            borderRadius: 3,
+            fontSize: "1rem",
+            fontWeight: "bold",
+          }}
+        >
+          Cancelar
+        </Button>
+      </Box>
+    </Modal>
+  </Box>
+)}
+
+
                   </>
                 )}
               </>
