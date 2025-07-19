@@ -2158,8 +2158,7 @@ const handleCloseCamera = () => {
           type="file"
           hidden
           accept="image/*"
-          capture="environment"
-          multiple
+  multiple
           onChange={(e) => {
       setSelectedFiles([...selectedFiles, ...e.target.files]);
       // Reset o valor do input
