@@ -2850,7 +2850,7 @@ const handleClosePhotoDialog = () => {
     sx={{
       position: "absolute",
       right: 16,
-      top: 16,
+      top: "3rem",
       color: "#fff",
       zIndex: 2,
     }}
@@ -2906,7 +2906,7 @@ const handleClosePhotoDialog = () => {
       variant="contained"
       color="error"
       sx={{
-        mt: 2,
+        mb: 1,
         mb:isMobile ? 5 : 0,
         background: "#ff3333",
         color: "#fff",
