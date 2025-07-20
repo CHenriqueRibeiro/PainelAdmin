@@ -94,6 +94,7 @@ export const AuthProvider = ({ children }) => {
         ...result.owner,
         statusConta: result.statusConta,
         dataLimite: result.dataLimite,
+        plan:result.plan.plano
       };
       setUser(userToStore);
       localStorage.setItem("authToken", result.token);

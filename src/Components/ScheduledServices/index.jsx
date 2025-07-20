@@ -45,7 +45,7 @@ import InputMask from "react-input-mask";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-///import Alert from "@mui/material/Alert";
+import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router";
 
@@ -101,7 +101,6 @@ const ScheduledServices = ({
   const [openDialogStatus, setOpenDialogStatus] = useState(false);
   const [currentStatus, setCurrentStatus] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState(null);
-  const [clientName, setClientName] = useState("");
   const [date, setDate] = useState("");
   const [statusCreateNew, setStatusCreateNew] = useState("");
   const [service, setService] = useState("");
@@ -138,11 +137,42 @@ const [zoomImage, setZoomImage] = useState(null);
 const [cameraOpen, setCameraOpen] = useState(false);
 const videoRef = React.useRef();
   const canvasRef = React.useRef();
+  const [openPhotoDialog, setOpenPhotoDialog] = useState(false);
+const [zoomPhotoData, setZoomPhotoData] = useState({ url: "", idx: -1 });
+const [appointmentPhotoId, setAppointmentPhotoId] = useState(null);
+const [existingPhotos, setExistingPhotos] = useState([]);
 
-// Função para detectar mobile/tablet
+
 const isMobileOrTablet = () => /android|iphone|ipad|mobile/i.test(navigator.userAgent);
 
-// Tira foto com a câmera traseira
+const user = JSON.parse(localStorage.getItem("user"));
+const plan = user?.plan || "teste";
+
+const maxPhotosByPlan = {
+  "teste": 2,
+  "simples": 2,
+  "profissional": 5,
+  "completo": 10,
+};
+const maxPhotos = maxPhotosByPlan[plan] ?? 2;
+
+const handleAddFiles = (files) => {
+  let filesArray = Array.from(files);
+
+  const restante = maxPhotos - existingPhotos.length - selectedFiles.length;
+
+  if (restante <= 0) return;
+
+  if (filesArray.length > restante) {
+    filesArray = filesArray.slice(0, restante);
+  }
+
+  setSelectedFiles((prev) => [...prev, ...filesArray]);
+};
+
+
+const canAddMorePhotos = selectedFiles.length < maxPhotos;
+
 const handleOpenCamera = async () => {
   setCameraOpen(true);
   try {
@@ -258,14 +288,18 @@ const handleCloseCamera = () => {
   };
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    //setSelectedAppointment(null);
-    //setSelectedDate("");
-    //setSelectedService("");
   };
-
+const handleOpenPhotoDialog = (agendamento) => {
+  setAppointmentPhotoId(agendamento._id);
+  setExistingPhotos(agendamento.fotos || []);
+  setSelectedFiles([]);
+  setOpenPhotoDialog(true);
+};
   const handleCloseDialogScheduling = () => {
     reset();
-    setOpenDialogScheduling(false);
+  setAddPhotos(false);
+  setSelectedFiles([]);
+  setOpenDialogScheduling(false);
   };
   const handleOpenDialogScheduling = () => {
     setCurrentSchema(schema);
@@ -538,76 +572,83 @@ const handleCloseCamera = () => {
     }
   };
 
-  const newScheduling = async (formData) => {
-    try {
-      setIsLoadingButtonSave(true);
-      const {
-        clientName,
-        clientPhone,
-        veiculo,
-        date,
-        service,
-        selectedSlot,
-        statusCreateNew,
-      } = formData;
+ const newScheduling = async (formData) => {
+  try {
+    setIsLoadingButtonSave(true);
+    const {
+      clientName,
+      clientPhone,
+      veiculo,
+      date,
+      service,
+      selectedSlot,
+      statusCreateNew,
+    } = formData;
 
-      const [startHourRaw, endHourRaw] = selectedSlot.split(" - ");
-      const [startHourH, startHourM] = startHourRaw.split(":").map(Number);
-      const [endHourH, endHourM] = endHourRaw.split(":").map(Number);
+    const [startHourRaw, endHourRaw] = selectedSlot.split(" - ");
+    const [startHourH, startHourM] = startHourRaw.split(":").map(Number);
+    const [endHourH, endHourM] = endHourRaw.split(":").map(Number);
 
-      const startHour = `${String(startHourH).padStart(2, "0")}:${String(startHourM).padStart(2, "0")}`;
-      const endHourDate = new Date();
-      endHourDate.setHours(endHourH, endHourM - 1);
-      const endTime = `${String(endHourDate.getHours()).padStart(2, "0")}:${String(endHourDate.getMinutes()).padStart(2, "0")}`;
+    const startHour = `${String(startHourH).padStart(2, "0")}:${String(startHourM).padStart(2, "0")}`;
+    const endHourDate = new Date();
+    endHourDate.setHours(endHourH, endHourM - 1);
+    const endTime = `${String(endHourDate.getHours()).padStart(2, "0")}:${String(endHourDate.getMinutes()).padStart(2, "0")}`;
 
-      const selectedService = availableServices.find(
-        (s) => s.serviceId === service
-      );
+    const selectedServiceObj = availableServices.find(
+      (s) => s.serviceId === service
+    );
 
-      const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clientName,
-            clientPhone,
-            veiculo,
-            serviceId: service,
-            date,
-            serviceName: selectedService?.serviceName,
-            establishmentId: establishmentId,
-            startTime: startHour,
-            endTime: endTime,
-            price: selectedService?.price,
-            status: statusCreateNew,
-            reminderWhatsapp,
-          }),
-        }
-      );
+    const fd = new FormData();
+    fd.append('clientName', clientName);
+    fd.append('clientPhone', clientPhone);
+    fd.append('veiculo', veiculo);
+    fd.append('serviceId', service);
+    fd.append('date', date);
+    fd.append('serviceName', selectedServiceObj?.serviceName);
+    fd.append('establishmentId', establishmentId);
+    fd.append('startTime', startHour);
+    fd.append('endTime', endTime);
+    fd.append('price', selectedServiceObj?.price);
+    fd.append('status', statusCreateNew);
+    fd.append('reminderWhatsapp', reminderWhatsapp);
 
-      if (!response.ok) {
-        throw new Error("Erro ao criar agendamento");
+    selectedFiles.forEach((file) => {
+      fd.append('fotos', file);
+    });
+
+    const response = await fetch(
+      `https://lavaja.up.railway.app/api/appointments/appointments`,
+      {
+        method: "POST",
+        body: fd,
       }
+    );
 
-      setSnackbarSeverity("success");
-      setSnackbarMessage("Agendamento salvo com sucesso!");
-      setOpenSnackbar(true);
-      setOpenDialogScheduling(false);
-      setSelectedAppointment(null);
-      onUpdateService();
-      reset();
-      setReminderWhatsapp(false);
-      setSelectedSlot("");
-    } catch (error) {
-      console.error("Erro:", error);
-      setSnackbarSeverity("error");
-      setSnackbarMessage("Erro ao criar agendamento.");
-      setOpenSnackbar(true);
-    } finally {
-      setIsLoadingButtonSave(false);
+    if (!response.ok) {
+      throw new Error("Erro ao criar agendamento");
     }
-  };
+
+    setSnackbarSeverity("success");
+    setSnackbarMessage("Agendamento salvo com sucesso!");
+    setOpenSnackbar(true);
+    setOpenDialogScheduling(false);
+    setSelectedAppointment(null);
+    onUpdateService();
+    reset();
+    setReminderWhatsapp(false);
+    setSelectedSlot("");
+    setSelectedFiles([]);
+    setAddPhotos(false);
+  } catch (error) {
+    console.error("Erro:", error);
+    setSnackbarSeverity("error");
+    setSnackbarMessage("Erro ao criar agendamento.");
+    setOpenSnackbar(true);
+  } finally {
+    setIsLoadingButtonSave(false);
+  }
+};
+
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -642,6 +683,11 @@ const handleCloseCamera = () => {
         return "default";
     }
   };
+const handleClosePhotoDialog = () => {
+  setOpenPhotoDialog(false);
+  setExistingPhotos([]);
+  setSelectedFiles([]);
+};
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -1114,6 +1160,16 @@ const handleCloseCamera = () => {
                       >
                         Alterar agendamento
                       </MenuItem>
+                      <MenuItem
+                        sx={{ fontSize: "10px", padding: "8px 16px" }}
+  onClick={() => {
+    handleOpenPhotoDialog(selectedItem);
+    handleMenuClose();
+  }}
+>
+  Fotos do veículo
+</MenuItem>
+
                     </Menu>
                   </Box>
                 </>
@@ -1211,6 +1267,16 @@ const handleCloseCamera = () => {
                     >
                       Alterar agendamento
                     </MenuItem>
+                      <MenuItem
+                        sx={{ fontSize: "10px", padding: "8px 16px" }}
+  onClick={() => {
+    handleOpenPhotoDialog(selectedItem);
+    handleMenuClose();
+  }}
+>
+  Fotos do veículo
+</MenuItem>
+
                   </Menu>
                 </>
               )}
@@ -2121,19 +2187,24 @@ const handleCloseCamera = () => {
                         Não há serviços disponíveis para a data selecionada.
                       </Typography>
                     )}
-                    <Box sx={{ mt: 2 }}>
+                    {availableServices && availableServices.length > 0 && <Box sx={{ mt: 2 }}>
   <FormControlLabel
-    control={
-      <Checkbox
-        checked={addPhotos}
-        onChange={(e) => setAddPhotos(e.target.checked)}
-        sx={{ color: "#AC42F7" }}
-      />
-    }
-    label="Adicionar fotos do veículo"
-    sx={{ color: "#FFFFFF", fontWeight: 600 }}
-  />
-</Box>
+  control={
+    <Checkbox
+      checked={addPhotos}
+      onChange={(e) => {
+        setAddPhotos(e.target.checked);
+        if (!e.target.checked) setSelectedFiles([]);
+      }}
+      sx={{ color: "#AC42F7 !important" }}
+    />
+  }
+  label="Adicionar fotos do veículo"
+  sx={{ color: "#FFFFFF", fontWeight: 600 }}
+/>
+
+</Box>}
+                    
 
 {addPhotos && (
   <Box sx={{ mt: 2 }}>
@@ -2149,24 +2220,24 @@ const handleCloseCamera = () => {
           borderColor: "#ac42f7",
           borderRadius: 3,
           padding: "8px 24px",
-          fontSize: "1rem",
+          fontSize: isMobile ? "0.6rem" :"0.8rem",
           fontWeight: "bold",
         }}
+        disabled={!canAddMorePhotos}
       >
         Carregar fotos
         <input
           type="file"
           hidden
           accept="image/*"
-  multiple
+          multiple
+          disabled={!canAddMorePhotos}
           onChange={(e) => {
-      setSelectedFiles([...selectedFiles, ...e.target.files]);
-      // Reset o valor do input
-      e.target.value = null;
-    }}
+            handleAddFiles(e.target.files);
+            e.target.value = null;
+          }}
         />
       </Button>
-      {/* Botão Tirar Foto (mobile/tablet) */}
       {isMobileOrTablet() && (
         <Button
           variant="contained"
@@ -2176,41 +2247,46 @@ const handleCloseCamera = () => {
             color: "#FFF",
             borderRadius: 3,
             padding: "8px 24px",
-            fontSize: "1rem",
+            fontSize: isMobile ? "0.6rem" :"0.8rem",
             fontWeight: "bold",
             display: "flex",
             alignItems: "center",
             gap: 1,
           }}
+          disabled={!canAddMorePhotos}
           onClick={handleOpenCamera}
-          //startIcon={<CameraAltIcon />}
         >
           Tirar foto
         </Button>
       )}
     </Box>
 
+
+    {selectedFiles.length >= maxPhotos && (
+      <Typography color="error" sx={{ mt: 1 }}>
+        Seu plano tem o limite de {maxPhotos} fotos por agendamento.
+      </Typography>
+    )}
+
     {/* Preview das imagens com lupa */}
     {selectedFiles.length > 0 && (
-      <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap", width:"100%"}}>
         {selectedFiles.map((file, idx) => {
-          const url = URL.createObjectURL(file);
           return (
-            <Box key={idx} sx={{ position: "relative", display: "inline-block" }}>
+            <Box key={idx} sx={{ width:"100%", display: "flex", justifyContent:'center', alignItems:"center", flexDirection:"column" }}>
               <img
-  src={URL.createObjectURL(file)}
-  alt={file.name}
-  width={120}
-  style={{ borderRadius: 8, boxShadow: "0 1px 6px #bbb", marginBottom: 6, cursor: "pointer" }}
-  onClick={() => {
-    setZoomImage({
-      url: URL.createObjectURL(file),
-      idx: idx, // <- Guarda o índice
-    });
-    setOpenZoom(true);
-  }}
-/>
-
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                width="100%"
+                style={{ borderRadius: 8, boxShadow: "0 1px 6px #bbb", marginBottom: 6, cursor: "pointer" }}
+                onClick={() => {
+                  setZoomImage({
+                    url: URL.createObjectURL(file),
+                    idx: idx,
+                  });
+                  setOpenZoom(true);
+                }}
+              />
               <Typography color="#FFF" fontSize={12} textAlign="center" sx={{ maxWidth: 120, overflowWrap: "anywhere" }}>
                 {file.name}
               </Typography>
@@ -2220,69 +2296,68 @@ const handleCloseCamera = () => {
       </Box>
     )}
 
-   {/* Modal de zoom */}
-<Modal open={openZoom} onClose={() => setOpenZoom(false)}>
-  <Box
-    sx={{
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      bgcolor: "#222",
-      borderRadius: 3,
-      outline: "none",
-      p: 2,
-      boxShadow: 10,
-      maxWidth: "95vw",
-      maxHeight: "90vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-    }}
-  >
-    <img
-      src={zoomImage?.url}
-      alt="Zoom"
-      style={{
-        maxWidth: "90vw",
-        maxHeight: "90vh",
-        borderRadius: 12,
-        boxShadow: "0 2px 12px #000",
-      }}
-    />
-    <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-      <Button
-        onClick={() => setOpenZoom(false)}
+    {/* Modal de zoom */}
+    <Modal open={openZoom} onClose={() => setOpenZoom(false)}>
+      <Box
         sx={{
-          color: "#fff",
-          background: "#ac42f7",
-          "&:hover": { background: "#8030d7" },
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "#222",
+          borderRadius: 3,
+          outline: "none",
+          p: 2,
+          boxShadow: 10,
+          maxWidth: "95vw",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
-        Fechar
-      </Button>
-      <Button
-        color="error"
-        sx={{
-          background: "#ff3333",
-          color: "#fff",
-          "&:hover": { background: "#ff5555" },
-        }}
-        onClick={() => {
-          setSelectedFiles(prev =>
-            prev.filter((_, i) => i !== zoomImage.idx)
-          );
-          setOpenZoom(false);
-        }}
-      >
-        Excluir
-      </Button>
-    </Box>
-  </Box>
-</Modal>
+        <img
+          src={zoomImage?.url}
+          alt="Zoom"
+          style={{
+            maxWidth: "90vw",
+            maxHeight: "90vh",
+            borderRadius: 12,
+            boxShadow: "0 2px 12px #000",
+          }}
+        />
+        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <Button
+            onClick={() => setOpenZoom(false)}
+            sx={{
+              color: "#fff",
+              background: "#ac42f7",
+              "&:hover": { background: "#8030d7" },
+            }}
+          >
+            Fechar
+          </Button>
+          <Button
+            color="error"
+            sx={{
+              background: "#ff3333",
+              color: "#fff",
+              "&:hover": { background: "#ff5555" },
+            }}
+            onClick={() => {
+              setSelectedFiles(prev =>
+                prev.filter((_, i) => i !== zoomImage.idx)
+              );
+              setOpenZoom(false);
+            }}
+          >
+            Excluir
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
 
 
-    {/* Modal de câmera */}
     <Modal open={cameraOpen} onClose={handleCloseCamera}>
       <Box
         sx={{
@@ -2295,8 +2370,8 @@ const handleCloseCamera = () => {
           outline: "none",
           p: 2,
           boxShadow: 10,
-          width:"85%",
-          height:"85%",
+          width: "85%",
+          height: "85%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -2312,7 +2387,7 @@ const handleCloseCamera = () => {
         <Button
           onClick={handleCapturePhoto}
           variant="contained"
-                              sx={{
+          sx={{
             mt:"1rem",
             background: "#ac42f7",
             color: "#FFF",
@@ -2320,12 +2395,13 @@ const handleCloseCamera = () => {
             fontSize: "1rem",
             fontWeight: "bold",
           }}
+          disabled={!canAddMorePhotos}
         >
           Capturar Foto
         </Button>
         <Button
           onClick={handleCloseCamera}
-                              sx={{
+          sx={{
             mt:"1rem",
             background: "#fff",
             color: "#ac42f7",
@@ -2340,6 +2416,7 @@ const handleCloseCamera = () => {
     </Modal>
   </Box>
 )}
+
 
 
                   </>
@@ -2438,6 +2515,490 @@ const handleCloseCamera = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+
+     <Dialog
+  open={openPhotoDialog}
+  onClose={handleClosePhotoDialog}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{
+    sx: { borderRadius: 4, background:
+                  "linear-gradient(to right, #cc99f6, #d19cf5, #d59ff5, #daa3f4)", color: "#6B21A8", minHeight: 340 }
+  }}
+>
+  <DialogTitle sx={{ fontWeight: 700, color: "#FFFFFF", textAlign:"center" }}>
+    Fotos do Veículo
+  </DialogTitle>
+  <DialogContent sx={{display:existingPhotos?.length > 0 ? "auto" : "flex", alignItems:existingPhotos?.length > 0 ? "auto" : "center", justifyContent:existingPhotos?.length > 0 ? "auto" : "center"}}>
+  {(existingPhotos?.length > 0) ? (
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 2,
+        mt: 2,
+        justifyContent: "center",
+      }}
+    >
+      {existingPhotos.map((url, idx) => (
+        <Box
+          key={idx}
+          sx={{
+            position: "relative",
+            width: isMobile && existingPhotos?.length > 0 ? "100%" : "45%",
+            mb: isMobile ? 2 : 3,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <img
+            src={url}
+            alt={`foto ${idx + 1}`}
+            style={{
+              width: "100%",
+              height: 160,
+              objectFit: "cover",
+              borderRadius: 10,
+              boxShadow: "0 1px 6px #bbb",
+              cursor: "pointer",
+            }}
+            onClick={() => setZoomPhotoData({ url, idx })}
+          />
+          <IconButton
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 2,
+              right: 2,
+              background: "#fff",
+              color: "#AC42F7",
+              p: "3px",
+              zIndex: 2,
+            }}
+            onClick={async () => {
+              const newPhotos = existingPhotos.filter((_, i) => i !== idx);
+              const resp = await fetch(
+                `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ fotos: newPhotos }),
+                }
+              );
+              if (resp.ok) {
+  const data = await resp.json();
+  setExistingPhotos(data.appointment.fotos || []);
+  if (typeof onUpdateService === "function") onUpdateService();
+  setSelectedFiles([]);
+  setOpenPhotoDialog(false);
+  setSnackbarMessage("Fotos enviadas com sucesso!");
+  setOpenSnackbar(true);
+} else {
+  setSnackbarMessage("Erro ao enviar fotos!");
+  setOpenSnackbar(true);
+}
+
+
+            }}
+          >
+            <DeleteRoundedIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+    </Box>
+          ) : (<>
+              <Box sx={{display:selectedFiles.length > 0 ? "none":"flex", alignItems:"center",justifyContent:"center"}}>
+    <Typography sx={{ color: "#FFFFFF", mt: 2 }}>
+      Nenhuma foto cadastrada para este agendamento.
+    </Typography>
+              </Box>
+              </>
+
+  )}
+
+  {selectedFiles.length > 0 && (
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 2,
+      mt: 2,
+      justifyContent: "center",
+    }}
+  >
+    {selectedFiles.map((file, idx) => (
+      <Box
+        key={idx}
+        sx={{
+          position: "relative",
+          width: isMobile ? "100%" : "45%",
+          mb: isMobile ? 2 : 3,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <img
+          src={URL.createObjectURL(file)}
+          alt={`foto nova ${idx + 1}`}
+          style={{
+            width: "100%",
+            height: 160,
+            objectFit: "cover",
+            borderRadius: 10,
+            boxShadow: "0 1px 6px #bbb",
+            cursor: "pointer",
+          }}
+          onClick={() => setZoomPhotoData({ url: URL.createObjectURL(file), idx: -1 })}
+        />
+        <IconButton
+          size="small"
+          sx={{
+            position: "absolute",
+            top: 2,
+            right: 2,
+            background: "#fff",
+            color: "#AC42F7",
+            p: "3px",
+            zIndex: 2,
+          }}
+          onClick={() => {
+            setSelectedFiles((prev) => prev.filter((_, i) => i !== idx));
+          }}
+        >
+          <DeleteRoundedIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    ))}
+  </Box>
+)}
+
+</DialogContent>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+          <Box sx={{width:"75%", background:"#FFFFFF", borderRadius:1.5}}><Typography sx={{ textAlign:"center",color: "#ac42f7", fontSize: 13}}>
+    Limite do seu plano: {maxPhotos} fotos por agendamento.<br />
+
+  </Typography></Box>
+           
+  </Box>
+ 
+        <DialogActions
+          sx={{
+    display: "flex",
+    flexDirection: isMobile ? "column" : "row",
+    gap: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    pt: isMobile? 1 : 2,
+    pb: isMobile ? 1 : 2,
+  }}
+        >
+         {existingPhotos.length + selectedFiles.length < maxPhotos && (
+  <Button
+    variant="outlined"
+    component="label"
+              sx={{
+      width: isMobile ? "100%" : "auto",
+      background: "#ac42f7",
+      color: "#FFF",
+      borderRadius: 3,
+      fontSize:"0.8rem",
+      fontWeight: "bold",
+      padding: "8px 24px",
+      borderColor:"#ac42f7"
+    }}
+  >
+    Adicionar fotos
+    <input
+      type="file"
+      hidden
+      accept="image/*"
+      multiple
+      onChange={(e) => {
+        handleAddFiles(e.target.files);
+        e.target.value = null;
+      }}
+    />
+  </Button>
+          )}
+          {existingPhotos.length + selectedFiles.length < maxPhotos && isMobileOrTablet() && (
+  <Button
+    variant="contained"
+    color="secondary"
+              sx={{
+      width: isMobile ? "100%" : "auto",
+      background: "#AC42F7",
+      color: "#FFF",
+                borderRadius: 3,
+      ml:"0 !important",
+      padding: "8px 24px",
+      fontWeight: "bold",
+      fontSize:"0.8rem"
+    }}
+    onClick={handleOpenCamera}
+  >
+    Tirar foto
+  </Button>
+)}
+   
+    {selectedFiles.length > 0 && (
+  <Button
+    variant="contained"
+              sx={{
+                ml:"0 !important",
+      width: isMobile ? "100%" : "auto",
+      background: "#ac42f7",
+      color: "#FFF",
+                borderRadius: 3,
+      padding: "8px 24px",
+      fontWeight: "bold",
+      fontSize:"0.8rem"
+    }}
+   onClick={async () => {
+  if (!appointmentPhotoId) return;
+  const fd = new FormData();
+
+  existingPhotos.forEach((url) => fd.append("fotos", url));
+
+  selectedFiles.forEach((file) => fd.append("fotos", file));
+
+  try {
+    const resp = await fetch(
+      `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+      { method: "PUT", body: fd }
+    );
+    if (resp.ok) {
+      const agendamentoResp = await fetch(
+        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}`
+      );
+      if (agendamentoResp.ok) {
+        const agendamento = await agendamentoResp.json();
+        setExistingPhotos(agendamento.fotos || []);
+      }
+      if (typeof onUpdateService === "function") onUpdateService();
+      setSelectedFiles([]);
+      setOpenPhotoDialog(false);
+      setSnackbarMessage("Fotos enviadas com sucesso!");
+      setOpenSnackbar(true);
+    } else {
+      setSnackbarMessage("Erro ao enviar fotos!");
+      setOpenSnackbar(true);
+    }
+  } catch (e) {
+    setSnackbarMessage("Erro ao enviar fotos!");
+    setOpenSnackbar(true);
+  }
+}}
+
+  >
+    Salvar fotos
+  </Button>
+)}
+ <Button
+      onClick={handleClosePhotoDialog}
+            sx={{
+              ml:"0 !important",
+        width: isMobile ? "100%" : "auto",
+        background: "#FFF",
+        color: "#ac42f7",
+        borderRadius: 3,
+        padding: "8px 24px",
+        fontWeight: "bold",
+      fontSize:"0.8rem"
+      }}
+    >
+      Fechar
+    </Button>
+  </DialogActions>
+
+  <Dialog
+  open={Boolean(zoomPhotoData.url)}
+  onClose={() => setZoomPhotoData({ url: "", idx: -1 })}
+  PaperProps={{
+    sx: isMobile
+      ? {
+          background: "#18151c",
+          width: "100vw !important",
+          maxWidth: "100vw !important",
+          minHeight: "100vh",
+          m: 0,
+          p: 0,
+          borderRadius: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }
+      : {
+          background: "rgba(24, 21, 28, 0.95)",
+          width: "85vw !important",
+          maxWidth: "100%",
+          height: "90vh",
+          boxShadow: 24,
+          borderRadius: 5,
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        },
+  }}
+>
+  <IconButton
+    onClick={() => setZoomPhotoData({ url: "", idx: -1 })}
+    sx={{
+      position: "absolute",
+      right: 16,
+      top: 16,
+      color: "#fff",
+      zIndex: 2,
+    }}
+  >
+    <CloseIcon />
+  </IconButton>
+  <Box
+    sx={
+      isMobile
+        ? {
+            width: "100vw",
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflowX: "auto",
+            overflowY: "auto",
+          }
+        : {
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }
+    }
+  >
+    <img
+      src={zoomPhotoData.url}
+      alt="Zoom"
+      style={
+        isMobile
+          ? {
+              objectFit: "contain",
+              minWidth: "85vw",
+              minHeight: "80vh",
+              maxWidth: "80vw",
+              maxHeight: "none",
+              borderRadius: 0,
+            }
+          : {
+              objectFit: "contain",
+              width: "90%",
+              height: "90%",
+              borderRadius: 10,
+              boxShadow: "0 2px 18px #222",
+            }
+      }
+    />
+  </Box>
+  {zoomPhotoData.idx !== -1 && (
+    <Button
+      variant="contained"
+      color="error"
+      sx={{
+        mt: 2,
+        mb:isMobile ? 5 : 0,
+        background: "#ff3333",
+        color: "#fff",
+        borderRadius: 3,
+        fontWeight: "bold",
+      }}
+      onClick={async () => {
+        const idx = zoomPhotoData.idx;
+        const newPhotos = existingPhotos.filter((_, i) => i !== idx);
+        const resp = await fetch(
+          `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fotos: newPhotos }),
+          }
+        );
+        if (resp.ok) {
+          setExistingPhotos(newPhotos);
+          setZoomPhotoData({ url: "", idx: -1 });
+          if (typeof onUpdateService === "function")
+          onUpdateService();
+          setSnackbarMessage("Foto excluída com sucesso!");
+          setOpenSnackbar(true);
+        } else {
+          setSnackbarMessage("Erro ao excluir foto!");
+          setOpenSnackbar(true);
+        }
+      }}
+    >
+      Excluir foto
+    </Button>
+  )}
+</Dialog>
+</Dialog>
+
+<Modal open={cameraOpen} onClose={handleCloseCamera}>
+      <Box
+        sx={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "#2e1065",
+          borderRadius: 3,
+          outline: "none",
+          p: 2,
+          boxShadow: 10,
+          width: "85%",
+          height: "85%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{ width: "98%", height:"80%",borderRadius: 12, background: "#000" }}
+        />
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+        <Button
+          onClick={handleCapturePhoto}
+          variant="contained"
+          sx={{
+            mt:"1rem",
+            background: "#ac42f7",
+            color: "#FFF",
+            borderRadius: 3,
+            fontSize: "1rem",
+            fontWeight: "bold",
+          }}
+          disabled={!canAddMorePhotos}
+        >
+          Capturar Foto
+        </Button>
+        <Button
+          onClick={handleCloseCamera}
+          sx={{
+            mt:"1rem",
+            background: "#fff",
+            color: "#ac42f7",
+            borderRadius: 3,
+            fontSize: "1rem",
+            fontWeight: "bold",
+          }}
+        >
+          Cancelar
+        </Button>
+      </Box>
+    </Modal>
     </Box>
   );
 };
