@@ -997,10 +997,10 @@ const handleClosePhotoDialog = () => {
       )}
       <Box
         sx={{
-          overflow: "auto",
-          maxHeight: isMobile ? "30rem" : "30rem",
-          pb: 5,
-        }}
+    overflowY: "auto",
+    maxHeight: isMobile ? "100%" : "30rem",
+    pb: isMobile ? 10 : 5,
+  }}
       >
         {loading ? (
           <Box
