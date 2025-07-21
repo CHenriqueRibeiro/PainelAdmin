@@ -79,6 +79,25 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       setServicesList(dataEstablishment[0].services);
     }
   }, [vincularServicos, dataEstablishment]);
+  function ajustarUnidadeConsumo(unidadePrincipal) {
+  if (unidadePrincipal === "L") return "L";
+  if (unidadePrincipal === "mL") return "mL";
+  if (unidadePrincipal === "g") return "g";
+  if (unidadePrincipal === "unidade") return "unidade";
+  return unidadePrincipal;
+}
+
+useEffect(() => {
+  if (vincularServicos) {
+    setServicosVinculados((prev) =>
+      prev.map((s) => ({
+        ...s,
+        unidadeConsumo: ajustarUnidadeConsumo(unidade),
+      }))
+    );
+  }
+  // eslint-disable-next-line
+}, [unidade]);
 
   const handleCreateProduct = async () => {
     const data = {
@@ -176,11 +195,12 @@ const NewProducts = ({ dataEstablishment, setEstablishment = () => {} }) => {
   };
 
   const addNovoServico = () => {
-    setServicosVinculados((prev) => [
-      ...prev,
-      { service: "", consumoPorServico: "", unidadeConsumo: unidade },
-    ]);
-  };
+  setServicosVinculados((prev) => [
+    ...prev,
+    { service: "", consumoPorServico: "", unidadeConsumo: ajustarUnidadeConsumo(unidade) },
+  ]);
+};
+
 
   const removerServico = (index) => {
     setServicosVinculados((prev) => prev.filter((_, i) => i !== index));
