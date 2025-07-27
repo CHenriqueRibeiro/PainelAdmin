@@ -140,23 +140,6 @@ useEffect(() => {
   }
 }, [owner]);
 
-
-
-    socket.on("disconnect", () => {
-      console.warn("🔌 Desconectado do WebSocket");
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("❌ Erro na conexão WebSocket:", err.message);
-    });
-
-    return () => {
-      socket.disconnect();
-      console.log("🛑 Socket desconectado");
-    };
-  }
-}, [owner]);
-
   const handleServiceUpdated = () => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
