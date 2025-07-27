@@ -20,6 +20,7 @@ import Costs from "../Screens/Costs";
 import Products from "../Screens/Products";
 import Budgets from "../Screens/Budgets";
 import PublicBudgetPage from "../Screens/PublicBudgetPage";
+import AgendamentoPublico from "../Screens/PublicScheduling";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
@@ -53,7 +54,10 @@ const Rotas = () => {
 
         <Route path="/acessoNegado" element={<Screen401 />} />
         <Route path="/orcamento" element={<PublicBudgetPage />} />
-
+<Route
+          path="/agendamento/:establishmentId"
+          element={<AgendamentoPublico />}
+        />
         <Route
           path="/home"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
