@@ -101,7 +101,7 @@ export default function Home() {
 
  useEffect(() => {
   if (owner?.establishments?.[0]?._id) {
-    const establishmentId = owner.establishments[0]._id;
+    const establishmentId = owner?.establishments?.[0]?._id;
 
     const socket = io("https://lavaja.up.railway.app");
 
@@ -110,8 +110,9 @@ export default function Home() {
     });
 
     socket.on("novo_agendamento", (data) => {
+      console.log("📣 Novo agendamento recebido via WebSocket:", data);
       setShowNotification(true);
-      fetchAppointments(owner.establishments[0]._id);
+      fetchAppointments(owner?.establishments[0]?._id);
     });
 
     socket.on("disconnect", () => {
@@ -124,6 +125,7 @@ export default function Home() {
 
     return () => {
       socket.disconnect();
+      console.log("🛑 Socket desconectado");
     };
   }
 }, [owner]);
@@ -178,11 +180,12 @@ export default function Home() {
         />
       </Box>
 
+      {/* Notificação de novo agendamento */}
       <Snackbar
         open={showNotification}
         autoHideDuration={3000}
         onClose={() => setShowNotification(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity="success" sx={{ width: "100%" }}>
           Novo agendamento recebido!
