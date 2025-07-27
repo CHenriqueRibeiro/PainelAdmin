@@ -21,7 +21,7 @@ export default function Home() {
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
+        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
         {
           method: "GET",
           headers: {
@@ -42,7 +42,7 @@ export default function Home() {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/establishment/owner/${ownerId}`,
+        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -103,7 +103,7 @@ export default function Home() {
   if (owner?.establishments?.[0]?._id) {
     const establishmentId = owner?.establishments?.[0]?._id;
 
-    const socket = io("http://localhost:3000");
+    const socket = io("https://lavaja.up.railway.app");
 
     socket.on("connect", () => {
       socket.emit("join_establishment_room", establishmentId);
