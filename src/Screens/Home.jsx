@@ -19,25 +19,28 @@ export default function Home() {
   const [showNotification, setShowNotification] = useState(false);
 
   const fetchAppointments = async (establishmentId) => {
-    try {
-      const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      setServices(data);
-    } catch (err) {
-      console.error("Erro ao buscar agendamentos:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  console.log("📥 Chamando fetchAppointments para:", establishmentId, "na data:", daySelect);
+  try {
+    const response = await fetch(
+      `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    console.log("📦 Dados recebidos de agendamentos:", data);
+    setServices(data);
+  } catch (err) {
+    console.error("❌ Erro ao buscar agendamentos:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const establishmentSearch = async () => {
     try {
@@ -99,20 +102,27 @@ export default function Home() {
     }
   }, [daySelect]);
 
- useEffect(() => {
+useEffect(() => {
   if (owner?.establishments?.[0]?._id) {
-    const establishmentId = owner?.establishments?.[0]?._id;
+    const establishmentId = owner.establishments[0]._id;
+    console.log("🔌 Conectando ao WebSocket para establishmentId:", establishmentId);
 
     const socket = io("https://lavaja.up.railway.app");
 
     socket.on("connect", () => {
+      console.log("✅ WebSocket conectado");
       socket.emit("join_establishment_room", establishmentId);
     });
 
     socket.on("novo_agendamento", (data) => {
       console.log("📣 Novo agendamento recebido via WebSocket:", data);
       setShowNotification(true);
-      fetchAppointments(owner?.establishments[0]?._id);
+
+      console.log("⏳ Aguardando 1s antes de buscar agendamentos");
+      setTimeout(() => {
+        console.log("🔁 Chamando fetchAppointments após WebSocket");
+        fetchAppointments(establishmentId);
+      }, 1000); // opcionalmente aumente para 1500ms se necessário
     });
 
     socket.on("disconnect", () => {
