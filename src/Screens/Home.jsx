@@ -1,10 +1,10 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Snackbar, Alert } from "@mui/material";
 import DailyStatus from "../Components/DailyStats";
 import ScheduledServices from "../Components/ScheduledServices";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import WelcomeModal from "../Components/WelcomeModal";
-
+import { io } from "socket.io-client";
 
 export default function Home() {
   const ownerUser = JSON.parse(localStorage.getItem("user"));
@@ -16,7 +16,7 @@ export default function Home() {
   const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-
+  const [showNotification, setShowNotification] = useState(false);
 
   const fetchAppointments = async (establishmentId) => {
     try {
@@ -67,6 +67,7 @@ export default function Home() {
     if (owner) {
       const steps = owner.onboardingSteps;
       const precisaMostrarOnboarding = !(steps?.estabelecimento && steps?.servico);
+
       function isDataLimiteExpirada() {
         if (!owner.dataLimite) return false;
         const agora = new Date();
@@ -81,17 +82,14 @@ export default function Home() {
       }
 
       const expirado = isDataLimiteExpirada();
-
       setShowWelcomeModal(precisaMostrarOnboarding || expirado);
     }
   }, [owner]);
+
   useEffect(() => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
-    } else if (
-      owner &&
-      (!owner.establishments || owner.establishments.length === 0)
-    ) {
+    } else if (owner && (!owner.establishments || owner.establishments.length === 0)) {
       setLoading(false);
     }
   }, [owner]);
@@ -100,6 +98,36 @@ export default function Home() {
       fetchAppointments(owner.establishments[0]._id);
     }
   }, [daySelect]);
+
+ useEffect(() => {
+  if (owner?.establishments?.[0]?._id) {
+    const establishmentId = owner.establishments[0]._id;
+
+    const socket = io("https://lavaja.up.railway.app");
+
+    socket.on("connect", () => {
+      socket.emit("join_establishment_room", establishmentId);
+    });
+
+    socket.on("novo_agendamento", (data) => {
+      setShowNotification(true);
+      fetchAppointments(owner.establishments[0]._id);
+    });
+
+    socket.on("disconnect", () => {
+      console.warn("🔌 Desconectado do WebSocket");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Erro na conexão WebSocket:", err.message);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }
+}, [owner]);
+
   const handleServiceUpdated = () => {
     if (owner?.establishments?.[0]?._id) {
       fetchAppointments(owner.establishments[0]._id);
@@ -149,6 +177,17 @@ export default function Home() {
           setDaySelect={setDaySelect}
         />
       </Box>
+
+      <Snackbar
+        open={showNotification}
+        autoHideDuration={3000}
+        onClose={() => setShowNotification(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert severity="success" sx={{ width: "100%" }}>
+          Novo agendamento recebido!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

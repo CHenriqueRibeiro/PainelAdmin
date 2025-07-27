@@ -22,6 +22,8 @@ import {
   InputLabel,
   Snackbar,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ModeEditRoundedIcon from "@mui/icons-material/ModeEditRounded";
@@ -29,7 +31,7 @@ import InputMask from "react-input-mask";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
-
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 // eslint-disable-next-line react/prop-types
 const ScheduledData = ({
   dataEstablishment,
@@ -37,6 +39,8 @@ const ScheduledData = ({
   setService = () => {},
   setEstablishment = () => {},
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isEditing, setIsEditing] = useState(false);
   const [editEstablishmentId, setEditEstablishmentId] = useState("");
   const [originalCep, setOriginalCep] = useState("");
@@ -677,11 +681,18 @@ const ScheduledData = ({
           <DialogContent>
             <Grid2 container spacing={1.5} sx={{ mt: 2 }}>
               <Grid2 size={{ xs: 12 }}>
-                <InputLabel
-                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-                >
-                  Nome do Estabelecimento
-                </InputLabel>
+                <Grid2 container size={{ xs: 12 }} sx={{display:"flex", alignItems:"center", justifyContent:"flex-start"}}>
+                    <InputLabel
+                      sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
+                  >
+                    Nome do Estabelecimento
+                    </InputLabel>
+                    {!isMobile && (
+                      <Tooltip title="Nome do estabelecimento que vai aparecer no agendamento do seu cliente" sx={{ml:1, fontSize:20,  pb: 0.5,}}>
+                      <InfoRoundedIcon />
+                  </Tooltip>
+                    )}
+                </Grid2>
                 <TextField
                   placeholder="Digite o nome do estabelecimento"
                   fullWidth
