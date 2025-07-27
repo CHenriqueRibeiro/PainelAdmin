@@ -21,7 +21,7 @@ export default function Home() {
   const fetchAppointments = async (establishmentId) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
+        `http://localhost:3000/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
         {
           method: "GET",
           headers: {
@@ -42,7 +42,7 @@ export default function Home() {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -101,17 +101,18 @@ export default function Home() {
 
  useEffect(() => {
   if (owner?.establishments?.[0]?._id) {
-    const establishmentId = owner.establishments[0]._id;
+    const establishmentId = owner?.establishments?.[0]?._id;
 
-    const socket = io("https://lavaja.up.railway.app");
+    const socket = io("http://localhost:3000");
 
     socket.on("connect", () => {
       socket.emit("join_establishment_room", establishmentId);
     });
 
     socket.on("novo_agendamento", (data) => {
+      console.log("📣 Novo agendamento recebido via WebSocket:", data);
       setShowNotification(true);
-      fetchAppointments(owner.establishments[0]._id);
+      fetchAppointments(owner?.establishments[0]?._id);
     });
 
     socket.on("disconnect", () => {
@@ -124,6 +125,7 @@ export default function Home() {
 
     return () => {
       socket.disconnect();
+      console.log("🛑 Socket desconectado");
     };
   }
 }, [owner]);
@@ -178,11 +180,12 @@ export default function Home() {
         />
       </Box>
 
+      {/* Notificação de novo agendamento */}
       <Snackbar
         open={showNotification}
         autoHideDuration={3000}
         onClose={() => setShowNotification(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity="success" sx={{ width: "100%" }}>
           Novo agendamento recebido!
