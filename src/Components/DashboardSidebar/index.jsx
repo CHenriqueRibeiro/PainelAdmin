@@ -2,9 +2,8 @@ import * as React from "react";
 import { createTheme } from "@mui/material/styles";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { Box, IconButton, Tooltip } from "@mui/material";
-
+import { Outlet, useNavigate } from "react-router-dom";
+import { Box, IconButton, Tooltip, Snackbar, Alert as MuiAlert } from "@mui/material";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
@@ -13,8 +12,10 @@ import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import LinkIcon from "@mui/icons-material/Link";
 import ChatPopUpIA from "../ChatPopUpIA";
-import { useAuth } from "../../Context/AuthContext";
+import { useAuth, AuthProvider } from "../../Context/AuthContext";
 
 const NAVIGATION = [
   {
@@ -29,7 +30,6 @@ const NAVIGATION = [
   {
     segment: "Relatorios",
     icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
-    onClick: () => Navigate("/relatorios"),
   },
   {
     segment: "Gestão",
@@ -42,9 +42,7 @@ const NAVIGATION = [
       },
       {
         segment: "Orcamentos",
-        icon: (
-          <DescriptionRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />
-        ),
+        icon: <DescriptionRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
       },
       {
         segment: "Estoque",
@@ -95,10 +93,38 @@ function SidebarFooter() {
   );
 }
 
-// eslint-disable-next-line react/prop-types
 function ToolbarActionsIA({ onToggleIA }) {
+  const [snackOpen, setSnackOpen] = React.useState(false);
+  let establishmentId = "";
+  const userStr = localStorage.getItem("user");
+if (userStr) {
+  try {
+    const userObj = JSON.parse(userStr);
+    establishmentId = userObj.establishmentId;
+  } catch (e) {
+    establishmentId = "";
+  }
+}
+  const publicLink = establishmentId
+    ? `${window.location.origin}/agendamento/${establishmentId}`
+    : "";
+
+  const handleCopyLink = async () => {
+    if (publicLink) {
+      await navigator.clipboard.writeText(publicLink);
+      setSnackOpen(true);
+    }
+  };
+
+
   return (
-    <Box sx={{ pr: 2 }}>
+    <Box sx={{ display: "flex", alignItems: "center", pr: 2 }}>
+      {establishmentId && <Tooltip title="Abrir página pública de agendamento">
+        <IconButton onClick={handleCopyLink} sx={{ color: "#6A1B9A" }}>
+          <LinkIcon />
+        </IconButton>
+      </Tooltip>}
+       
       <Box
         onClick={onToggleIA}
         sx={{
@@ -119,63 +145,73 @@ function ToolbarActionsIA({ onToggleIA }) {
       >
         JáIA 💡
       </Box>
+     
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MuiAlert elevation={6} variant="filled" severity="success">
+          Link copiado!
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 }
 
 export default function DashboardLayoutBasic(props) {
-  // eslint-disable-next-line react/prop-types
   const { window } = props;
   const demoWindow = window ? window() : undefined;
-
   const [showIA, setShowIA] = React.useState(false);
   const token = localStorage.getItem("authToken");
 
   return (
-    <AppProvider navigation={NAVIGATION} theme={demoTheme} window={demoWindow}>
-      <DashboardLayout
-        sidebarExpandedWidth={230}
-        slots={{
-          appTitle: () => (
-            <Box sx={{ pl: 2, fontWeight: "bold", color: "#6A1B9A" }}></Box>
-          ),
-          toolbarActions: () => (
-            <ToolbarActionsIA onToggleIA={() => setShowIA((prev) => !prev)} />
-          ),
-          sidebarFooter: SidebarFooter,
-        }}
-        sx={{
-          "& .MuiAppBar-root": {
-            height: "4rem",
-            background: "#F9F8FF",
-            display: "flex",
-            justifyContent: "center",
-            border: 0,
-          },
-          "& .MuiDrawer-paper": {
-            pt: 2,
-            borderColor: "#F1EEFF",
-            background: "#F9F8FF",
-          },
-          "& .MuiListItemText-root.MuiTypography-root.MuiTypography-body1": {
-            color: "#AC42F7",
-          },
-          "& .MuiListItemIcon-root svg": {
-            color: "#6A1B9A",
-            fontSize: "28px",
-          },
-          "& .MuiIconButton-root.MuiIconButton-sizeMedium": {
-            color: "#6A1B9A",
-          },
-        }}
-      >
-        <Outlet />
-        <ChatPopUpIA
-          open={showIA}
-          onClose={() => setShowIA(false)}
-          token={token}
-        />
-      </DashboardLayout>
-    </AppProvider>
+
+      <AppProvider navigation={NAVIGATION} theme={demoTheme} window={demoWindow}>
+        <DashboardLayout
+          sidebarExpandedWidth={230}
+          slots={{
+            appTitle: () => (
+              <Box sx={{ pl: 2, fontWeight: "bold", color: "#6A1B9A" }}></Box>
+            ),
+            toolbarActions: () => (
+              <ToolbarActionsIA onToggleIA={() => setShowIA((prev) => !prev)} />
+            ),
+            sidebarFooter: SidebarFooter,
+          }}
+          sx={{
+            "& .MuiAppBar-root": {
+              height: "4rem",
+              background: "#F9F8FF",
+              display: "flex",
+              justifyContent: "center",
+              border: 0,
+            },
+            "& .MuiDrawer-paper": {
+              pt: 2,
+              borderColor: "#F1EEFF",
+              background: "#F9F8FF",
+            },
+            "& .MuiListItemText-root.MuiTypography-root.MuiTypography-body1": {
+              color: "#AC42F7",
+            },
+            "& .MuiListItemIcon-root svg": {
+              color: "#6A1B9A",
+              fontSize: "28px",
+            },
+            "& .MuiIconButton-root.MuiIconButton-sizeMedium": {
+              color: "#6A1B9A",
+            },
+          }}
+        >
+          <Outlet />
+          <ChatPopUpIA
+            open={showIA}
+            onClose={() => setShowIA(false)}
+            token={token}
+          />
+        </DashboardLayout>
+      </AppProvider>
   );
 }
