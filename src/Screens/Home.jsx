@@ -19,7 +19,6 @@ export default function Home() {
   const [showNotification, setShowNotification] = useState(false);
 
   const fetchAppointments = async (establishmentId) => {
-  console.log("📥 Chamando fetchAppointments para:", establishmentId, "na data:", daySelect);
   try {
     const response = await fetch(
       `https://lavaja.up.railway.app/api/appointments/appointments/${establishmentId}?date=${daySelect}`,
@@ -32,7 +31,6 @@ export default function Home() {
       }
     );
     const data = await response.json();
-    console.log("📦 Dados recebidos de agendamentos:", data);
     setServices(data);
   } catch (err) {
     console.error("❌ Erro ao buscar agendamentos:", err);
@@ -105,24 +103,19 @@ export default function Home() {
 useEffect(() => {
   if (owner?.establishments?.[0]?._id) {
     const establishmentId = owner.establishments[0]._id;
-    console.log("🔌 Conectando ao WebSocket para establishmentId:", establishmentId);
 
     const socket = io("https://lavaja.up.railway.app");
 
     socket.on("connect", () => {
-      console.log("✅ WebSocket conectado");
       socket.emit("join_establishment_room", establishmentId);
     });
 
     socket.on("novo_agendamento", (data) => {
-      console.log("📣 Novo agendamento recebido via WebSocket:", data);
       setShowNotification(true);
 
-      console.log("⏳ Aguardando 1s antes de buscar agendamentos");
       setTimeout(() => {
-        console.log("🔁 Chamando fetchAppointments após WebSocket");
         fetchAppointments(establishmentId);
-      }, 1000); // opcionalmente aumente para 1500ms se necessário
+      }, 500);
     });
 
     socket.on("disconnect", () => {
@@ -135,7 +128,6 @@ useEffect(() => {
 
     return () => {
       socket.disconnect();
-      console.log("🛑 Socket desconectado");
     };
   }
 }, [owner]);
