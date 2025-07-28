@@ -119,7 +119,7 @@ if (userStr) {
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", pr: 2 }}>
-      {establishmentId && <Tooltip title="Abrir página pública de agendamento">
+      {establishmentId && <Tooltip title="Copiar link de agendamento">
         <IconButton onClick={handleCopyLink} sx={{ color: "#6A1B9A" }}>
           <LinkIcon />
         </IconButton>
@@ -152,10 +152,11 @@ if (userStr) {
         onClose={() => setSnackOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MuiAlert elevation={6} variant="filled" severity="success">
+        <MuiAlert elevation={6}>
           Link copiado!
         </MuiAlert>
       </Snackbar>
+      
     </Box>
   );
 }
