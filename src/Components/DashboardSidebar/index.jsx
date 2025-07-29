@@ -12,10 +12,9 @@ import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import LinkIcon from "@mui/icons-material/Link";
 import ChatPopUpIA from "../ChatPopUpIA";
-import { useAuth, AuthProvider } from "../../Context/AuthContext";
+import { useAuth} from "../../Context/AuthContext";
 
 const NAVIGATION = [
   {
@@ -94,20 +93,16 @@ function SidebarFooter() {
 }
 
 function ToolbarActionsIA({ onToggleIA }) {
+   const {establishments } = useAuth();
   const [snackOpen, setSnackOpen] = React.useState(false);
-  let establishmentId = "";
-  const userStr = localStorage.getItem("user");
-if (userStr) {
-  try {
-    const userObj = JSON.parse(userStr);
-    establishmentId = userObj.establishmentId;
-  } catch (e) {
-    establishmentId = "";
-  }
-}
-  const publicLink = establishmentId
-    ? `${window.location.origin}/agendamento/${establishmentId}`
-    : "";
+  const [snackOpenDefault, setSnackOpenDefault] = React.useState(false);
+  const currentEstablishment = establishments?.[0];
+const establishmentId = currentEstablishment?._id;
+const hasServices = currentEstablishment?.services?.length > 0;
+
+const publicLink = establishmentId
+  ? `${window.location.origin}/agendamento/${establishmentId}`
+  : "";
 
   const handleCopyLink = async () => {
     if (publicLink) {
@@ -118,13 +113,62 @@ if (userStr) {
 
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", pr: 2 }}>
-      {establishmentId && <Tooltip title="Copiar link de agendamento">
-        <IconButton onClick={handleCopyLink} sx={{ color: "#6A1B9A" }}>
-          <LinkIcon />
-        </IconButton>
-      </Tooltip>}
-       
+    <Box sx={{ display: "flex", alignItems: "center", pr: 2, gap: 1 }}>
+      {hasServices ? (
+        
+        <Tooltip title="Copiar link de agendamento" >
+        <Box onClick={handleCopyLink} sx={{
+            display: "flex",
+          background: "#6A1B9A",
+          color: "#fff",
+          px: 2,
+          py: 1,
+          borderRadius: 4,
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "0.9rem",
+          transition: "all 0.2s",
+          "&:hover": {
+            background: "#AC42F7",
+          },
+        }}>
+
+         
+            <LinkIcon />
+        </Box>
+            </Tooltip>
+      ): (
+          <Tooltip title="É necessário cadastrar pelo menos um serviço para gerar o link de agendamento" >
+            
+          <Box  onClick={() => setSnackOpenDefault(true)} sx={{
+            display: "flex",
+          background: "#6A1B9A",
+          color: "#fff",
+          px: 2,
+          py: 1,
+          borderRadius: 4,
+          cursor: "default",
+          fontWeight: "bold",
+          fontSize: "0.9rem",
+          transition: "all 0.2s",
+          "&:hover": {
+            background: "#AC42F7",
+          },
+        }}>
+            <LinkIcon />
+        </Box>
+          </Tooltip>
+        )}
+       <Snackbar
+  open={snackOpenDefault}
+  autoHideDuration={4000}
+  onClose={() => setSnackOpenDefault(false)}
+  anchorOrigin={{ vertical: "top", horizontal: "right" }}
+>
+  <MuiAlert elevation={6} color="warning">
+    Cadastre ao menos um serviço para gerar o link de agendamento
+  </MuiAlert>
+</Snackbar>
       <Box
         onClick={onToggleIA}
         sx={{
