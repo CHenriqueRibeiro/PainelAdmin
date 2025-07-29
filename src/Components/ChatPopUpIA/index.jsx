@@ -87,7 +87,7 @@ export default function ChatPopUpIA({ open, onClose, token }) {
     simularProgresso();
 
     try {
-     const response = await fetch(`http://localhost:3000${rota}`, {
+     const response = await fetch(`https://lavaja.up.railway.app${rota}`, {
   method: body ? "POST" : "GET",
   headers: {
     Authorization: `Bearer ${token}`,
