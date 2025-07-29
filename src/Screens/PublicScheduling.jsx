@@ -29,7 +29,6 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 const purple = "#8B5CF6";
-const lightPurple = "#F8FAFC";
 const accentPurple = "#A855F7";
 
 const schema = yup.object().shape({

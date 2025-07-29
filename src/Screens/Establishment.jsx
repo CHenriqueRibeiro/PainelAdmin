@@ -11,7 +11,7 @@ export default function Establishment() {
   const [service, setService] = useState(true);
   const [establishment, setEstablishment] = useState(true);
   const [dataEstablishment, setDataEstablishment] = useState([]);
-  const { isTokenValid } = useAuth();
+  const { isTokenValid, buscarEstabelecimentos } = useAuth();
   const token = localStorage.getItem("authToken");
   const OwnerUser = JSON.parse(localStorage.getItem("user"));
 
@@ -21,31 +21,33 @@ export default function Establishment() {
     }
   }, [isTokenValid]);
   const fetchEstablishments = async () => {
-    const ownerId = OwnerUser.id;
-    if (!ownerId || !token) return;
+  const ownerId = OwnerUser.id;
+  if (!ownerId || !token) return;
 
-    try {
-      const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
+  try {
+    const response = await fetch(
+      `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error("Erro ao buscar estabelecimentos");
 
-      const data = await response.json();
-      setDataEstablishment(data.establishments);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Erro:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const data = await response.json();
+    setDataEstablishment(data.establishments);
+    await buscarEstabelecimentos(ownerId);
+    setIsLoading(false);
+  } catch (error) {
+    console.error("Erro:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchEstablishments();
