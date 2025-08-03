@@ -70,12 +70,14 @@ const schema = yup.object().shape({
   service: yup.string().required("Serviço é obrigatório"),
   selectedSlot: yup.string().required("Horário é obrigatório"),
   statusCreateNew: yup.string().required("Status é obrigatório"),
+  price: yup.number().required("Preço é obrigatório"),
 });
 const editSchema = yup.object().shape({
   veiculo: yup.string().required("Veículo é obrigatório"),
   selectedDate: yup.string().required("Data é obrigatória"),
   selectedService: yup.string().required("Serviço é obrigatório"),
   selectedSlot: yup.string().required("Horário é obrigatório"),
+  price: yup.number().required("Preço é obrigatório"),
 });
 // eslint-disable-next-line react/prop-types
 const ScheduledServices = ({
@@ -212,14 +214,16 @@ const handleCloseCamera = () => {
 
 
   const {
-    handleSubmit,
-    control,
-    reset,
-    getValues,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(currentSchema),
-  });
+  handleSubmit,
+  control,
+  reset,
+  getValues,
+  setValue,
+  formState: { errors },
+} = useForm({
+  resolver: yupResolver(currentSchema),
+});
+
 
   const handleMenuOpen = (event, item) => {
     event.stopPropagation();
@@ -608,7 +612,8 @@ const handleOpenPhotoDialog = (agendamento) => {
     fd.append('establishmentId', establishmentId);
     fd.append('startTime', startHour);
     fd.append('endTime', endTime);
-    fd.append('price', selectedServiceObj?.price);
+    fd.append('price', formData.price);
+
     fd.append('status', statusCreateNew);
     fd.append('reminderWhatsapp', reminderWhatsapp);
 
@@ -1966,9 +1971,18 @@ const handleClosePhotoDialog = () => {
                               <Select
                                 {...field}
                                 onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  setService(e.target.value);
-                                }}
+  field.onChange(e.target.value);
+  const selectedService = availableServices.find(
+    (s) => s.serviceId === e.target.value
+  );
+  setService(e.target.value);
+ const currentPrice = getValues("price");
+
+if (!currentPrice || currentPrice === "" || currentPrice === "0") {
+  setValue("price", selectedService?.price || "");
+}
+}}
+
                                 label="Serviço"
                               >
                                 {availableServices.map((service) => (
@@ -2059,39 +2073,40 @@ const handleClosePhotoDialog = () => {
                           )
                         )}
                         <InputLabel
-                          sx={{
-                            color: "#FFFFFF",
-                            pb: 0.5,
-                            pl: 0.3,
-                            fontWeight: 600,
-                            mt: 2,
-                          }}
-                        >
-                          Preço
-                        </InputLabel>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          value={
-                            service
-                              ? `R$ ${
-                                  availableServices.find(
-                                    (s) => s.serviceId === service
-                                  )?.price || 0
-                                }`
-                              : ""
-                          }
-                          disabled
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              bgcolor: "#fff",
-                              borderRadius: 2,
-                            },
-                            "& .MuiInputBase-root.Mui-error": {
-                              bgcolor: "#fff",
-                            },
-                          }}
-                        />
+  sx={{
+    color: "#FFFFFF",
+    pb: 0.5,
+    pl: 0.3,
+    fontWeight: 600,
+    mt: 2,
+  }}
+>
+  Preço
+</InputLabel>
+<Controller
+  name="price"
+  control={control}
+  render={({ field }) => (
+    <TextField
+      {...field}
+      fullWidth
+      size="small"
+      type="number"
+      error={!!errors.price}
+      helperText={errors.price?.message}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          bgcolor: "#fff",
+          borderRadius: 2,
+        },
+        "& .MuiInputBase-root.Mui-error": {
+          bgcolor: "#fff",
+        },
+      }}
+    />
+  )}
+/>
+
                         <InputLabel
                           sx={{
                             color: "#FFFFFF",
