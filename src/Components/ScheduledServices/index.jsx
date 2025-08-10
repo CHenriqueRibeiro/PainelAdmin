@@ -259,7 +259,7 @@ const handleCloseCamera = () => {
     setLoadingServices(true);
 
     const response = await fetch(
-      `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${appointment.date}`
+      `http://localhost:3000/api/availability/${establishmentId}?date=${appointment.date}`
     );
     const data = await response.json();
     setAvailableServices(data.services);
@@ -330,7 +330,7 @@ const handleOpenPhotoDialog = (agendamento) => {
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -360,7 +360,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -382,7 +382,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -404,7 +404,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -427,7 +427,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedAppointment.date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedAppointment.date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -468,7 +468,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       );
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -508,7 +508,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -546,7 +546,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentToDelete._id}`,
+        `http://localhost:3000/api/appointments/appointments/${appointmentToDelete._id}`,
         {
           method: "DELETE",
           headers: {
@@ -622,7 +622,7 @@ const handleOpenPhotoDialog = (agendamento) => {
     });
 
     const response = await fetch(
-      `https://lavaja.up.railway.app/api/appointments/appointments`,
+      `http://localhost:3000/api/appointments/appointments`,
       {
         method: "POST",
         body: fd,
@@ -1434,7 +1434,7 @@ const handleClosePhotoDialog = () => {
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
+                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -2595,7 +2595,7 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
             onClick={async () => {
               const newPhotos = existingPhotos.filter((_, i) => i !== idx);
               const resp = await fetch(
-                `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+                `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -2782,12 +2782,12 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
 
   try {
     const resp = await fetch(
-      `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+      `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
       { method: "PUT", body: fd }
     );
     if (resp.ok) {
       const agendamentoResp = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}`
+        `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}`
       );
       if (agendamentoResp.ok) {
         const agendamento = await agendamentoResp.json();
@@ -2932,7 +2932,7 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
         const idx = zoomPhotoData.idx;
         const newPhotos = existingPhotos.filter((_, i) => i !== idx);
         const resp = await fetch(
-          `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+          `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
