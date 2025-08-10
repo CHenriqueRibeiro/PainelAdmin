@@ -77,19 +77,19 @@ const Rotas = () => {
           <Route index element={<Establishment />} />
         </Route>
         <Route
-          path="gestão/custos"
+          path="/custos"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Costs />} />
         </Route>
         <Route
-          path="gestão/orcamentos"
+          path="/orcamentos"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Budgets />} />
         </Route>
         <Route
-          path="gestão/estoque"
+          path="/estoque"
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Products />} />

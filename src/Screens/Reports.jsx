@@ -131,6 +131,44 @@ const ReportPage = () => {
   const reservedHoursValues = reportData
     ? Object.values(reportData.reservedHours)
     : [];
+
+const originLabels = reportData ? Object.keys(reportData.origins || {}) : [];
+const originValues = reportData ? Object.values(reportData.origins || {}) : [];
+// FIXOS por tipo (donut ou barra)
+const fixedTypeLabels = reportData ? Object.keys(reportData.costs?.fixed?.byType || {}) : [];
+const fixedTypeValues = reportData ? Object.values(reportData.costs?.fixed?.byType || {}) : [];
+const fixedTotal = reportData?.costs?.fixed?.total ?? 0;
+
+// VARIÁVEIS por produto (donut ou barra)
+const varProdLabels = reportData ? Object.keys(reportData.costs?.variable?.byProduct || {}) : [];
+const varProdValues = reportData ? Object.values(reportData.costs?.variable?.byProduct || {}) : [];
+const variableTotal = reportData?.costs?.variable?.total ?? 0;
+
+
+const topCustomers = reportData?.topCustomers || [];
+const topCustLabels = topCustomers.map((c) => c.name || c.phone);
+const topCustCounts = topCustomers.map((c) => c.count);
+
+// ---- Ganhos x Gastos (por dia) ----
+const ts = reportData?.timeseries || {};
+const revByDay = ts.revenueByDay || {};
+const costByDay = ts.costsByDay || {};
+const netByDay = ts.netByDay || {};
+
+// gera eixo de datas contínuo entre startDate e endDate (YYYY-MM-DD)
+const daysRange = [];
+if (startDate && endDate) {
+  const d0 = dayjs(startDate).startOf("day");
+  const d1 = dayjs(endDate).startOf("day");
+  for (let d = d0; d.isBefore(d1) || d.isSame(d1); d = d.add(1, "day")) {
+    daysRange.push(d.format("YYYY-MM-DD"));
+  }
+}
+
+// monta as séries alinhadas ao eixo
+const seriesRevenue = daysRange.map((k) => Number(revByDay[k] || 0));
+const seriesCosts   = daysRange.map((k) => Number(costByDay[k] || 0));
+const seriesNet     = daysRange.map((k) => Number(netByDay[k] || 0));
   const totalRevenue = reportData?.totalRevenue ?? 0;
   const totalWashes = reservedHoursValues.reduce((a, b) => a + b, 0);
   const commonCardStyles = {
@@ -351,6 +389,7 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
+        
         <Grid2 size={{ xs: 12, md: 6, lg: 3 }} sx={{ height: "100%" }}>
           <Card
             sx={{
@@ -461,7 +500,7 @@ const ReportPage = () => {
                 variant="subtitle2"
                 sx={{ color: "#6b21a8", fontWeight: 600 }}
               >
-                Receita Semanal
+                Receita no período
               </Typography>
               {weeklyRevenueData.every((val) => val === 0) ? (
                 <Box
@@ -513,7 +552,124 @@ const ReportPage = () => {
         </Grid2>
       </Grid2>
 
-      <Grid2 container spacing={3} sx={{ mb: 3 }}>
+
+<Grid2 container spacing={3} sx={{ mb: 3 }}>
+  <Grid2 size={{ xs: 12 }}>
+    <Card sx={commonCardStyles}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ color: "#6b21a8", fontWeight: 600 }}>
+          Receita x Gastos no período
+        </Typography>
+
+        {(!daysRange.length) || (seriesRevenue.every(v => v === 0) && seriesCosts.every(v => v === 0)) ? (
+          <Box sx={{ height: 265, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Não há dados para mostrar no período selecionado.
+            </Typography>
+          </Box>
+        ) : (
+          <Chart
+  options={{
+    chart: { type: "area", toolbar: { show: false }, background: "transparent" },
+    xaxis: { categories: daysRange.map(d => dayjs(d).format("DD/MM")) },
+    stroke: { curve: "smooth", width: 2 },            // linhas mais grossas
+    markers: { size: 4, strokeWidth: 0 },             // pontos visíveis
+    dataLabels: { enabled: false },
+    legend: { position: "bottom" },
+    colors: ["#16a34a", "#ef4444", "#2563eb"],        // ganho, gasto, lucro
+    fill: {                                           // área com mais contraste
+      type: "gradient",
+      gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.08, stops: [0, 90, 100] },
+    },
+    grid: { borderColor: "rgba(0,0,0,0.08)" },
+    tooltip: { y: { formatter: v => `R$ ${Number(v).toFixed(2)}` } },
+    yaxis: { min: 0 }                                  // evita “afundar” perto do zero
+  }}
+  series={[
+    { name: "Ganhos", data: seriesRevenue },
+    { name: "Gastos", data: seriesCosts },
+    { name: "Lucro",  data: seriesNet },
+  ]}
+  type="area"
+  height={280}
+/>
+
+        )}
+      </CardContent>
+    </Card>
+  </Grid2>
+</Grid2>
+
+
+<Grid2 container spacing={3} sx={{ mb: 3 }}>
+  <Grid2 size={{ xs: 12, md: 6 }}>
+    <Card sx={commonCardStyles}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ color: "#6b21a8", fontWeight: 600 }}>
+          Custos Variáveis por Produto no período
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Total: R$ {variableTotal.toFixed(2)}
+        </Typography>
+
+        {!varProdValues.length || varProdValues.every(v => v === 0) ? (
+          <Box sx={{ height: 260, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Não há dados para mostrar no período selecionado.
+            </Typography>
+          </Box>
+        ) : (
+          <Chart
+            options={{
+              labels: varProdLabels,
+              chart: { type: "donut", toolbar: { show: true } },
+              legend: { position: "bottom" },
+              colors: ["#7e22ce", "#9333ea", "#a855f7", "#c084fc", "#d8b4fe"],
+              dataLabels: { enabled: true },
+            }}
+            series={varProdValues}
+            type="donut"
+            height={250}
+          />
+        )}
+      </CardContent>
+    </Card>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 6 }}>
+    <Card sx={commonCardStyles}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ color: "#6b21a8", fontWeight: 600 }}>
+          Custos Fixos por Tipo no período
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Total: R$ {fixedTotal.toFixed(2)}
+        </Typography>
+
+        {!fixedTypeValues.length || fixedTypeValues.every(v => v === 0) ? (
+          <Box sx={{ height: 255, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Não há dados para mostrar no período selecionado.
+            </Typography>
+          </Box>
+        ) : (
+          <Chart
+            options={{
+              labels: fixedTypeLabels,
+              chart: { type: "donut", toolbar: { show: true } },
+              legend: { position: "bottom" },
+              colors: ["#7e22ce", "#9333ea", "#a855f7", "#c084fc", "#d8b4fe"],
+              dataLabels: { enabled: true },
+            }}
+            series={fixedTypeValues}
+            type="donut"
+            height={250}
+          />
+        )}
+      </CardContent>
+    </Card>
+        </Grid2>
+        </Grid2>
+            <Grid2 container spacing={3} sx={{ mb: 3 }}>
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={commonCardStyles}>
             <CardContent>
@@ -521,7 +677,7 @@ const ReportPage = () => {
                 variant="subtitle2"
                 sx={{ color: "#6b21a8", fontWeight: 600 }}
               >
-                Tipos de Serviço
+                Serviço mais reservados no período
               </Typography>
               {serviceTypeValues.every((val) => val === 0) ? (
                 <Box
@@ -563,7 +719,7 @@ const ReportPage = () => {
                 variant="subtitle2"
                 sx={{ color: "#6b21a8", fontWeight: 600 }}
               >
-                Horários Mais Reservados
+                Horários Mais Reservados no período
               </Typography>
               {reservedHoursValues.every((val) => val === 0) ? (
                 <Box
@@ -597,7 +753,79 @@ const ReportPage = () => {
             </CardContent>
           </Card>
         </Grid2>
+         <Grid2 size={{ xs: 12}}>
+    <Card sx={commonCardStyles}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ color: "#6b21a8", fontWeight: 600 }}>
+          Origem dos Agendamentos no período
+        </Typography>
+
+        {(!originValues.length || originValues.every((v) => v === 0)) ? (
+          <Box sx={{ height: 265, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Não há dados para mostrar no período selecionado.
+            </Typography>
+          </Box>
+        ) : (
+          <Chart
+            options={{
+              labels: originLabels,         // ["Sistema","Link","Outros"]
+              chart: { type: "donut", toolbar: { show: true } },
+              legend: { position: "bottom" },
+              // mantém a paleta do projeto
+              colors: ["#7e22ce", "#9333ea", "#c084fc"],
+              dataLabels: { enabled: true },
+            }}
+            series={originValues}          // [qtdSistema, qtdLink, qtdOutros]
+            type="donut"
+            height={250}
+          />
+        )}
+      </CardContent>
+    </Card>
+  </Grid2>
       </Grid2>
+<Grid2 container spacing={3} sx={{ mb: 3 }}>
+      <Grid2 size={{ xs: 12 }}>
+    <Card sx={commonCardStyles}>
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ color: "#6b21a8", fontWeight: 600 }}>
+          Top Clientes no período
+        </Typography>
+
+        {!topCustCounts.length ? (
+          <Box sx={{ height: 265, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Não há dados para mostrar no período selecionado.
+            </Typography>
+          </Box>
+        ) : (
+          <Chart
+            options={{
+              chart: { type: "bar", toolbar: { show: true } },
+              xaxis: { categories: topCustLabels },
+              colors: ["#7e22ce"],
+              plotOptions: { bar: { borderRadius: 6, columnWidth: "50%" } },
+              dataLabels: { enabled: false },
+              tooltip: {
+                y: {
+                  formatter: (val, { dataPointIndex }) => {
+                    const spent = topCustSpent?.[dataPointIndex] ?? 0;
+                    return `${val} lavagens • R$ ${spent.toFixed(2)}`;
+                  },
+                },
+              },
+            }}
+            series={[{ name: "Lavagens", data: topCustCounts }]}
+            type="bar"
+            height={260}
+          />
+        )}
+      </CardContent>
+    </Card>
+        </Grid2>
+        </Grid2>
+
     </Box>
   );
 };

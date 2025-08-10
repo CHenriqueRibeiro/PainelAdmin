@@ -182,7 +182,6 @@ useEffect(() => {
         />
       </Box>
 
-      {/* Notificação de novo agendamento */}
       <Snackbar
         open={showNotification}
         autoHideDuration={3000}

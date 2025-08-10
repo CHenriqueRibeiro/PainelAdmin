@@ -30,11 +30,7 @@ const NAVIGATION = [
     segment: "Relatorios",
     icon: <AnalyticsIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
   },
-  {
-    segment: "Gestão",
-    title: "Gestão",
-    icon: <DonutSmallRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
-    children: [
+
       {
         segment: "Custos",
         icon: <QueryStatsRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
@@ -47,8 +43,8 @@ const NAVIGATION = [
         segment: "Estoque",
         icon: <InventoryRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
       },
-    ],
-  },
+    
+
 ];
 
 const demoTheme = createTheme({

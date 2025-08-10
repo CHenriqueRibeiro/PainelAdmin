@@ -156,6 +156,7 @@ export default function AgendamentoPublico() {
             veiculo: data.veiculo,
             date: selectedDate,
             startTime: selectedSlot,
+            origin: "Link"
           }),
         }
       );
