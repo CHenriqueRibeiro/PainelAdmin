@@ -114,7 +114,7 @@ useEffect(() => {
       setFormErrors({});
       setIsLoading(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/establishments/${dataEstablishment[0]._id}/products`,
+        `http://localhost:3000/api/products/establishments/${dataEstablishment[0]._id}/products`,
         {
           method: "POST",
           headers: {

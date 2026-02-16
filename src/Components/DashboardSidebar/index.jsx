@@ -8,7 +8,7 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import DonutSmallRoundedIcon from "@mui/icons-material/DonutSmallRounded";
+import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
@@ -42,7 +42,10 @@ const NAVIGATION = [
       {
         segment: "Estoque",
         icon: <InventoryRoundedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
-      },
+      },{
+        segment: "Clientes",
+        icon: <AccountBoxOutlinedIcon sx={{ color: "#6A1B9A", fontSize: 28 }} />,
+      }
     
 
 ];

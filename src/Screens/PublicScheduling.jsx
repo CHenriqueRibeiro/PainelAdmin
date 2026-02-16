@@ -70,7 +70,7 @@ export default function AgendamentoPublico() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://lavaja.up.railway.app/api/public/establishment/${establishmentId}`)
+    fetch(`http://localhost:3000/api/public/establishment/${establishmentId}`)
       .then((res) => res.json())
       .then((data) => {
         setEstablishment(data);
@@ -93,7 +93,7 @@ export default function AgendamentoPublico() {
   setLoadingSlots(true);
   setSlots([]);
   fetch(
-    `https://lavaja.up.railway.app/api/public/establishment/${establishmentId}/service/${serviceSelected.id}/slots?date=${selectedDate}`
+    `http://localhost:3000/api/public/establishment/${establishmentId}/service/${serviceSelected.id}/slots?date=${selectedDate}`
   )
     .then((res) => res.json())
     .then((data) => {
@@ -146,7 +146,7 @@ export default function AgendamentoPublico() {
     setErrorMsg("");
     try {
       const res = await fetch(
-        `https://lavaja.up.railway.app/api/public/establishment/${establishmentId}/service/${serviceSelected.id}/appointments`,
+        `http://localhost:3000/api/public/establishment/${establishmentId}/service/${serviceSelected.id}/appointments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

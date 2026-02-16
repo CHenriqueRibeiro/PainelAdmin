@@ -421,7 +421,7 @@ const NewBudgets = ({ dataEstablishment, setEstablishment = () => {} }) => {
 
     try {
       const response = await fetch(
-        "https://lavaja.up.railway.app/api/budget/budget",
+        "http://localhost:3000/api/budget/budget",
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },

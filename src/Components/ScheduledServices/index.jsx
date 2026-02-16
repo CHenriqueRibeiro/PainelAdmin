@@ -65,7 +65,7 @@ const schema = yup.object().shape({
     .string()
     .matches(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido")
     .required("Telefone é obrigatório"),
-  veiculo: yup.string().required("Veículo é obrigatório"),
+  veiculos: yup.string().required("Veículo é obrigatório"),
   date: yup.string().required("Data é obrigatória"),
   service: yup.string().required("Serviço é obrigatório"),
   selectedSlot: yup.string().required("Horário é obrigatório"),
@@ -73,7 +73,7 @@ const schema = yup.object().shape({
   price: yup.number().required("Preço é obrigatório"),
 });
 const editSchema = yup.object().shape({
-  veiculo: yup.string().required("Veículo é obrigatório"),
+  veiculos: yup.string().required("Veículo é obrigatório"),
   selectedDate: yup.string().required("Data é obrigatória"),
   selectedService: yup.string().required("Serviço é obrigatório"),
   selectedSlot: yup.string().required("Horário é obrigatório"),
@@ -94,6 +94,7 @@ const ScheduledServices = ({
   const [sortKey, setSortKey] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [reminderWhatsapp, setReminderWhatsapp] = useState(false);
+const [criarCliente, setCriarCliente] = useState(false);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [openDialogData, setOpenDialogData] = useState(false);
@@ -143,6 +144,10 @@ const videoRef = React.useRef();
 const [zoomPhotoData, setZoomPhotoData] = useState({ url: "", idx: -1 });
 const [appointmentPhotoId, setAppointmentPhotoId] = useState(null);
 const [existingPhotos, setExistingPhotos] = useState([]);
+const [clientVehicles, setClientVehicles] = useState([]);
+const [isVehicleSelect, setIsVehicleSelect] = useState(false);
+const [selectedClientId, setSelectedClientId] = useState(null);
+
 
 
 const isMobileOrTablet = () => /android|iphone|ipad|mobile/i.test(navigator.userAgent);
@@ -197,7 +202,7 @@ const handleCapturePhoto = () => {
   canvas.getContext("2d").drawImage(video, 0, 0);
   canvas.toBlob((blob) => {
     if (blob) {
-      const file = new File([blob], `foto-veiculo-${Date.now()}.jpg`, { type: "image/jpeg" });
+      const file = new File([blob], `foto-veiculos-${Date.now()}.jpg`, { type: "image/jpeg" });
       setSelectedFiles((prev) => [...prev, file]);
     }
   }, "image/jpeg", 0.85);
@@ -213,16 +218,18 @@ const handleCloseCamera = () => {
 };
 
 
-  const {
+ const {
   handleSubmit,
   control,
   reset,
   getValues,
   setValue,
+  watch,
   formState: { errors },
 } = useForm({
   resolver: yupResolver(currentSchema),
 });
+const clientPhone = watch("clientPhone");
 
 
   const handleMenuOpen = (event, item) => {
@@ -259,7 +266,7 @@ const handleCloseCamera = () => {
     setLoadingServices(true);
 
     const response = await fetch(
-      `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${appointment.date}`
+      `http://localhost:3000/api/availability/${establishmentId}?date=${appointment.date}`
     );
     const data = await response.json();
     setAvailableServices(data.services);
@@ -282,7 +289,7 @@ const handleCloseCamera = () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     reset({
-      veiculo: appointment.veiculo || "",
+      veiculos: appointment.veiculos || "",
       selectedDate: appointment.date || "",
       selectedService: serviceId,
       selectedSlot: slot,
@@ -292,6 +299,8 @@ const handleCloseCamera = () => {
   };
   const handleCloseDialog = () => {
     setOpenDialog(false);
+  setIsVehicleSelect(false);
+
   };
 const handleOpenPhotoDialog = (agendamento) => {
   setAppointmentPhotoId(agendamento._id);
@@ -304,6 +313,8 @@ const handleOpenPhotoDialog = (agendamento) => {
   setAddPhotos(false);
   setSelectedFiles([]);
   setOpenDialogScheduling(false);
+  setIsVehicleSelect(false);
+
   };
   const handleOpenDialogScheduling = () => {
     setCurrentSchema(schema);
@@ -312,7 +323,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       {
         clientName: "",
         clientPhone: "",
-        veiculo: "",
+        veiculos: "",
         date: "",
         service: "",
         selectedSlot: "",
@@ -327,10 +338,65 @@ const handleOpenPhotoDialog = (agendamento) => {
   };
 
   useEffect(() => {
+  const fetchClient = async () => {
+    if (!clientPhone || clientPhone.length < 15) return;
+
+    try {
+      const telefoneLimpo = clientPhone.replace(/\D/g, "");
+
+      const response = await fetch(
+        `http://localhost:3000/api/clients/${establishmentId}/clients?telefone=${telefoneLimpo}`
+      );
+
+      if (response.status === 404) {
+        setClientVehicles([]);
+setIsVehicleSelect(false);
+setSelectedClientId(null);
+
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar cliente");
+      }
+
+      const client = await response.json();
+
+setSelectedClientId(client._id);
+setValue("clientName", client.name || "");
+
+if (client.veiculos && client.veiculos.length > 1) {
+  setClientVehicles(client.veiculos);
+  setIsVehicleSelect(true);
+  setValue("veiculos", "");
+} else if (client.veiculos && client.veiculos.length === 1) {
+  setIsVehicleSelect(false);
+  setClientVehicles([]);
+  setValue("veiculos", client.veiculos[0]);
+}
+
+
+    } catch (error) {
+      console.error(error);
+      setClientVehicles([]);
+setIsVehicleSelect(false);
+setSelectedClientId(null);
+
+    }
+  };
+
+  const timeout = setTimeout(fetchClient, 500);
+  return () => clearTimeout(timeout);
+
+}, [clientPhone]);
+
+
+
+  useEffect(() => {
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setLoadingServices(true);
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -346,7 +412,7 @@ const handleOpenPhotoDialog = (agendamento) => {
   useEffect(() => {
     if (selectedAppointment) {
       reset({
-        veiculo: selectedAppointment.veiculo || "",
+        veiculos: selectedAppointment.veiculos || "",
         selectedDate: selectedAppointment.date || "",
         selectedService: selectedAppointment.serviceId || "",
         selectedSlot:
@@ -360,7 +426,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -382,7 +448,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -404,7 +470,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingSlots(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedDate}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedDate}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -427,7 +493,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setLoadingServices(true);
 
       fetch(
-        `https://lavaja.up.railway.app/api/availability/${establishmentId}?date=${selectedAppointment.date}`
+        `http://localhost:3000/api/availability/${establishmentId}?date=${selectedAppointment.date}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -468,14 +534,14 @@ const handleOpenPhotoDialog = (agendamento) => {
       );
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             startTime,
             endTime,
-            veiculo: formData.veiculo,
+            veiculos: formData.veiculos,
             date: formData.selectedDate,
             serviceId: formData.selectedService,
             serviceName: selectedServiceObj?.serviceName,
@@ -508,7 +574,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${selectedAppointment._id}`,
+        `http://localhost:3000/api/appointments/appointments/${selectedAppointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -546,7 +612,7 @@ const handleOpenPhotoDialog = (agendamento) => {
       setIsLoadingButton(true);
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentToDelete._id}`,
+        `http://localhost:3000/api/appointments/appointments/${appointmentToDelete._id}`,
         {
           method: "DELETE",
           headers: {
@@ -582,7 +648,7 @@ const handleOpenPhotoDialog = (agendamento) => {
     const {
       clientName,
       clientPhone,
-      veiculo,
+      veiculos,
       date,
       service,
       selectedSlot,
@@ -605,7 +671,7 @@ const handleOpenPhotoDialog = (agendamento) => {
     const fd = new FormData();
     fd.append('clientName', clientName);
     fd.append('clientPhone', clientPhone);
-    fd.append('veiculo', veiculo);
+    fd.append('veiculos', veiculos);
     fd.append('serviceId', service);
     fd.append('date', date);
     fd.append('serviceName', selectedServiceObj?.serviceName);
@@ -616,13 +682,14 @@ const handleOpenPhotoDialog = (agendamento) => {
     fd.append('origin',"Sistema")
     fd.append('status', statusCreateNew);
     fd.append('reminderWhatsapp', reminderWhatsapp);
+    fd.append("criarCliente", criarCliente);
 
     selectedFiles.forEach((file) => {
       fd.append('fotos', file);
     });
 
     const response = await fetch(
-      `https://lavaja.up.railway.app/api/appointments/appointments`,
+      `http://localhost:3000/api/appointments/appointments`,
       {
         method: "POST",
         body: fd,
@@ -644,6 +711,7 @@ const handleOpenPhotoDialog = (agendamento) => {
     setSelectedSlot("");
     setSelectedFiles([]);
     setAddPhotos(false);
+    setCriarCliente(false);
   } catch (error) {
     console.error("Erro:", error);
     setSnackbarSeverity("error");
@@ -744,7 +812,7 @@ const handleClosePhotoDialog = () => {
   useEffect(() => {
     if (selectedAppointment) {
       reset({
-        veiculo: selectedAppointment.veiculo || "",
+        veiculos: selectedAppointment.veiculos || "",
         selectedDate: selectedAppointment.date || "",
         selectedService: selectedAppointment.serviceId || "",
         selectedSlot:
@@ -1091,7 +1159,7 @@ const handleClosePhotoDialog = () => {
                               handleOpenDialogStatus(item.status, item._id);
                             } else if (item.status == "Entregue") {
                               setSnackbarSeverity("error");
-                              setSnackbarMessage("Veiculo já foi entregue.");
+                              setSnackbarMessage("veiculos já foi entregue.");
                               setOpenSnackbar(true);
                             }
                           }}
@@ -1200,7 +1268,7 @@ const handleClosePhotoDialog = () => {
                         handleOpenDialogStatus(item.status, item._id);
                       } else {
                         setSnackbarSeverity("error");
-                        setSnackbarMessage("Veiculo já foi entregue.");
+                        setSnackbarMessage("veiculos já foi entregue.");
                         setOpenSnackbar(true);
                       }
                     }}
@@ -1434,7 +1502,7 @@ const handleClosePhotoDialog = () => {
                 setIsLoadingButtonSave(true);
 
                 const response = await fetch(
-                  `https://lavaja.up.railway.app/api/appointments/appointments/${selectedServiceId}`,
+                  `http://localhost:3000/api/appointments/appointments/${selectedServiceId}`,
                   {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -1565,7 +1633,7 @@ const handleClosePhotoDialog = () => {
                   </LocalizationProvider>
                 )}
               />
-
+              
               {selectedDate && (
                 <Controller
                   name="selectedService"
@@ -1644,7 +1712,7 @@ const handleClosePhotoDialog = () => {
               )}
 
               <Controller
-                name="veiculo"
+                name="veiculos"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -1652,8 +1720,8 @@ const handleClosePhotoDialog = () => {
                     size="small"
                     fullWidth
                     label="Veículo"
-                    error={!!errors.veiculo}
-                    helperText={errors.veiculo?.message}
+                    error={!!errors.veiculos}
+                    helperText={errors.veiculos?.message}
                     sx={{
                       mb: 2,
                       "& .MuiOutlinedInput-root": {
@@ -1773,37 +1841,10 @@ const handleClosePhotoDialog = () => {
             >
               Cadastrar Agendamento
             </DialogTitle>
+            
             <DialogContent>
               <>
-                <InputLabel
-                  sx={{ color: "#FFFFFF", pb: 0.5, pl: 0.3, fontWeight: 600 }}
-                >
-                  Nome do Cliente
-                </InputLabel>
-                <Controller
-                  name="clientName"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      size="small"
-                      fullWidth
-                      error={!!errors.clientName}
-                      helperText={errors.clientName?.message}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: "#fff",
-                          borderRadius: 2,
-                        },
-                        "& .MuiInputBase-root.Mui-error": {
-                          bgcolor: "#fff",
-                        },
-                      }}
-                    />
-                  )}
-                />
-
-                <InputLabel
+              <InputLabel
                   sx={{
                     color: "#FFFFFF",
                     pb: 0.5,
@@ -1845,28 +1886,21 @@ const handleClosePhotoDialog = () => {
                     </InputMask>
                   )}
                 />
-
                 <InputLabel
-                  sx={{
-                    color: "#FFFFFF",
-                    pb: 0.5,
-                    pl: 0.3,
-                    fontWeight: 600,
-                    mt: 1,
-                  }}
+                  sx={{ color: "#FFFFFF",mt:1, pb: 0.5, pl: 0.3, fontWeight: 600 }}
                 >
-                  Veiculo
+                  Nome do Cliente
                 </InputLabel>
                 <Controller
-                  name="veiculo"
+                  name="clientName"
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      fullWidth
                       size="small"
-                      error={!!errors.veiculo}
-                      helperText={errors.veiculo?.message}
+                      fullWidth
+                      error={!!errors.clientName}
+                      helperText={errors.clientName?.message}
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           bgcolor: "#fff",
@@ -1879,6 +1913,67 @@ const handleClosePhotoDialog = () => {
                     />
                   )}
                 />
+
+                
+
+                <InputLabel
+                  sx={{
+                    color: "#FFFFFF",
+                    pb: 0.5,
+                    pl: 0.3,
+                    fontWeight: 600,
+                    mt: 1,
+                  }}
+                >
+                  Veículo
+                </InputLabel>
+                <Controller
+  name="veiculos"
+  control={control}
+  render={({ field }) =>
+    isVehicleSelect ? (
+      <FormControl
+        fullWidth
+        size="small"
+        error={!!errors.veiculos}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "#fff",
+            borderRadius: 2,
+          },
+        }}
+      >
+        <Select
+          {...field}
+          displayEmpty
+        >
+          <MenuItem value="">Selecione um veículo</MenuItem>
+          {clientVehicles.map((v, index) => (
+            <MenuItem key={index} value={v}>
+              {v}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    ) : (
+      <TextField
+        {...field}
+        fullWidth
+        size="small"
+        error={!!errors.veiculos}
+        helperText={errors.veiculos?.message}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "#fff",
+            borderRadius: 2,
+          },
+        }}
+      />
+    )
+  }
+/>
+
+
 
                 <Controller
                   name="date"
@@ -2163,6 +2258,20 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
                             </FormControl>
                           )}
                         />
+                        {!isVehicleSelect && (<Box sx={{ mt: 2 }}>
+  <FormControlLabel
+    control={
+      <Checkbox
+        checked={criarCliente}
+        onChange={(e) => setCriarCliente(e.target.checked)}
+        sx={{ color: "#AC42F7 !important" }}
+      />
+    }
+    label="Cadastrar cliente automaticamente se não existir"
+    sx={{ color: "#FFFFFF", fontWeight: 600 }}
+  />
+</Box>)}
+                        
                         {/*{statusCreateNew === "Agendado" && (
                           <Box
                             sx={{
@@ -2218,7 +2327,8 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
   sx={{ color: "#FFFFFF", fontWeight: 600 }}
 />
 
-</Box>}
+</Box>
+}
                     
 
 {addPhotos && (
@@ -2595,7 +2705,7 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
             onClick={async () => {
               const newPhotos = existingPhotos.filter((_, i) => i !== idx);
               const resp = await fetch(
-                `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+                `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -2782,12 +2892,12 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
 
   try {
     const resp = await fetch(
-      `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+      `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
       { method: "PUT", body: fd }
     );
     if (resp.ok) {
       const agendamentoResp = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}`
+        `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}`
       );
       if (agendamentoResp.ok) {
         const agendamento = await agendamentoResp.json();
@@ -2932,7 +3042,7 @@ if (!currentPrice || currentPrice === "" || currentPrice === "0") {
         const idx = zoomPhotoData.idx;
         const newPhotos = existingPhotos.filter((_, i) => i !== idx);
         const resp = await fetch(
-          `https://lavaja.up.railway.app/api/appointments/appointments/${appointmentPhotoId}/photos`,
+          `http://localhost:3000/api/appointments/appointments/${appointmentPhotoId}/photos`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },

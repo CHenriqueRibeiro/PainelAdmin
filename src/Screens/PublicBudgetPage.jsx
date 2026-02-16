@@ -28,7 +28,7 @@ const PublicBudgetPage = () => {
   useEffect(() => {
     if (budgetId) {
       fetch(
-        `https://lavaja.up.railway.app/api/budget/budget/public/${budgetId}`
+        `http://localhost:3000/api/budget/budget/public/${budgetId}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -65,7 +65,7 @@ const PublicBudgetPage = () => {
     try {
       setIsLoadingSignature(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/budget/budget/sign/${budgetId}`,
+        `http://localhost:3000/api/budget/budget/sign/${budgetId}`,
         {
           method: "PATCH",
           body: formData,

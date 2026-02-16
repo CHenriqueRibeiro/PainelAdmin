@@ -21,6 +21,7 @@ import Products from "../Screens/Products";
 import Budgets from "../Screens/Budgets";
 import PublicBudgetPage from "../Screens/PublicBudgetPage";
 import AgendamentoPublico from "../Screens/PublicScheduling";
+import Clients from "../Screens/Clients";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
@@ -93,6 +94,12 @@ const Rotas = () => {
           element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
         >
           <Route index element={<Products />} />
+        </Route>
+        <Route
+          path="/clientes"
+          element={<ProtectedRoute element={<DashboardLayoutBasic />} />}
+        >
+          <Route index element={<Clients />} />
         </Route>
       </Routes>
     </Router>

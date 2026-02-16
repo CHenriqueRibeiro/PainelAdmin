@@ -93,7 +93,7 @@ const Costs = ({
   const handleDelete = async (costId) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/cost/cost/${costId}/${dataEstablishment[0]._id}`,
+        `http://localhost:3000/api/cost/cost/${costId}/${dataEstablishment[0]._id}`,
         {
           method: "DELETE",
           headers: {
@@ -122,7 +122,7 @@ const Costs = ({
       setLoading(true);
       await costSchema.validate(selectedCost);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/cost/cost/${selectedCost._id}`,
+        `http://localhost:3000/api/cost/cost/${selectedCost._id}`,
         {
           method: "PUT",
           headers: {

@@ -29,7 +29,7 @@ const Budgets = ({
   const [budgets, setBudgets] = useState(dataEstablishment[0]?.budgets || []);
 
   useEffect(() => {
-    const socket = io("https://lavaja.up.railway.app");
+    const socket = io("http://localhost:3000");
 
     socket.on("budgetSigned", (data) => {
       setBudgets((prevBudgets) =>
@@ -79,7 +79,7 @@ const Budgets = ({
   const handleDelete = async (index) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
+        `http://localhost:3000/api/budget/budget/${dataEstablishment[0]._id}/${index}`,
         {
           method: "DELETE",
           headers: {

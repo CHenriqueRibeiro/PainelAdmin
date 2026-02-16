@@ -164,7 +164,6 @@ const EstablishmentServices = ({
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
-  //const [dailyLimit, setDailyLimit] = useState("");
   const [isLoadingButtonSave, setIsLoadingButtonSave] = useState(false);
   const [isLoadingButton, setIsLoadingButton] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -338,7 +337,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${expandedService}`,
         {
           method: "PUT",
           headers: {
@@ -380,7 +379,6 @@ const EstablishmentServices = ({
     setPrice("");
     setDuration("");
     setDescription("");
-    //setDailyLimit("");
     setAvailability(
       availability.map((day) => ({
         ...day,
@@ -396,7 +394,6 @@ const EstablishmentServices = ({
     setPrice("");
     setDuration("");
     setDescription("");
-    //setDailyLimit("");
     setAvailabilityEdit(
       availability.map((day) => ({
         ...day,
@@ -431,7 +428,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButtonSave(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service`,
         {
           method: "POST",
           headers: {
@@ -474,7 +471,7 @@ const EstablishmentServices = ({
     try {
       setIsLoadingButton(true);
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
+        `http://localhost:3000/api/services/establishment/${dataEstablishment[0]._id}/service/${serviceIdToDelete}`,
         {
           method: "DELETE",
           headers: {

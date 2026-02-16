@@ -43,7 +43,7 @@ const reporSchema = yup.object().shape({
     .typeError("Preço é obrigatório")
     .required("Preço é obrigatório")
     .min(0, "Preço não pode ser negativo"),
-  observacao: yup.string(), // opcional
+  observacao: yup.string(),
 });
 
 const editProductSchema = yup.object().shape({
@@ -108,7 +108,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/establishments/${dataEstablishment[0]._id}/products`,
+        `http://localhost:3000/api/products/establishments/${dataEstablishment[0]._id}/products`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await response.json();
@@ -134,14 +134,11 @@ const Products = ({ dataEstablishment, isLoading }) => {
     };
 
     try {
-      // Validação Yup
       await reporSchema.validate(data, { abortEarly: false });
-
-      // Se passou na validação, limpa erros
       setFormErrorsRepor({});
 
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/products/${selectedProduct._id}/repor`,
+        `http://localhost:3000/api/products/products/${selectedProduct._id}/repor`,
         {
           method: "PATCH",
           headers: {
@@ -163,7 +160,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
       fetchProducts();
     } catch (error) {
       console.log(error);
-      // Validação Yup
       if (error.name === "ValidationError") {
         const errors = {};
         error.inner.forEach((err) => {
@@ -182,7 +178,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
         });
         setFormErrorsRepor(errors);
       } else {
-        // Se for erro na requisição
         setSnackbarMessage("Erro ao repor estoque");
         setSnackbarSeverity("error");
         setOpenSnackbar(true);
@@ -193,7 +188,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
   const handleDelete = async (id) => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/${id}`,
+        `http://localhost:3000/api/products/${id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -246,7 +241,6 @@ const Products = ({ dataEstablishment, isLoading }) => {
         unidadeConsumo: s.unidadeConsumo ?? product.unidade,
       })) || [];
     const vincular = product.servicos?.length > 0;
-    // Se for para vincular e não houver serviços, adiciona um serviço vazio
     const servicosFinal =
       vincular && servicos.length === 0
         ? [
@@ -288,7 +282,7 @@ const Products = ({ dataEstablishment, isLoading }) => {
       await editProductSchema.validate(data, { abortEarly: false });
       setFormErrorsEdit({});
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/products/${selectedProduct._id}`,
+        `http://localhost:3000/api/products/${selectedProduct._id}`,
         {
           method: "PUT",
           headers: {

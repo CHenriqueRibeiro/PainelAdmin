@@ -37,7 +37,7 @@ const ReportPage = () => {
   const establishmentSearch = async () => {
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -97,7 +97,7 @@ const ReportPage = () => {
       const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD");
 
       const res = await fetch(
-        `https://lavaja.up.railway.app/api/appointments/appointments/report/dashboard?startDate=${formattedStartDate}&endDate=${formattedEndDate}&establishmentId=${owner.establishments[0]._id}`
+        `http://localhost:3000/api/appointments/appointments/report/dashboard?startDate=${formattedStartDate}&endDate=${formattedEndDate}&establishmentId=${owner.establishments[0]._id}`
       );
       const data = await res.json();
       setReportData(data);
@@ -134,12 +134,12 @@ const ReportPage = () => {
 
 const originLabels = reportData ? Object.keys(reportData.origins || {}) : [];
 const originValues = reportData ? Object.values(reportData.origins || {}) : [];
-// FIXOS por tipo (donut ou barra)
+
 const fixedTypeLabels = reportData ? Object.keys(reportData.costs?.fixed?.byType || {}) : [];
 const fixedTypeValues = reportData ? Object.values(reportData.costs?.fixed?.byType || {}) : [];
 const fixedTotal = reportData?.costs?.fixed?.total ?? 0;
 
-// VARIÁVEIS por produto (donut ou barra)
+
 const varProdLabels = reportData ? Object.keys(reportData.costs?.variable?.byProduct || {}) : [];
 const varProdValues = reportData ? Object.values(reportData.costs?.variable?.byProduct || {}) : [];
 const variableTotal = reportData?.costs?.variable?.total ?? 0;
@@ -149,13 +149,13 @@ const topCustomers = reportData?.topCustomers || [];
 const topCustLabels = topCustomers.map((c) => c.name || c.phone);
 const topCustCounts = topCustomers.map((c) => c.count);
 
-// ---- Ganhos x Gastos (por dia) ----
+
 const ts = reportData?.timeseries || {};
 const revByDay = ts.revenueByDay || {};
 const costByDay = ts.costsByDay || {};
 const netByDay = ts.netByDay || {};
 
-// gera eixo de datas contínuo entre startDate e endDate (YYYY-MM-DD)
+
 const daysRange = [];
 if (startDate && endDate) {
   const d0 = dayjs(startDate).startOf("day");
@@ -165,7 +165,7 @@ if (startDate && endDate) {
   }
 }
 
-// monta as séries alinhadas ao eixo
+
 const seriesRevenue = daysRange.map((k) => Number(revByDay[k] || 0));
 const seriesCosts   = daysRange.map((k) => Number(costByDay[k] || 0));
 const seriesNet     = daysRange.map((k) => Number(netByDay[k] || 0));
@@ -572,18 +572,18 @@ const seriesNet     = daysRange.map((k) => Number(netByDay[k] || 0));
   options={{
     chart: { type: "area", toolbar: { show: false }, background: "transparent" },
     xaxis: { categories: daysRange.map(d => dayjs(d).format("DD/MM")) },
-    stroke: { curve: "smooth", width: 2 },            // linhas mais grossas
-    markers: { size: 4, strokeWidth: 0 },             // pontos visíveis
+    stroke: { curve: "smooth", width: 2 },      
+    markers: { size: 4, strokeWidth: 0 }, 
     dataLabels: { enabled: false },
     legend: { position: "bottom" },
-    colors: ["#16a34a", "#ef4444", "#2563eb"],        // ganho, gasto, lucro
-    fill: {                                           // área com mais contraste
+    colors: ["#16a34a", "#ef4444", "#2563eb"],
+    fill: {
       type: "gradient",
       gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.08, stops: [0, 90, 100] },
     },
     grid: { borderColor: "rgba(0,0,0,0.08)" },
     tooltip: { y: { formatter: v => `R$ ${Number(v).toFixed(2)}` } },
-    yaxis: { min: 0 }                                  // evita “afundar” perto do zero
+    yaxis: { min: 0 }
   }}
   series={[
     { name: "Ganhos", data: seriesRevenue },
@@ -769,14 +769,13 @@ const seriesNet     = daysRange.map((k) => Number(netByDay[k] || 0));
         ) : (
           <Chart
             options={{
-              labels: originLabels,         // ["Sistema","Link","Outros"]
+              labels: originLabels,
               chart: { type: "donut", toolbar: { show: true } },
               legend: { position: "bottom" },
-              // mantém a paleta do projeto
               colors: ["#7e22ce", "#9333ea", "#c084fc"],
               dataLabels: { enabled: true },
             }}
-            series={originValues}          // [qtdSistema, qtdLink, qtdOutros]
+            series={originValues}
             type="donut"
             height={250}
           />

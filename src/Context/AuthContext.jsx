@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
       setLoadingEstablishments(true);
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/establishment/owner/${ownerId}`,
+        `http://localhost:3000/api/establishment/owner/${ownerId}`,
         {
           method: "GET",
           headers: {
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "https://lavaja.up.railway.app/api/owner/register",
+        "http://localhost:3000/api/owner/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, senha) => {
     try {
       const response = await fetch(
-        "https://lavaja.up.railway.app/api/auth/login",
+        "http://localhost:3000/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("authToken");
       if (token) {
-        await fetch("https://lavaja.up.railway.app/api/auth/logout", {
+        await fetch("http://localhost:3000/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

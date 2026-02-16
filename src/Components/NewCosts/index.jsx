@@ -89,7 +89,7 @@ const NewCosts = ({ dataEstablishment, setEstablishment = () => {} }) => {
       await costSchema.validate(costData, { abortEarly: false });
 
       setIsLoadingCostSave(true);
-      const response = await fetch("https://lavaja.up.railway.app/api/cost", {
+      const response = await fetch("http://localhost:3000/api/cost", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

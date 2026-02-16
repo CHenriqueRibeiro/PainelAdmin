@@ -37,7 +37,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await fetch(
-        `https://lavaja.up.railway.app/api/owner/reset-password/token/${token}`,
+        `http://localhost:3000/api/owner/reset-password/token/${token}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
